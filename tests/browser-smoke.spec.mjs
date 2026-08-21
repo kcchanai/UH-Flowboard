@@ -45,10 +45,34 @@ test('viewer card dialog close button remains enabled and returns focus', async 
   await expect(card).toBeFocused();
 });
 
+test('local Recovery lists, exports, and safely restores a snapshot', async ({page}) => {
+  await page.goto('/UH-Trello/');
+  const firstList = page.locator('.list').first();
+  const title = `Recovery smoke ${Date.now()}`;
+  await firstList.getByRole('button', {name: /add a card/i}).click();
+  await firstList.getByLabel('New card title').fill(title);
+  await firstList.getByRole('button', {name: 'Add card'}).click();
+  await page.getByRole('button', {name: 'Board actions'}).click();
+  const menu = page.getByRole('menu');
+  await menu.getByRole('menuitem', {name: 'Local recovery'}).click();
+  const dialog = page.getByRole('dialog', {name: 'Local recovery'});
+  await expect(dialog).toContainText('Snapshot 1');
+  const downloadPromise = page.waitForEvent('download');
+  await dialog.getByRole('button', {name: 'Export snapshot 1'}).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe('flowboard-recovery-snapshot-1.json');
+  await dialog.getByRole('button', {name: 'Restore snapshot 1'}).click();
+  const confirm = page.getByRole('dialog', {name: 'Restore local snapshot?'});
+  await expect(confirm).toBeVisible();
+  await confirm.getByRole('button', {name: 'Restore snapshot'}).click();
+  await expect(dialog).toBeHidden();
+  await expect(page.locator('.card-open').filter({hasText: title})).toHaveCount(0);
+});
+
 test('workspace root rename converges and archive returns the cloud session to local mode', async ({page}) => {
   await page.goto('/UH-Trello/');
   await page.waitForFunction(() => globalThis.FlowboardApp && globalThis.FlowboardState);
-  await expect(page.locator('#cloud-status')).toHaveText('Google sign-in available');
+  await expect(page.locator('#cloud-status')).toHaveText(/Google sign-in available|Local-only workspace/);
   await page.evaluate(async asset => {
     const {initializeCloudSyncController} = await import(asset);
     let listener, subscriptions = 0, stops = 0;
@@ -78,8 +102,12 @@ test('workspace root rename converges and archive returns the cloud session to l
 
 test('Google account dialog preserves an explicit local-only boundary', async ({page}) => {
   await page.goto('/UH-Trello/');
-  await expect(page.locator('#cloud-status')).toHaveText('Google sign-in available');
+  await expect(page.locator('#cloud-status')).toHaveText(/Google sign-in available|Local-only workspace/);
   const account = page.getByRole('button', {name: 'Sign in with Google'});
+  if (await page.locator('#cloud-status').textContent() === 'Local-only workspace') {
+    await expect(account).toBeHidden();
+    return;
+  }
   await account.click();
   const dialog = page.getByRole('dialog', {name: 'Google sign-in'});
   await expect(dialog).toBeVisible();

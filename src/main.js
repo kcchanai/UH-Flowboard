@@ -54,4 +54,6 @@ if (cloudConfigured && !cloudInitializationError) {
   accountButton.disabled = true;
   accountButton.textContent = 'Unavailable';
   document.querySelector('#cloud-status').textContent = 'Firebase unavailable';
+} else {
+  document.querySelector('#account-button').hidden = true;
 }
