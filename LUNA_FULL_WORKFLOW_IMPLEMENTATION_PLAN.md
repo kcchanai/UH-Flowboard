@@ -447,6 +447,12 @@ Exit gate:
 - code is more readable, not merely shorter;
 - no Rules or product behavior change is hidden in the refactor.
 
+#### Active source-headroom implementation directive
+
+At development checkpoint `f55998f`, measured production source is `204,095 / 210,000` bytes. Luna must implement `LUNA_SOURCE_HEADROOM_IMPLEMENTATION_PLAN.md` before closing this phase.
+
+The selected semantic reduction is to retire the obsolete browser-local `Collaboration plan` editor and fake local role preview now that real Firebase owner/editor/viewer authorization exists. Preserve legacy collaboration metadata in normalization, storage, import, and export compatibility. Browser-local mode becomes honestly editable; real cloud viewer and cloud-preview denial behavior must remain unchanged. The measured result must be at most `200,000 / 210,000` bytes without cap changes or unreadable compaction.
+
 ### Development Phase 2 - freeze the workflow contract and fixture model
 
 Goal: make “real workflow” executable and auditable.
