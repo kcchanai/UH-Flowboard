@@ -449,7 +449,7 @@ Exit gate:
 
 #### Active source-headroom implementation directive
 
-At development checkpoint `f55998f`, measured production source is `204,095 / 210,000` bytes. Luna must implement `LUNA_SOURCE_HEADROOM_IMPLEMENTATION_PLAN.md` before closing this phase.
+At development checkpoint `f55998f`, measured production source is `204,095 / 210,000` bytes. Luna must implement `LUNA_SOURCE_HEADROOM_EXECUTION_PROMPT.md`, supported by `LUNA_SOURCE_HEADROOM_IMPLEMENTATION_PLAN.md`, before closing this phase.
 
 The selected semantic reduction is to retire the obsolete browser-local `Collaboration plan` editor and fake local role preview now that real Firebase owner/editor/viewer authorization exists. Preserve legacy collaboration metadata in normalization, storage, import, and export compatibility. Browser-local mode becomes honestly editable; real cloud viewer and cloud-preview denial behavior must remain unchanged. The measured result must be at most `200,000 / 210,000` bytes without cap changes or unreadable compaction.
 

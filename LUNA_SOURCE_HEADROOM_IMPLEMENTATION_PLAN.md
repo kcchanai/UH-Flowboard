@@ -2,6 +2,8 @@
 
 Designed by Sol for Luna execution.
 
+Executable implementation prompt: `LUNA_SOURCE_HEADROOM_EXECUTION_PROMPT.md`
+
 ## Objective
 
 Reduce measured production raw source from `204,095 / 210,000` bytes to at most `200,000 / 210,000` bytes without changing the cap, minifying readable source, weakening authorization, shortening safety/accessibility copy, or changing persisted workspace/export shapes.
