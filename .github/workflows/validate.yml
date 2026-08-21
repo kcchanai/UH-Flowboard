@@ -48,6 +48,8 @@ jobs:
           exit 1
       - name: Browser critical-workflow checks
         run: npx playwright test tests/browser-smoke.spec.mjs
+      - name: Emulator-backed multi-user browser workflow
+        run: npm run test:emulator-browser
       - name: Automated accessibility check
         run: |
           npx lighthouse http://127.0.0.1:4173/UH-Trello/ --only-categories=accessibility --chrome-flags='--headless --no-sandbox' --output=json --output-path=lighthouse-report.json
