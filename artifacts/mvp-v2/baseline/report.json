@@ -1,0 +1,115 @@
+{
+  "generatedAt": "2026-09-16T08:14:28.398Z",
+  "baseUrl": "http://127.0.0.1:4191/UH-Flowboard/",
+  "httpStatus": 200,
+  "browser": "isolated anonymous Playwright context using configured system browser",
+  "dataBoundary": "Synthetic seeded local data only. No sign-in, cloud workspace, production fixture, raw storage, or credentials accessed.",
+  "consoleErrorCount": 0,
+  "pageErrorCount": 0,
+  "states": [
+    {
+      "name": "desktop-light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "documentHeight": 921,
+      "boardWidth": 1384,
+      "boardScrollWidth": 1520,
+      "listCount": 4,
+      "cardCount": 10,
+      "visibleBoardSwitcher": true,
+      "visibleSearchWidth": 326,
+      "visibleCardDialog": false,
+      "theme": "light"
+    },
+    {
+      "name": "desktop-dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "documentHeight": 921,
+      "boardWidth": 1384,
+      "boardScrollWidth": 1520,
+      "listCount": 4,
+      "cardCount": 10,
+      "visibleBoardSwitcher": true,
+      "visibleSearchWidth": 326,
+      "visibleCardDialog": false,
+      "theme": "dark"
+    },
+    {
+      "name": "desktop-card",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "documentHeight": 921,
+      "boardWidth": 1384,
+      "boardScrollWidth": 1520,
+      "listCount": 4,
+      "cardCount": 10,
+      "visibleBoardSwitcher": true,
+      "visibleSearchWidth": 326,
+      "visibleCardDialog": true,
+      "theme": "light"
+    },
+    {
+      "name": "tablet-light",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "documentWidth": 1024,
+      "documentHeight": 789,
+      "boardWidth": 968,
+      "boardScrollWidth": 1520,
+      "listCount": 4,
+      "cardCount": 10,
+      "visibleBoardSwitcher": true,
+      "visibleSearchWidth": 325,
+      "visibleCardDialog": false,
+      "theme": "light"
+    },
+    {
+      "name": "mobile-light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "documentHeight": 889,
+      "boardWidth": 362,
+      "boardScrollWidth": 1444,
+      "listCount": 4,
+      "cardCount": 10,
+      "visibleBoardSwitcher": false,
+      "visibleSearchWidth": 78,
+      "visibleCardDialog": false,
+      "theme": "light"
+    },
+    {
+      "name": "narrow-light",
+      "viewport": {
+        "width": 320,
+        "height": 740
+      },
+      "documentWidth": 320,
+      "documentHeight": 833,
+      "boardWidth": 292,
+      "boardScrollWidth": 1444,
+      "listCount": 4,
+      "cardCount": 10,
+      "visibleBoardSwitcher": false,
+      "visibleSearchWidth": 64,
+      "visibleCardDialog": false,
+      "theme": "light"
+    }
+  ],
+  "consoleErrorClasses": [],
+  "pageErrorClasses": []
+}
