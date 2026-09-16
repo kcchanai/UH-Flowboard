@@ -23,7 +23,7 @@ const distFiles = (await filesUnder('dist')).filter(file => !file.endsWith('.map
 const distAssets = await Promise.all(distFiles.map(async file => {
   const buffer = await readFile(path.join(root, file));
   const name = path.basename(file);
-  const category = file === 'dist/index.html' || name.startsWith('index-') || name.startsWith('app-') || name.endsWith('.css') ? 'initial shell' : name.startsWith('index.esm-') ? 'vendor' : 'first-party lazy';
+  const category = name === 'index.html' ? 'document' : name.startsWith('index-') || name.startsWith('app-') || name.endsWith('.css') ? 'initial shell' : name.startsWith('index.esm-') ? 'vendor' : 'first-party lazy';
   return {file, category, bytes:buffer.length, gzipBytes:gzipSync(buffer).length};
 }));
 const grouped = Object.groupBy ? Object.groupBy(distAssets, item => item.category) : distAssets.reduce((groups, item) => ((groups[item.category] ||= []).push(item), groups), {});
