@@ -1,6 +1,6 @@
 # Flowboard MVP V2 budgets
 
-Status: Step 11 mobile and accessibility checkpoint. This is a source-maintainability guard, not a network-transfer or backend-quota claim.
+Status: Step 13 release-candidate review. This is a source-maintainability guard, not a network-transfer or backend-quota claim.
 
 ## Measurement scope
 
@@ -88,3 +88,7 @@ The accepted Step 10 implementation measures **217,486 / 217,500 bytes**, leavin
 ## Step 11 budget measurement
 
 The accepted Step 11 implementation measures **217,500 / 217,500 bytes**, leaving **0 bytes** of cap headroom while the 210,000-byte maintainability warning remains active. Initial-shell gzip is **23,607 / 25,000** and first-party-lazy gzip is **49,560 / 55,000**. The 23-file reachable source graph remains fully budgeted with zero unbudgeted sources.
+
+## Step 13 release-candidate package
+
+The release-candidate manifest at `artifacts/mvp-v2/release-candidate/manifest.json` records the exact client SHA, main comparison, 21 built asset hashes, validation outcomes, and the unchanged production boundary. No new source or build bytes were introduced by packaging.

@@ -21,7 +21,7 @@ Production: unchanged. Step 14 is not authorized.
 | 10 | Improve onboarding, truthful samples, and recovery | complete | `3ca59c158fc328f42d63ef8be4e0281cc5e6937d` |
 | 11 | Complete mobile and accessibility qualification | complete | `16ca7739e64f2c15b996e3ddee63d2fd0045f355` |
 | 12 | Run full regression and repair release gating | complete | `9c2d591f0de3d154e6b8a0ccc9e3580894e6a53e` |
-| 13 | Package and review the release candidate; stop at human gate | in progress | |
+| 13 | Package and review the release candidate; stop at human gate | complete | `69a182d66bbdb65b146c18b6c66cf49fcbc0c06b` |
 | 14 | Authorized release and real-user acceptance | pending explicit approval | not authorized |
 
 ## Capability matrix
@@ -44,6 +44,7 @@ Production: unchanged. Step 14 is not authorized.
 | First-run safety and recovery | implemented | local starter guidance, separate cloud-workspace boundary, export/recovery pointers, malformed-input no-change proof | 29 unit + 24 built-browser + 1 isolated lifecycle + 23 Rules + 1 Emulator browser | real-account gate only |
 | Mobile and accessibility qualification | implemented | 320/390/440/700 widths, 44px touch targets, 200% reflow, keyboard menus, forced colors, reduced motion, visible focus | 29 unit + 29 built-browser + 23 Rules + 1 Emulator browser + Lighthouse 1.0 | manual assistive-technology and real-account gates remain |
 | Release gating | implemented | Pages waits for successful main-push validation and checks out its exact workflow-run SHA; local guard protects the workflow contract | 29 unit + workflow guard + YAML parse + 23 Rules + 29 built-browser + 1 Emulator browser + Lighthouse 1.0 | remote CI and Pages status still require the release-candidate gate |
+| Release candidate package | ready for human review | exact client SHA, main comparison, 21 built asset hashes, validation/budget report, sensitive-name scan, and stop conditions | manifest verification passed; remote candidate runs 0 | Aaron approval required before any release action |
 
 ## Baseline evidence
 
@@ -151,6 +152,15 @@ Steps 1-13 of 14 complete. Step 14 awaits your approval.
 - Remaining warning: Node still emits `MODULE_TYPELESS_PACKAGE_JSON` warnings because the package intentionally does not declare ESM globally; changing that would affect the tested UMD/CommonJS state boundary and was not attempted in this step.
 - Rules and production: `firestore.rules` was unchanged; no Pages deployment, Rules publication, push, merge to `main`, real-account testing, protected-workspace access, or production fixture mutation occurred.
 
+## Step 13 checkpoint evidence
+
+- Candidate client checkpoint: `69a182d66bbdb65b146c18b6c66cf49fcbc0c06b`; package files: `artifacts/mvp-v2/release-candidate/README.md` and `artifacts/mvp-v2/release-candidate/manifest.json`.
+- Repository state: branch `luna/trello-style-mvp-v2`, local and remote `main` both `07859a752e56fd2f01a0b8ff62d1264e2096de93`, 113 changed paths versus main, clean worktree when packaged, no remote candidate ref, and no remote CI runs for the candidate branch.
+- Package integrity: 21 built asset SHA-256 hashes are recorded; the 23-file production source graph has zero unbudgeted sources; tracked sensitive-name scan returned no matches; `firestore.rules` is byte-identical to main.
+- Validation carried into the package: 29/29 unit/static/build/budget/isolation, 23/23 Rules, 1/1 Emulator browser, 29/29 settled built-browser, Lighthouse 1.0 with zero failed audits, and served capture HTTP 200 with zero console/page errors.
+- Human gate: the candidate is ready for Aaron review only. Do not push the branch, merge to main, publish Rules, deploy Pages, use real Google accounts, access `My Flowboard workspace`, mutate the lifecycle fixture, or approve beta until Aaron explicitly authorizes the Final Human Gate and supplies the operator path. The active GitHub CLI account remains `makoaharadasaito`.
+- Known limitations: raw source is exactly at the approved 217,500-byte cap with zero headroom; the 210,000-byte maintainability warning remains active; Node emits the existing module-type warning; manual screen-reader testing and production acceptance remain outstanding.
+
 ## Blockers and decisions
 
-- None recorded yet.
+- Step 14 is blocked pending Aaron’s explicit release/real-user acceptance approval.
