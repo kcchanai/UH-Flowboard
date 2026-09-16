@@ -21,6 +21,41 @@ test('critical local-first card workflow persists after reload', async ({page}) 
   await expect(page.locator('.card-open').filter({hasText: title})).toBeVisible();
 });
 
+test('getting started explains local starter content and safe cloud boundaries', async ({page}) => {
+  await page.goto(basePath);
+  const guide = page.locator('details').filter({hasText:'Getting started'});
+  await expect(guide).toBeVisible();
+  await guide.locator('summary').click();
+  await expect(guide).toContainText('Local starter content.');
+  await expect(guide).toContainText('export and recovery');
+  await expect(guide).toContainText('separate cloud workspaces');
+  await expect(guide).toContainText('retain data');
+  await page.screenshot({path:'artifacts/mvp-v2/step-10/getting-started.png', fullPage:true});
+});
+
+test('malformed recovery and import inputs leave local storage unchanged', async ({page}) => {
+  await page.goto(basePath);
+  const before = await page.evaluate(() => {
+    const current = localStorage.getItem('flowboard-workspace');
+    localStorage.setItem('flowboard-workspace-backups', JSON.stringify([{createdAt:new Date().toISOString(), workspace:{schemaVersion:5, boards:'invalid'}}]));
+    return current;
+  });
+  await page.getByRole('button', {name:'Board actions'}).click();
+  await page.getByRole('menuitem', {name:'Local recovery'}).click();
+  const recovery = page.getByRole('dialog', {name:'Local recovery'});
+  await expect(recovery).toContainText('Snapshot 1');
+  await recovery.getByRole('button', {name:'Restore snapshot 1'}).click();
+  await expect(page.locator('#toast')).toContainText('not valid and was not restored');
+  expect(await page.evaluate(() => localStorage.getItem('flowboard-workspace'))).toBe(before);
+  await recovery.getByRole('button', {name:'Close local recovery'}).click();
+  await page.getByRole('button', {name:'Board actions'}).click();
+  await page.getByRole('menuitem', {name:/Import data/}).click();
+  await page.locator('#import-file').setInputFiles({name:'invalid.json',mimeType:'application/json',buffer:Buffer.from('{not valid json')});
+  await expect(page.locator('#import-preview')).toContainText('not a valid Flowboard JSON export');
+  await expect(page.locator('#apply-import')).toBeDisabled();
+  expect(await page.evaluate(() => localStorage.getItem('flowboard-workspace'))).toBe(before);
+});
+
 test('browser-local mode remains editable without a fake collaboration planner', async ({page}) => {
   await page.goto(basePath);
   await page.evaluate(() => {
