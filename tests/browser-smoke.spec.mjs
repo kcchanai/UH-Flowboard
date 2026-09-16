@@ -230,6 +230,31 @@ test('owner can retry an interrupted migration and the workspace list refreshes 
   await expect(page.locator('#cloud-workspaces-list')).toContainText('owner · editable');
 });
 
+test('workspace navigation remains available on a phone and searches boards', async ({page}) => {
+  await page.setViewportSize({width:390,height:844});
+  await page.goto(basePath);
+  await page.evaluate(() => {
+    const workspace = FlowboardState.makeWorkspace(), launch = workspace.boards[0], editorial = FlowboardState.makeBoard('tasks'), personal = FlowboardState.makeBoard('blank');
+    editorial.title = 'Editorial calendar';
+    personal.title = 'Personal tasks';
+    workspace.boards = [launch, editorial, personal];
+    localStorage.setItem('flowboard-workspace', JSON.stringify(workspace));
+  });
+  await page.reload();
+  const boardsButton = page.locator('#boards-button');
+  await expect(boardsButton).toBeVisible();
+  await boardsButton.click();
+  const dialog = page.getByRole('dialog', {name:'Your boards'});
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByLabel('Find a board')).toBeVisible();
+  await expect(dialog.locator('[data-board-id]')).toHaveCount(3);
+  await dialog.getByLabel('Find a board').fill('Editorial');
+  await expect(dialog.locator('[data-board-id]')).toHaveCount(1);
+  await dialog.locator('[data-board-id]').click();
+  await expect(page.locator('#board-page-heading')).toHaveText('Editorial calendar board');
+  await expect(boardsButton).toBeFocused();
+});
+
 test('compact cloud-copy status fits the responsive top bar', async ({page}) => {
   await page.setViewportSize({width: 573, height: 500});
   await page.goto(basePath);
