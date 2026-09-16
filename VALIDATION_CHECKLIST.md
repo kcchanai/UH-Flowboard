@@ -30,7 +30,7 @@ Run these checks before publishing a Flowboard change.
 
 ## Data safety and portability
 
-- [ ] Export the workspace JSON and verify it is human-readable, has `schemaVersion: 4`, and includes all boards, ordering, card metadata, and local collaboration-plan metadata.
+- [ ] Export the workspace JSON and verify it is human-readable, has `schemaVersion: 5`, and includes all boards, ordering, card metadata, and local collaboration-plan metadata.
 - [ ] Export the active board JSON and card CSV; confirm CSV quotes commas/quotes correctly and includes archived status.
 - [ ] In a clean browser storage area, import a workspace export, choose **Replace workspace**, and verify equivalent boards, list/card ordering, metadata, and collaboration-plan data after reload.
 - [ ] Import a board export, choose **Merge as a new board**, and verify current data remains while the imported board opens.

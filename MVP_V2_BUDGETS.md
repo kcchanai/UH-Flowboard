@@ -71,3 +71,7 @@ After the list-menu, title-validation, and list-reorder implementation, the exac
 ## Step 7 budget-transition boundary
 
 The Step 6 accepted checkpoint measured **209,631 / 210,000 bytes** with 369 bytes of headroom. The accepted Step 7 implementation measures **212,506 / 217,500 bytes**, with the original 210,000-byte maintainability warning active and **4,994 bytes** of cap headroom. The approved build-transfer limits are initial shell gzip **25,000 bytes** and first-party lazy gzip **55,000 bytes**; the latest measured values are **22,737** and **48,990**. The Step 7 draft behavior passed the new capture/movement/filter browser cases and the full built-preview suite at **19/19**; the latest 10-list/200-card benchmark recorded 563.2 ms usable render, 584 ms navigation to a usable board, 43.2 ms single-term filtering, zero console errors, and zero page errors. See `MVP_V2_BUDGET_TRANSITION_PROPOSAL.md`; the 217,500-byte cap was explicitly approved before adoption.
+
+## Step 8 budget measurement
+
+The accepted Step 8 implementation measures **217,494 / 217,500 bytes**, leaving **6 bytes** of cap headroom while the 210,000-byte maintainability warning remains active. Initial-shell gzip is **23,604 / 25,000** and first-party-lazy gzip is **49,079 / 55,000**. The 23-file reachable source graph remains fully budgeted with zero unbudgeted sources.

@@ -16,7 +16,7 @@ Production: unchanged. Step 14 is not authorized.
 | 5 | Finish practical board and list operations | complete | `aa2cec04f886e2d7b6b6868f1a4f3652021c46b2` |
 | 6 | Fix card draft safety and redesign card details | complete | `07d4eaf95086aae36f7c8819ad2b6fa29d553122` |
 | 7 | Make card capture and movement fast on every device | complete | `65019f9697cd8d6be38093e37681f322f3090182` |
-| 8 | Add meaningful completion, scheduling, and filters | not started | |
+| 8 | Add meaningful completion, scheduling, and filters | complete | `e29731e0ec0ddbde883542e9508fc0cf449458f4` |
 | 9 | Make existing collaboration understandable | not started | |
 | 10 | Improve onboarding, truthful samples, and recovery | not started | |
 | 11 | Complete mobile and accessibility qualification | not started | |
@@ -37,9 +37,9 @@ Production: unchanged. Step 14 is not authorized.
 | Google sign-in and roles | local-safe UI | Firebase Auth and Rules | Rules/Emulator | real-account gate only |
 | Realtime, conflicts, revocation | local-safe mode | memory-only listeners | Emulator browser | real-account gate only |
 | Mobile board navigation | gap identified | role-aware behavior required | to add | not accepted |
-| Explicit completion | gap identified | schema/Rules impact to audit | to add | not accepted |
+| Explicit completion | implemented | granular card field, Rules unchanged | 29 unit + 21 built-browser + 1 Emulator browser | real-account gate only |
 | Safe card draft lifecycle | implemented | revision-aware adapter retained | 26 unit + 15 built-browser + 1 Emulator browser | real-account gate only |
-| Combined named-label/member filters | partial | role-aware identity filter required | to add | not accepted |
+| Combined named-label/member filters | implemented | stable label IDs, member/unassigned, authenticated Assigned-to-me predicate | 29 unit + 21 built-browser + 1 Emulator browser | real-account gate only |
 
 ## Baseline evidence
 
@@ -90,6 +90,17 @@ Steps 1-13 of 14 complete. Step 14 awaits your approval.
 - Validation: `npm.cmd run validate` passed 27/27 unit tests, static/runtime guards, production build, gzip-budget enforcement, and asset isolation; `npm.cmd run test:rules` passed 23/23; the tracked Emulator browser workflow passed 1/1; built-preview browser smoke passed 19/19; Lighthouse accessibility scored 1.0 with zero failed audits; `git diff --check` passed.
 - Budget transition: Aaron approved the 217,500-byte raw-source cap. The 210,000-byte maintainability warning remains active. Current source is 212,506 bytes with 4,994 bytes of cap headroom; initial-shell gzip is 22,737 / 25,000 and first-party-lazy gzip is 48,990 / 55,000.
 - Evidence: `artifacts/mvp-v2/step-7/report.json`, `artifacts/mvp-v2/step-7/move-dialog.png`, six additional sanitized screenshots in the same directory, `artifacts/mvp-v2/step-7-budget-measurement.json`, and `artifacts/mvp-v2/step-7-benchmark.json`.
+- Rules and production: `firestore.rules` was unchanged; no Rules publication, deployment, real-account testing, protected-workspace access, or production fixture mutation occurred.
+
+## Step 8 checkpoint evidence
+
+- Code checkpoint: `e29731e0ec0ddbde883542e9508fc0cf449458f4`.
+- Schema: card completion is an explicit bounded boolean with legacy default `false`; supported workspace versions 1-5 normalize to schema 5. JSON import/export and granular cloud records preserve it; CSV shape remains compatible.
+- Scheduling: date-only due state uses local calendar components; due-time comparison uses device-local wall-clock values; completed cards are never overdue; injected date/time unit cases cover today, next-day, due-time, completion, and checklist independence.
+- Filters: text, stable named-label, member/unassigned, due, and completion filters combine across groups; active chips can be removed individually or cleared together; cloud Assigned-to-me uses the authenticated UID predicate and never guesses names/emails.
+- Validation: `npm.cmd run validate` passed 29/29 unit tests, static/runtime guards, production build, gzip-budget enforcement, and asset isolation; `npm.cmd run test:rules` passed 23/23; the tracked Emulator browser workflow passed 1/1; built-preview browser smoke passed 21/21; Lighthouse accessibility scored 1.0 with zero failed audits; `git diff --check` passed.
+- Budget: 217,494 / 217,500 raw bytes, with the approved 210,000-byte maintainability warning active and 6 bytes of cap headroom; initial-shell gzip 23,604 / 25,000; first-party-lazy gzip 49,079 / 55,000; 23 reachable production sources and zero unbudgeted sources.
+- Evidence: `artifacts/mvp-v2/step-8/report.json`, `artifacts/mvp-v2/step-8/completed-card.png`, `artifacts/mvp-v2/step-8/combined-filters.png`, six additional sanitized screenshots in the same directory, and `artifacts/mvp-v2/step-8-budget-measurement.json`.
 - Rules and production: `firestore.rules` was unchanged; no Rules publication, deployment, real-account testing, protected-workspace access, or production fixture mutation occurred.
 
 ## Blockers and decisions
