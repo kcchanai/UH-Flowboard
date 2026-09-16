@@ -11,7 +11,7 @@ Production: unchanged. Step 14 is not authorized.
 | --- | --- | --- | --- |
 | 1 | Reconcile baseline and establish evidence | complete | `bd6ea6a8f03d11a22f7d94fff4cf4ea3a2a82494` |
 | 2 | Create a maintainable, testable foundation | complete | `66b6c854d68087d887273d3204364396e7241811` |
-| 3 | Implement the coherent visual system | complete | pending commit |
+| 3 | Implement the coherent visual system | complete | `edb969a1e3ff5f74f69572f875582941acdae6d3` |
 | 4 | Make board and workspace navigation obvious | not started | |
 | 5 | Finish practical board and list operations | not started | |
 | 6 | Fix card draft safety and redesign card details | not started | |
