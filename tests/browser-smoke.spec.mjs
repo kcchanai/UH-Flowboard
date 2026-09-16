@@ -370,6 +370,53 @@ test('filtered cards use explicit Move instead of ambiguous drag reorder', async
   expect(result).toEqual({defaultPrevented:true, storageUnchanged:true});
 });
 
+test('explicit completion saves independently from checklist progress', async ({page}) => {
+  await page.goto(basePath);
+  const card = page.locator('.card-open').first(), dialog = page.locator('#card-dialog');
+  await card.click();
+  await expect(page.locator('#completed-input')).not.toBeChecked();
+  await page.locator('#completed-input').check();
+  await page.locator('#card-form').getByRole('button', {name:'Save changes'}).click();
+  await expect(dialog).toBeHidden();
+  await expect(page.locator('.card-open').first().locator('..').locator('.meta-chip.complete')).toHaveText('Complete');
+  await page.reload();
+  await page.locator('.card-open').first().click();
+  await expect(page.locator('#completed-input')).toBeChecked();
+});
+
+test('named labels, members, and completion filters combine and clear', async ({page}) => {
+  await page.goto(basePath);
+  await page.evaluate(() => {
+    const workspace = FlowboardState.makeWorkspace(), board = FlowboardState.makeBoard('blank');
+    const launch = FlowboardState.makeCard('Launch task'), qa = FlowboardState.makeCard('QA task'), unassigned = FlowboardState.makeCard('Unassigned task');
+    launch.labels = [{id:'label-launch', color:'green', name:'Launch'}]; launch.assignees = ['Alice']; launch.completed = true;
+    qa.labels = [{id:'label-qa', color:'green', name:'QA'}]; qa.assignees = ['Alice'];
+    unassigned.labels = []; unassigned.assignees = [];
+    board.lists = [FlowboardState.makeList('Work', [launch, qa, unassigned])];
+    workspace.boards = [board]; workspace.activeBoardId = board.id;
+    localStorage.setItem('flowboard-workspace', JSON.stringify(workspace));
+  });
+  await page.reload();
+  await page.getByRole('button', {name:'Filters'}).click();
+  const label = page.locator('#label-filter');
+  await expect(label.locator('option')).toHaveCount(3);
+  await expect(label).toContainText('Launch');
+  await expect(label).toContainText('QA');
+  await label.selectOption('label-launch');
+  await page.locator('#member-filter').selectOption('assigned');
+  await page.locator('#completion-filter').selectOption('complete');
+  await expect(page.locator('.card-open')).toHaveCount(1);
+  await expect(page.locator('.card-open').first()).toContainText('Launch task');
+  await expect(page.locator('#filter-chips')).toContainText('Launch');
+  await expect(page.locator('#filter-chips')).toContainText('Assigned');
+  await expect(page.locator('#filter-chips')).toContainText('Complete');
+  await page.getByRole('button', {name:'Clear Launch filter'}).click();
+  await expect(page.locator('#filter-chips')).not.toContainText('Launch');
+  await page.locator('#clear-filters').click();
+  await expect(page.locator('.card-open')).toHaveCount(3);
+  await expect(page.locator('#filter-chips')).toBeEmpty();
+});
+
 test('list actions reorder locally, validate titles, and retain cloud lists', async ({page}) => {
   await page.goto(basePath);
   const firstList = page.locator('.list').first();
