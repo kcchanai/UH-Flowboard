@@ -560,3 +560,24 @@ Report:
 - any external links or bookmarks Aaron still needs to update.
 
 The rename is complete only when the new repository URL and new Pages URL are verified against the exact approved `main` SHA. A successful GitHub Rename button alone is not completion proof.
+
+## Completed cutover record
+
+The repository rename and post-cutover verification completed successfully:
+
+- Repository: `https://github.com/kcchanai/UH-Flowboard`
+- Deployed `main` SHA: `e0e213bb250e9f45afc31fd46630545d6eea0f59`
+- Main validation run: `35066949247`, success for the deployed SHA
+- Pages deployment run: `35066949166`, success for the deployed SHA
+- Pages API status: `built`
+- Verified Pages URL: `https://kcchanai.github.io/UH-Flowboard/`
+- Cache-busted Pages retrieval: HTTP 200
+- Referenced assets: 10, all successful
+- New artifact asset paths: all under `/UH-Flowboard/`
+- Former `/UH-Trello/` asset paths in the new artifact: none
+- Former repository URL: verified redirect to the renamed repository
+- Actions variable names: preserved; values were not printed
+- Local Git remote: updated to `https://github.com/kcchanai/UH-Flowboard.git`
+- Local working folder: intentionally remains `C:/Code/Stacie-Hermes/UH-Trello`
+- Default GitHub CLI account: restored to `makoaharadasaito`
+- Firestore Rules, protected workspaces, and production data: untouched
