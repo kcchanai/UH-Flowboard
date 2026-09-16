@@ -5,6 +5,7 @@ import {basePath} from '../scripts/repository-path.mjs';
 const builtLifecycleAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('workspace-lifecycle-ui-') && file.endsWith('.js'))}`;
 const builtCloudWorkspaceAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('cloud-workspace-ui-') && file.endsWith('.js'))}`;
 const builtCloudSyncAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('cloud-sync-controller-') && file.endsWith('.js'))}`;
+const builtMembersAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('members-ui-') && file.endsWith('.js'))}`;
 
 test('critical local-first card workflow persists after reload', async ({page}) => {
   await page.goto(basePath);
@@ -191,6 +192,69 @@ test('owner workspace lifecycle dialog renames, archives, restores, and returns 
   await expect(rename.getByRole('button', {name:'Save name'})).toBeEnabled();
   await expect(fixture.locator('strong')).toHaveText('Renamed lifecycle fixture');
   await rename.getByRole('button', {name:'Cancel'}).click();
+});
+
+test('cloud collaboration access explains roles and invitation lifecycle', async ({page}) => {
+  await page.goto(basePath);
+  await page.evaluate(async asset => {
+    document.body.innerHTML = `<button id="open-workspace-members">Manage members</button><dialog id="workspace-members-dialog" aria-labelledby="workspace-members-heading"><h2 id="workspace-members-heading">Members and invitations</h2><button id="close-workspace-members">Close</button><p id="workspace-members-status"></p><form id="create-invite-form" hidden><input id="invite-email"><select id="invite-role"><option value="editor">Editor</option></select><button type="submit">Create invitation</button></form><p id="invite-link-status"></p><div id="workspace-members-list"></div><section id="workspace-invites-section" hidden><h3>Pending invitations</h3><div id="workspace-invites-list"></div></section><form id="transfer-ownership-form" hidden><select id="ownership-successor"></select><select id="former-owner-role"><option value="editor">Editor</option></select><button type="submit">Transfer ownership</button></form></dialog>`;
+    globalThis.FlowboardApp = {getMode:() => ({kind:'cloud', id:'collaboration-fixture', role:'owner'})};
+    const now = Date.now(), stamp = value => ({toDate:() => new Date(value)});
+    const invites = [
+      {id:'pending', emailLower:'pending@example.test', role:'editor', expiresAt:stamp(now + 86_400_000)},
+      {id:'accepted', emailLower:'accepted@example.test', role:'viewer', acceptedAt:stamp(now - 1_000), expiresAt:stamp(now + 86_400_000)},
+      {id:'expired', emailLower:'expired@example.test', role:'viewer', expiresAt:stamp(now - 1_000)}
+    ];
+    const adapter = {
+      listMembers:async() => [{uid:'owner', displayName:'Owner', role:'owner'}, {uid:'editor', displayName:'Editor', role:'editor'}],
+      listInvites:async() => invites,
+      createInvite:async() => ({}), revokeInvite:async() => {}, changeMemberRole:async() => {}, removeMember:async() => {}, leaveWorkspace:async() => {}, transferOwnership:async() => {}
+    };
+    const {initializeMembersUI} = await import(asset);
+    initializeMembersUI(adapter).setSession({uid:'owner'});
+  }, builtMembersAsset());
+  await page.getByRole('button', {name:'Manage members'}).click();
+  const dialog = page.getByRole('dialog', {name:'Members and invitations'});
+  await expect(dialog).toBeVisible();
+  await expect(dialog.locator('#workspace-members-list')).toContainText('Owner');
+  await expect(dialog.locator('#workspace-members-list')).toContainText('Editor');
+  const invites = dialog.locator('#workspace-invites-list');
+  await expect(invites).toContainText('pending@example.test');
+  await expect(invites).toContainText('Pending');
+  await expect(invites).toContainText('accepted@example.test');
+  await expect(invites).toContainText('Accepted');
+  await expect(invites).toContainText('expired@example.test');
+  await expect(invites).toContainText('Expired');
+  await expect(invites.locator('[data-invite-status="pending"] .button', {hasText:'Copy link'})).toHaveCount(1);
+  await expect(invites.locator('[data-invite-status="pending"] .button', {hasText:'Revoke'})).toHaveCount(1);
+  await expect(invites.locator('[data-invite-status="accepted"] .button')).toHaveCount(0);
+  await expect(invites.locator('[data-invite-status="expired"] .button')).toHaveCount(0);
+  await page.screenshot({path:'artifacts/mvp-v2/step-9/members-owner.png', fullPage:true});
+});
+
+test('viewer collaboration access stays read-only with an explicit leave action', async ({page}) => {
+  await page.goto(basePath);
+  await page.evaluate(async asset => {
+    document.body.innerHTML = `<button id="open-workspace-members">Manage members</button><dialog id="workspace-members-dialog" aria-labelledby="workspace-members-heading"><h2 id="workspace-members-heading">Members and invitations</h2><button id="close-workspace-members">Close</button><p id="workspace-members-status"></p><form id="create-invite-form" hidden><input id="invite-email"><select id="invite-role"><option value="viewer">Viewer</option></select><button type="submit">Create invitation</button></form><p id="invite-link-status"></p><div id="workspace-members-list"></div><section id="workspace-invites-section" hidden><div id="workspace-invites-list"></div></section><form id="transfer-ownership-form" hidden><select id="ownership-successor"></select><select id="former-owner-role"><option value="editor">Editor</option></select><button type="submit">Transfer ownership</button></form></dialog>`;
+    globalThis.FlowboardApp = {getMode:() => ({kind:'cloud-preview', id:'collaboration-fixture', role:'viewer'})};
+    const adapter = {
+      listMembers:async() => [{uid:'owner', displayName:'Owner', role:'owner'}, {uid:'viewer', displayName:'Viewer', role:'viewer'}],
+      listInvites:async() => { throw Error('viewer must not list invites'); },
+      changeMemberRole:async() => {}, removeMember:async() => {}, leaveWorkspace:async() => {}, transferOwnership:async() => {}, revokeInvite:async() => {}, createInvite:async() => ({})
+    };
+    const {initializeMembersUI} = await import(asset);
+    initializeMembersUI(adapter).setSession({uid:'viewer'});
+  }, builtMembersAsset());
+  await page.getByRole('button', {name:'Manage members'}).click();
+  const dialog = page.getByRole('dialog', {name:'Members and invitations'});
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toContainText('You have viewer access.');
+  await expect(dialog.locator('#create-invite-form')).toBeHidden();
+  await expect(dialog.locator('#workspace-invites-section')).toBeHidden();
+  await expect(dialog.locator('#transfer-ownership-form')).toBeHidden();
+  await expect(dialog.locator('#workspace-members-list select')).toHaveCount(0);
+  await expect(dialog.getByRole('button', {name:'Leave workspace'})).toBeVisible();
+  await page.screenshot({path:'artifacts/mvp-v2/step-9/members-viewer.png', fullPage:true});
 });
 
 test('owner can retry an interrupted migration and the workspace list refreshes to editable', async ({page}) => {
