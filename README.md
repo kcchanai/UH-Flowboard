@@ -2,9 +2,9 @@
 
 A lightweight, local-first project-planning board inspired by kanban tools. It uses vanilla HTML/CSS/JavaScript with a small Vite build and an adapter boundary for optional Firebase collaboration.
 
-**Live site (current pre-cutover):** https://kcchanai.github.io/UH-Trello/
+**Live site:** https://kcchanai.github.io/UH-Flowboard/
 
-**Live site (after repository rename):** https://kcchanai.github.io/UH-Flowboard/
+**Former pre-cutover Pages URL:** https://kcchanai.github.io/UH-Trello/ (GitHub Pages does not redirect this project path.)
 
 ## Current capabilities
 
@@ -43,13 +43,13 @@ A lightweight, local-first project-planning board inspired by kanban tools. It u
 Clone/download the repository, install the locked development dependencies, then use Vite's local server:
 
 ```bash
-git clone https://github.com/kcchanai/UH-Trello.git
+git clone https://github.com/kcchanai/UH-Flowboard.git UH-Trello
 cd UH-Trello
 npm ci
 npm run dev
 ```
 
-Vite serves the project at `http://127.0.0.1:5173/<repository-name>/`, using `UH-Trello` as the local fallback until the repository rename. `npm run build` creates the deployable static site in `dist/`; GitHub Actions derives the Pages base from the repository name.
+Vite serves the project at `http://127.0.0.1:5173/<repository-name>/`, using `UH-Flowboard` as the local fallback after the repository rename. `npm run build` creates the deployable static site in `dist/`; GitHub Actions derives the Pages base from the repository name.
 
 ## Data and privacy
 
@@ -82,7 +82,7 @@ Optional collaboration stores Google/Firebase identity fields, workspace members
 
 GitHub Actions validates the project, builds it with Vite, and publishes the generated `dist/` directory to GitHub Pages. The production build derives its base path from the repository name, so the same source supports the pre-cutover `/UH-Trello/` path and the post-rename `/UH-Flowboard/` path. After pushing changes, open the appropriate live site above once the GitHub Pages workflow completes.
 
-After the repository is renamed, GitHub redirects normal repository links and Git operations from `UH-Trello` to `UH-Flowboard`, but the GitHub Pages project URL changes and does not redirect. Do not create a new repository using the old name, or those redirects may stop working. The local working folder may remain `UH-Trello`.
+The repository has been renamed from `UH-Trello` to `UH-Flowboard`. GitHub redirects normal repository links and Git operations from the old name, but the former GitHub Pages project URL does not redirect. Do not create a new repository using the old name, or those redirects may stop working. The local working folder may remain `UH-Trello`.
 
 ## Quality and release checks
 
