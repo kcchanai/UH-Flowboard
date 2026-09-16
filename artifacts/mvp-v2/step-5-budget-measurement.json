@@ -1,0 +1,297 @@
+{
+  "source": {
+    "manifestBytes": 209611,
+    "capBytes": 210000,
+    "headroomBytes": 389,
+    "reachableFiles": [
+      "app.js",
+      "index.html",
+      "src/activity-ui.js",
+      "src/adapters/adapter-contract.js",
+      "src/adapters/firebase-cloud-workspace.js",
+      "src/adapters/firebase-phase-h-probes.js",
+      "src/adapters/firebase-workspace-adapter.js",
+      "src/adapters/firebase-workspace-lifecycle.js",
+      "src/adapters/local-workspace-adapter.js",
+      "src/assignment-ui.js",
+      "src/auth-ui.js",
+      "src/cloud-sync-controller.js",
+      "src/cloud-workspace-ui.js",
+      "src/comments-ui.js",
+      "src/config.js",
+      "src/granular-workspace.js",
+      "src/invite-ui.js",
+      "src/main.js",
+      "src/members-ui.js",
+      "src/runtime-bootstrap.js",
+      "src/workspace-lifecycle-ui.js",
+      "state-core.js",
+      "styles.css"
+    ],
+    "unbudgetedReachableFiles": [],
+    "manifestFiles": [
+      {
+        "file": "index.html",
+        "bytes": 23961,
+        "limit": 26000
+      },
+      {
+        "file": "styles.css",
+        "bytes": 28185,
+        "limit": 40000
+      },
+      {
+        "file": "state-core.js",
+        "bytes": 12594,
+        "limit": 20000
+      },
+      {
+        "file": "app.js",
+        "bytes": 50979,
+        "limit": 80000
+      },
+      {
+        "file": "src/main.js",
+        "bytes": 1256,
+        "limit": 8000
+      },
+      {
+        "file": "src/runtime-bootstrap.js",
+        "bytes": 1897,
+        "limit": 4000
+      },
+      {
+        "file": "src/config.js",
+        "bytes": 1018,
+        "limit": 4000
+      },
+      {
+        "file": "src/cloud-sync-controller.js",
+        "bytes": 2774,
+        "limit": 5000
+      },
+      {
+        "file": "src/activity-ui.js",
+        "bytes": 3441,
+        "limit": 5000
+      },
+      {
+        "file": "src/assignment-ui.js",
+        "bytes": 3277,
+        "limit": 5000
+      },
+      {
+        "file": "src/comments-ui.js",
+        "bytes": 7340,
+        "limit": 9000
+      },
+      {
+        "file": "src/auth-ui.js",
+        "bytes": 4201,
+        "limit": 8000
+      },
+      {
+        "file": "src/cloud-workspace-ui.js",
+        "bytes": 12974,
+        "limit": 13000
+      },
+      {
+        "file": "src/workspace-lifecycle-ui.js",
+        "bytes": 4036,
+        "limit": 4500
+      },
+      {
+        "file": "src/invite-ui.js",
+        "bytes": 2501,
+        "limit": 8000
+      },
+      {
+        "file": "src/members-ui.js",
+        "bytes": 9047,
+        "limit": 12000
+      },
+      {
+        "file": "src/adapters/adapter-contract.js",
+        "bytes": 1327,
+        "limit": 8000
+      },
+      {
+        "file": "src/adapters/local-workspace-adapter.js",
+        "bytes": 3153,
+        "limit": 12000
+      },
+      {
+        "file": "src/adapters/firebase-workspace-adapter.js",
+        "bytes": 4493,
+        "limit": 8000
+      },
+      {
+        "file": "src/adapters/firebase-cloud-workspace.js",
+        "bytes": 26883,
+        "limit": 28000
+      },
+      {
+        "file": "src/adapters/firebase-workspace-lifecycle.js",
+        "bytes": 1358,
+        "limit": 3000
+      },
+      {
+        "file": "src/adapters/firebase-phase-h-probes.js",
+        "bytes": 1005,
+        "limit": 4000
+      },
+      {
+        "file": "src/granular-workspace.js",
+        "bytes": 1911,
+        "limit": 6000
+      }
+    ]
+  },
+  "dist": {
+    "files": [
+      {
+        "file": "dist\\assets\\activity-ui-C51G-ocn.js",
+        "category": "first-party lazy",
+        "bytes": 2458,
+        "gzipBytes": 1062
+      },
+      {
+        "file": "dist\\assets\\app-CTzTcypX.js",
+        "category": "initial shell",
+        "bytes": 36334,
+        "gzipBytes": 10522
+      },
+      {
+        "file": "dist\\assets\\assignment-ui-CxFyqA9m.js",
+        "category": "first-party lazy",
+        "bytes": 2334,
+        "gzipBytes": 1064
+      },
+      {
+        "file": "dist\\assets\\auth-ui-CvrGNppG.js",
+        "category": "first-party lazy",
+        "bytes": 2912,
+        "gzipBytes": 1185
+      },
+      {
+        "file": "dist\\assets\\cloud-sync-controller-BJhf3r-V.js",
+        "category": "first-party lazy",
+        "bytes": 1615,
+        "gzipBytes": 881
+      },
+      {
+        "file": "dist\\assets\\cloud-workspace-ui-BrPT-p26.js",
+        "category": "first-party lazy",
+        "bytes": 8733,
+        "gzipBytes": 2941
+      },
+      {
+        "file": "dist\\assets\\comments-ui-yhNDTofw.js",
+        "category": "first-party lazy",
+        "bytes": 5119,
+        "gzipBytes": 2120
+      },
+      {
+        "file": "dist\\assets\\favicon-DDIVp1O0.svg",
+        "category": "first-party lazy",
+        "bytes": 381,
+        "gzipBytes": 221
+      },
+      {
+        "file": "dist\\assets\\firebase-cloud-workspace-CoAa__E9.js",
+        "category": "first-party lazy",
+        "bytes": 18181,
+        "gzipBytes": 5900
+      },
+      {
+        "file": "dist\\assets\\firebase-phase-h-probes-DtiJ9_N1.js",
+        "category": "first-party lazy",
+        "bytes": 710,
+        "gzipBytes": 415
+      },
+      {
+        "file": "dist\\assets\\firebase-workspace-adapter-DWRVrZte.js",
+        "category": "first-party lazy",
+        "bytes": 73299,
+        "gzipBytes": 21847
+      },
+      {
+        "file": "dist\\assets\\firebase-workspace-lifecycle-CamRGMY9.js",
+        "category": "first-party lazy",
+        "bytes": 1294,
+        "gzipBytes": 658
+      },
+      {
+        "file": "dist\\assets\\index-BkFsti-6.js",
+        "category": "initial shell",
+        "bytes": 14453,
+        "gzipBytes": 5454
+      },
+      {
+        "file": "dist\\assets\\index-DSlBPOVU.css",
+        "category": "initial shell",
+        "bytes": 25301,
+        "gzipBytes": 6117
+      },
+      {
+        "file": "dist\\assets\\index.esm-DdmZ7nMW.js",
+        "category": "vendor",
+        "bytes": 449715,
+        "gzipBytes": 130437
+      },
+      {
+        "file": "dist\\assets\\index.esm-o5GAWuO1.js",
+        "category": "vendor",
+        "bytes": 28180,
+        "gzipBytes": 9299
+      },
+      {
+        "file": "dist\\assets\\invite-ui-WnGr7MNE.js",
+        "category": "first-party lazy",
+        "bytes": 1771,
+        "gzipBytes": 769
+      },
+      {
+        "file": "dist\\assets\\members-ui-DnueRyG4.js",
+        "category": "first-party lazy",
+        "bytes": 6424,
+        "gzipBytes": 2147
+      },
+      {
+        "file": "dist\\assets\\preload-helper-nG4tyN9Z.js",
+        "category": "first-party lazy",
+        "bytes": 1209,
+        "gzipBytes": 688
+      },
+      {
+        "file": "dist\\assets\\workspace-lifecycle-ui-dcDpt5-d.js",
+        "category": "first-party lazy",
+        "bytes": 3963,
+        "gzipBytes": 1651
+      },
+      {
+        "file": "dist\\index.html",
+        "category": "first-party lazy",
+        "bytes": 24164,
+        "gzipBytes": 5363
+      }
+    ],
+    "categories": {
+      "first-party lazy": {
+        "files": 16,
+        "bytes": 154567,
+        "gzipBytes": 48912
+      },
+      "initial shell": {
+        "files": 3,
+        "bytes": 76088,
+        "gzipBytes": 22093
+      },
+      "vendor": {
+        "files": 2,
+        "bytes": 477895,
+        "gzipBytes": 139736
+      }
+    }
+  }
+}

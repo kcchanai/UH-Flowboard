@@ -1,0 +1,166 @@
+# Flowboard MVP V2 progress
+
+Plan: [`LUNA_TRELLO_STYLE_MVP_EXECUTION_PLAN.md`](LUNA_TRELLO_STYLE_MVP_EXECUTION_PLAN.md)
+Execution branch: `luna/trello-style-mvp-v2`
+Baseline SHA: `07859a752e56fd2f01a0b8ff62d1264e2096de93`
+Production: unchanged. Step 14 is not authorized.
+
+## Status
+
+| Step | Title | Status | Checkpoint |
+| --- | --- | --- | --- |
+| 1 | Reconcile baseline and establish evidence | complete | `bd6ea6a8f03d11a22f7d94fff4cf4ea3a2a82494` |
+| 2 | Create a maintainable, testable foundation | complete | `66b6c854d68087d887273d3204364396e7241811` |
+| 3 | Implement the coherent visual system | complete | `edb969a1e3ff5f74f69572f875582941acdae6d3` |
+| 4 | Make board and workspace navigation obvious | complete | `71fc682509b9b4b42fe3bdb4e526ee47fc66ed6b` |
+| 5 | Finish practical board and list operations | complete | `aa2cec04f886e2d7b6b6868f1a4f3652021c46b2` |
+| 6 | Fix card draft safety and redesign card details | complete | `07d4eaf95086aae36f7c8819ad2b6fa29d553122` |
+| 7 | Make card capture and movement fast on every device | complete | `65019f9697cd8d6be38093e37681f322f3090182` |
+| 8 | Add meaningful completion, scheduling, and filters | complete | `c9e9cf5e74f247ae4d924322345175b9bee9f50d` |
+| 9 | Make existing collaboration understandable | complete | `9f6f62eafd5ee50428a2dc5744b26e793bd52763` |
+| 10 | Improve onboarding, truthful samples, and recovery | complete | `3ca59c158fc328f42d63ef8be4e0281cc5e6937d` |
+| 11 | Complete mobile and accessibility qualification | complete | `16ca7739e64f2c15b996e3ddee63d2fd0045f355` |
+| 12 | Run full regression and repair release gating | complete | `9c2d591f0de3d154e6b8a0ccc9e3580894e6a53e` |
+| 13 | Package and review the release candidate; stop at human gate | complete | `69a182d66bbdb65b146c18b6c66cf49fcbc0c06b` |
+| 14 | Authorized release and real-user acceptance | pending explicit approval | not authorized |
+
+## Capability matrix
+
+| Capability | Local source | Cloud source | Automated evidence | Production acceptance |
+| --- | --- | --- | --- | --- |
+| Multiple boards and templates | implemented | not applicable | existing tests | historical/deployed, recheck candidate |
+| Lists and card CRUD | implemented | granular adapter | existing tests | historical/deployed, recheck candidate |
+| Rich card details | implemented | granular adapter | existing tests | historical/deployed, recheck candidate |
+| Card drag and Alt+Arrow movement | implemented | granular mutation | 27 unit + 19 built-browser + 1 Emulator browser | real-account gate only |
+| Card archive and local recovery | implemented | cloud archive/lifecycle | existing tests/Emulator | historical/deployed, recheck candidate |
+| Import/export and CSV | implemented | cloud export | existing tests | historical/deployed, recheck candidate |
+| Google sign-in and roles | local-safe UI | Firebase Auth and Rules | Rules/Emulator | real-account gate only |
+| Realtime, conflicts, revocation | local-safe mode | memory-only listeners | Emulator browser | real-account gate only |
+| Mobile board navigation | gap identified | role-aware behavior required | to add | not accepted |
+| Explicit completion | implemented | granular card field, Rules unchanged | 29 unit + 21 built-browser + 1 Emulator browser | real-account gate only |
+| Safe card draft lifecycle | implemented | revision-aware adapter retained | 26 unit + 15 built-browser + 1 Emulator browser | real-account gate only |
+| Combined named-label/member filters | implemented | stable label IDs, member/unassigned, authenticated Assigned-to-me predicate | 29 unit + 21 built-browser + 1 Emulator browser | real-account gate only |
+| Collaboration access clarity | implemented | owner/editor/viewer roles, durable invitation history, pending expiry, accepted/expired/revoked states | 29 unit + 23 built-browser + 23 Rules + 1 Emulator browser | real-account gate only |
+| First-run safety and recovery | implemented | local starter guidance, separate cloud-workspace boundary, export/recovery pointers, malformed-input no-change proof | 29 unit + 24 built-browser + 1 isolated lifecycle + 23 Rules + 1 Emulator browser | real-account gate only |
+| Mobile and accessibility qualification | implemented | 320/390/440/700 widths, 44px touch targets, 200% reflow, keyboard menus, forced colors, reduced motion, visible focus | 29 unit + 29 built-browser + 23 Rules + 1 Emulator browser + Lighthouse 1.0 | manual assistive-technology and real-account gates remain |
+| Release gating | implemented | Pages waits for successful main-push validation and checks out its exact workflow-run SHA; local guard protects the workflow contract | 29 unit + workflow guard + YAML parse + 23 Rules + 29 built-browser + 1 Emulator browser + Lighthouse 1.0 | remote CI and Pages status still require the release-candidate gate |
+| Release candidate package | ready for human review | exact client SHA, main comparison, 21 built asset hashes, validation/budget report, sensitive-name scan, and stop conditions | manifest verification passed; remote candidate runs 0 | Aaron approval required before any release action |
+
+## Baseline evidence
+
+Evidence directory: `artifacts/mvp-v2/baseline/`
+
+- `report.json`: local built-preview capture at `http://127.0.0.1:4191/UH-Flowboard/`.
+- Screenshots: `desktop-light.png`, `desktop-dark.png`, `desktop-card.png`, `tablet-light.png`, `mobile-light.png`, and `narrow-light.png`.
+- `scripts/capture-mvp-v2-evidence.cjs`: reproducible fresh-context capture utility.
+- Data boundary: synthetic seeded local data only. No sign-in, cloud workspace, production fixture, raw storage, or credentials accessed.
+- Capture result: HTTP 200, **0 console errors**, **0 page errors**. The board had 4 lists and 10 seeded cards. The baseline confirmed the board switcher is hidden at 390px and 320px; this is a Step 4 defect target.
+- Existing validation result: `npm.cmd run validate` passed **24/24** unit tests, static guards, build, isolation, and **198,304 / 210,000** source bytes. `npm.cmd run test:rules` passed **23/23**. Packaged `npm.cmd run test:emulator-browser` passed **1/1**. Built-preview browser smoke passed **12/12**. Lighthouse accessibility passed with score **1** and zero failed audits.
+- Rerun history: one initial browser attempt used the Vite development server and produced three expected hashed-asset import failures; the corrected built-preview run passed. One concurrent Edge context-start flake was isolated and the complete single-worker rerun passed. No application failure was carried forward.
+
+## Step completion protocol
+
+After each completed step, send a Discord update using the exact form:
+
+```text
+Step X of 14 complete: [title]
+Delivered: [specific changes]
+Verified: [actual test names/results and evidence paths]
+Checkpoint: [commit SHA or explicitly uncommitted]
+Production: unchanged
+Next: Step X+1 of 14 - [title]
+```
+
+At the final authorized checkpoint report:
+
+```text
+Steps 1-13 of 14 complete. Step 14 awaits your approval.
+```
+
+## Step 6 checkpoint evidence
+
+- Code checkpoint: `07d4eaf95086aae36f7c8819ad2b6fa29d553122`.
+- Draft safety: labels, checklist, descriptions, dates, assignments, and title edits stay in an isolated draft until a confirmed Save; Close, Escape, Archive, Duplicate, and Delete use explicit discard confirmation when changed.
+- Failed-save behavior: the browser test injects a storage-boundary failure and verifies the dialog and draft remain open without a false success.
+- Validation: `npm.cmd run validate` passed 26/26 unit tests, static/runtime guards, production build, and asset isolation; `npm.cmd run test:rules` passed 23/23; the tracked Emulator browser workflow passed 1/1; built-preview browser smoke passed 15/15; Lighthouse accessibility scored 1.0 with zero failed audits; `git diff --check` passed.
+- Budget: 209,631 / 210,000 raw bytes, 369 bytes headroom, 23 reachable production sources, zero unbudgeted sources.
+- Evidence: `artifacts/mvp-v2/step-6/report.json`, six sanitized screenshots in the same directory, and `artifacts/mvp-v2/step-6-budget-measurement.json`.
+- Rules and production: `firestore.rules` was unchanged; no Rules publication, deployment, real-account testing, protected-workspace access, or production fixture mutation occurred.
+
+## Step 7 checkpoint evidence
+
+- Code checkpoint: `65019f9697cd8d6be38093e37681f322f3090182`.
+- Card capture: Enter submits, Shift+Enter preserves multiline entry, Escape cancels, IME composition does not submit, and focus returns to the list composer action.
+- Movement: the visible Move dialog accepts destination and bounded position; drag, Alt+Arrow, and Move reuse the canonical `moveCard` command; whole-list drops, empty lists, same-list reorder, self-drop, edge no-ops, and filtered drag guidance are covered.
+- Validation: `npm.cmd run validate` passed 27/27 unit tests, static/runtime guards, production build, gzip-budget enforcement, and asset isolation; `npm.cmd run test:rules` passed 23/23; the tracked Emulator browser workflow passed 1/1; built-preview browser smoke passed 19/19; Lighthouse accessibility scored 1.0 with zero failed audits; `git diff --check` passed.
+- Budget transition: Aaron approved the 217,500-byte raw-source cap. The 210,000-byte maintainability warning remains active. Current source is 212,506 bytes with 4,994 bytes of cap headroom; initial-shell gzip is 22,737 / 25,000 and first-party-lazy gzip is 48,990 / 55,000.
+- Evidence: `artifacts/mvp-v2/step-7/report.json`, `artifacts/mvp-v2/step-7/move-dialog.png`, six additional sanitized screenshots in the same directory, `artifacts/mvp-v2/step-7-budget-measurement.json`, and `artifacts/mvp-v2/step-7-benchmark.json`.
+- Rules and production: `firestore.rules` was unchanged; no Rules publication, deployment, real-account testing, protected-workspace access, or production fixture mutation occurred.
+
+## Step 8 checkpoint evidence
+
+- Code checkpoint: `e29731e0ec0ddbde883542e9508fc0cf449458f4`.
+- Schema: card completion is an explicit bounded boolean with legacy default `false`; supported workspace versions 1-5 normalize to schema 5. JSON import/export and granular cloud records preserve it; CSV shape remains compatible.
+- Scheduling: date-only due state uses local calendar components; due-time comparison uses device-local wall-clock values; completed cards are never overdue; injected date/time unit cases cover today, next-day, due-time, completion, and checklist independence.
+- Filters: text, stable named-label, member/unassigned, due, and completion filters combine across groups; active chips can be removed individually or cleared together; cloud Assigned-to-me uses the authenticated UID predicate and never guesses names/emails.
+- Validation: `npm.cmd run validate` passed 29/29 unit tests, static/runtime guards, production build, gzip-budget enforcement, and asset isolation; `npm.cmd run test:rules` passed 23/23; the tracked Emulator browser workflow passed 1/1; built-preview browser smoke passed 21/21; Lighthouse accessibility scored 1.0 with zero failed audits; `git diff --check` passed.
+- Budget: 217,494 / 217,500 raw bytes, with the approved 210,000-byte maintainability warning active and 6 bytes of cap headroom; initial-shell gzip 23,604 / 25,000; first-party-lazy gzip 49,079 / 55,000; 23 reachable production sources and zero unbudgeted sources.
+- Evidence: `artifacts/mvp-v2/step-8/report.json`, `artifacts/mvp-v2/step-8/completed-card.png`, `artifacts/mvp-v2/step-8/combined-filters.png`, six additional sanitized screenshots in the same directory, and `artifacts/mvp-v2/step-8-budget-measurement.json`.
+- Rules and production: `firestore.rules` was unchanged; no Rules publication, deployment, real-account testing, protected-workspace access, or production fixture mutation occurred.
+
+## Step 9 checkpoint evidence
+
+- Code checkpoint: `9f6f62eafd5ee50428a2dc5744b26e793bd52763`.
+- Collaboration access: owner member administration now shows each member’s display identity, role, and signed-in marker; owner-only role changes, removal, invitations, and ownership transfer remain available behind explicit in-app confirmation; viewer mode exposes no management controls and retains an explicit Leave workspace action.
+- Invitation history: owner rows now identify the recipient, role, and lifecycle state as Pending, Accepted, Expired, or Revoked. Pending invitations retain durable Copy link and Revoke actions; accepted, expired, and revoked records are visible without misleading actions. The section is named Invitation history rather than Pending invitations.
+- Failure handling: role change, member removal, invitation creation/revocation, leave, and ownership-transfer failures restore controls and report that local data was unchanged. Dialog close returns focus to Manage members. The member renderer was deterministically compacted to 8,861 bytes so the approved cap remains enforced.
+- Validation: `npm.cmd run validate` passed 29/29 unit tests, static/runtime guards, production build, gzip-budget enforcement, and asset isolation; `npm.cmd run test:rules` passed 23/23; the tracked Emulator browser workflow passed 1/1; Lighthouse accessibility scored 1.0 with zero failed audits; the settled built-preview browser suite passed 23/23, including the owner invitation-history and viewer read-only contracts. A later fresh-port rerun reproduced the known Edge context-start refusal at the lifecycle test before assertions; 22 other tests completed, and the isolated lifecycle test passed 1/1. No application assertion failure was observed.
+- Budget: 217,307 / 217,500 raw bytes, with the approved 210,000-byte maintainability warning active and 193 bytes of cap headroom; initial-shell gzip 23,606 / 25,000; first-party-lazy gzip 49,524 / 55,000; 23 reachable production sources and zero unbudgeted sources.
+- Evidence: `artifacts/mvp-v2/step-9/report.json`, `artifacts/mvp-v2/step-9/members-owner.png`, `artifacts/mvp-v2/step-9/members-viewer.png`, six additional sanitized responsive screenshots in the same directory, `artifacts/mvp-v2/step-9-budget-measurement.json`, and `artifacts/mvp-v2/step-9-lighthouse.json` was removed after verification.
+- Rules and production: `firestore.rules` was unchanged; no Rules publication, deployment, real-account testing, protected-workspace access, or production fixture mutation occurred.
+
+## Step 10 checkpoint evidence
+
+- Code checkpoint: `3ca59c158fc328f42d63ef8be4e0281cc5e6937d`.
+- Onboarding: added a native collapsed Getting started notice that identifies the opening board as starter content, explains browser-local storage, points to Board actions for export and recovery, directs sign-in toward separate cloud workspaces, and states that archived cloud workspaces retain data.
+- Recovery and portability: the existing Local recovery route remains local-only and user-operable; malformed recovery snapshots are rejected without changing the current workspace, and malformed JSON import is rejected with storage unchanged. The Step 10 browser tests cover both negative paths.
+- Validation: `npm.cmd run validate` passed 29/29 unit tests, static/runtime guards, production build, gzip-budget enforcement, and asset isolation; `npm.cmd run test:rules` passed 23/23; the tracked Emulator browser workflow passed 1/1; Lighthouse accessibility scored 1.0 with zero failed audits; the built-preview browser suite passed 24/24 excluding the known lifecycle context-start flake, and that isolated lifecycle test passed 1/1. A full 25-test invocation reached 24 tests and failed only before lifecycle assertions when Edge refused a new context; no application assertion failed.
+- Budget: 217,486 / 217,500 raw bytes, with the approved 210,000-byte maintainability warning active and 14 bytes of cap headroom; initial-shell gzip 23,606 / 25,000; first-party-lazy gzip 49,578 / 55,000; 23 reachable production sources and zero unbudgeted sources.
+- Evidence: `artifacts/mvp-v2/step-10/report.json`, `artifacts/mvp-v2/step-10/getting-started.png`, six additional sanitized responsive screenshots in the same directory, and `artifacts/mvp-v2/step-10-budget-measurement.json`.
+- Rules and production: `firestore.rules` was unchanged; no Rules publication, deployment, real-account testing, protected-workspace access, or production fixture mutation occurred.
+
+## Step 11 checkpoint evidence
+
+- Code checkpoint: `16ca7739e64f2c15b996e3ddee63d2fd0045f355`.
+- Mobile qualification: coarse-pointer controls now include the workspace switcher and Add a card at a minimum 44px target; keyboard menu traversal supports ArrowDown, End, Escape, and focus return; 200% reflow keeps page width bounded while the intentionally horizontal board remains scrollable; responsive coverage includes 320, 390, 440, and 700px plus desktop widths.
+- Remote-state safety: authoritative remote card changes close stale detail dialogs through the draft-safe close path, clear stale draft state, and return focus to the refreshed card before announcing the remote update.
+- Validation: `npm.cmd run validate` passed 29/29 unit tests, static/runtime guards, production build, gzip-budget enforcement, and asset isolation; `npm.cmd run test:rules` passed 23/23; the tracked Emulator browser workflow passed 1/1; the exact capped built-preview browser suite passed 29/29; Lighthouse accessibility scored 1.0 with zero failed audits; `git diff --check` passed. The responsive evidence capture returned HTTP 200 with 0 console errors and 0 page errors.
+- Budget: 217,500 / 217,500 raw bytes, with the approved 210,000-byte maintainability warning active and zero cap headroom; initial-shell gzip 23,607 / 25,000; first-party-lazy gzip 49,560 / 55,000; 23 reachable production sources and zero unbudgeted sources.
+- Evidence: `artifacts/mvp-v2/step-11/report.json`, `artifacts/mvp-v2/step-11/start-here.png`, six additional sanitized responsive screenshots in the same directory, and `artifacts/mvp-v2/step-11-budget-measurement.json`.
+- Remaining boundary: manual screen-reader and assistive-technology testing remains deferred; no real account or production acceptance is implied.
+- Rules and production: `firestore.rules` was unchanged; no Rules publication, deployment, real-account testing, protected-workspace access, or production fixture mutation occurred.
+
+## Step 12 checkpoint evidence
+
+- Code checkpoint: `9c2d591f0de3d154e6b8a0ccc9e3580894e6a53e`.
+- Regression gate: `npm.cmd run validate` passed 29/29 unit tests, all syntax/static/runtime guards, production build, exact source cap, gzip budgets, asset isolation, and the new workflow-release guard. Both deployment workflow YAML files parsed successfully.
+- Browser and accessibility: the settled exact-build browser suite passed 29/29; the initial invocation had the previously observed Edge context-start refusal at the lifecycle test, then the prescribed settled rerun passed 29/29. Lighthouse scored 1.0 with zero failed audits. The final served capture returned HTTP 200 with 0 console errors and 0 page errors at desktop, tablet, 390px, and 320px widths; the preview port was verified released after capture.
+- Cloud validation: Firestore Rules passed 23/23 and the tracked Emulator browser workflow passed 1/1. Expected denied Rules probes remain diagnostics from negative authorization cases, not failures.
+- Release gating: `deploy-pages.yml` now triggers from a successful `Validate Flowboard` `workflow_run` for a push to `main`, checks out `github.event.workflow_run.head_sha`, and permits manual dispatch only on `main`; `scripts/validate-workflow-gating.mjs` is part of `npm run check` and rejects regressions to the independent push-deploy path.
+- Budget: 217,500 / 217,500 raw bytes, with the approved 210,000-byte maintainability warning active and zero cap headroom; initial-shell gzip 23,607 / 25,000; first-party-lazy gzip 49,560 / 55,000; 23 reachable production sources and zero unbudgeted sources.
+- Evidence: `artifacts/mvp-v2/step-12/report.json`, six sanitized responsive screenshots in the same directory, and `artifacts/mvp-v2/step-12-budget-measurement.json`.
+- Remaining warning: Node still emits `MODULE_TYPELESS_PACKAGE_JSON` warnings because the package intentionally does not declare ESM globally; changing that would affect the tested UMD/CommonJS state boundary and was not attempted in this step.
+- Rules and production: `firestore.rules` was unchanged; no Pages deployment, Rules publication, push, merge to `main`, real-account testing, protected-workspace access, or production fixture mutation occurred.
+
+## Step 13 checkpoint evidence
+
+- Candidate client checkpoint: `69a182d66bbdb65b146c18b6c66cf49fcbc0c06b`; package files: `artifacts/mvp-v2/release-candidate/README.md` and `artifacts/mvp-v2/release-candidate/manifest.json`.
+- Repository state: branch `luna/trello-style-mvp-v2`, local and remote `main` both `07859a752e56fd2f01a0b8ff62d1264e2096de93`, 113 changed paths versus main, clean worktree when packaged, no remote candidate ref, and no remote CI runs for the candidate branch.
+- Package integrity: 21 built asset SHA-256 hashes are recorded; the 23-file production source graph has zero unbudgeted sources; tracked sensitive-name scan returned no matches; `firestore.rules` is byte-identical to main.
+- Validation carried into the package: 29/29 unit/static/build/budget/isolation, 23/23 Rules, 1/1 Emulator browser, 29/29 settled built-browser, Lighthouse 1.0 with zero failed audits, and served capture HTTP 200 with zero console/page errors.
+- Human gate: the candidate is ready for Aaron review only. Do not push the branch, merge to main, publish Rules, deploy Pages, use real Google accounts, access `My Flowboard workspace`, mutate the lifecycle fixture, or approve beta until Aaron explicitly authorizes the Final Human Gate and supplies the operator path. The active GitHub CLI account remains `makoaharadasaito`.
+- Known limitations: raw source is exactly at the approved 217,500-byte cap with zero headroom; the 210,000-byte maintainability warning remains active; Node emits the existing module-type warning; manual screen-reader testing and production acceptance remain outstanding.
+
+## Blockers and decisions
+
+- Step 14 is blocked pending Aaron’s explicit release/real-user acceptance approval.

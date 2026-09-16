@@ -2,18 +2,19 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const State = require('../state-core.js');
 
-test('legacy data migrates to schema 4 with usable collaboration metadata', () => {
+test('legacy data migrates to schema 5 with usable collaboration metadata', () => {
   const migrated = State.migrateLegacy([{title: 'Inbox', cards: [{title: 'Call "Sam"', color: 'red', meta: 'today'}]}]);
-  assert.equal(migrated.schemaVersion, 4);
+  assert.equal(migrated.schemaVersion, 5);
   assert.equal(migrated.boards[0].lists[0].cards[0].title, 'Call "Sam"');
   assert.equal(migrated.boards[0].collaboration.members[0].role, 'owner');
 });
 
 test('normalization safely upgrades old workspace data and rejects invalid envelope', () => {
   const normalized = State.normalizeWorkspace({schemaVersion: 1, boards: [{title: 'Old', lists: [{title: 'Next', cards: [{title: 'Task', labels: ['purple'], assigneeUids:['member-1','member-1','bad uid']}]}]}]});
-  assert.equal(normalized.schemaVersion, 4);
+  assert.equal(normalized.schemaVersion, 5);
   assert.equal(normalized.boards[0].lists[0].cards[0].labels[0].color, 'purple');
   assert.equal(normalized.boards[0].collaboration.access, 'private');
+  assert.equal(normalized.boards[0].lists[0].cards[0].completed, false);
   assert.deepEqual(normalized.boards[0].lists[0].cards[0].assigneeUids, ['member-1']);
   assert.equal(State.validWorkspace({schemaVersion: 99, boards: []}), false);
 });
@@ -31,6 +32,25 @@ test('filtering covers card fields and due/label states without mutating the car
   assert.equal(State.cardMatches(card, 'ari', {due: 'upcoming', label: 'orange'}, '2030-04-01'), true);
   assert.equal(State.cardMatches(card, 'launch', {due: 'today', label: 'all'}, '2030-04-11'), false);
   assert.equal(card.labels[0].name, 'Marketing');
+});
+
+test('explicit completion and local due-time semantics are deterministic', () => {
+  const timed = {dueDate:'2030-04-10', dueTime:'09:00', completed:false, checklist:[{done:true}]};
+  assert.equal(State.dueState(timed, '2030-04-10', '08:59'), 'today');
+  assert.equal(State.dueState(timed, '2030-04-10', '09:01'), 'overdue');
+  assert.equal(State.dueState({...timed, completed:true}, '2030-04-10', '09:01'), 'complete');
+  assert.equal(State.dueState({dueDate:'2030-04-10', completed:false}, '2030-04-10', '23:59'), 'today');
+  assert.equal(State.dueState({dueDate:'2030-04-10', completed:false}, '2030-04-11', '00:01'), 'overdue');
+});
+
+test('combined label, member, and completion filters use explicit identity', () => {
+  const card = {title:'Launch task', description:'', labels:[{id:'label-launch', color:'green', name:'Launch'}], checklist:[], assignees:['Alice'], assigneeUids:['member-a'], completed:true, dueDate:'2030-04-10', dueTime:'12:00'};
+  const filters = {due:'complete', label:'label-launch', member:'member-a', completed:'complete'};
+  assert.equal(State.cardMatches(card, 'launch', filters, '2030-04-10', '08:00'), true);
+  assert.equal(State.cardMatches(card, 'launch', {...filters, label:'label-other'}, '2030-04-10', '08:00'), false);
+  assert.equal(State.cardMatches(card, 'launch', {...filters, member:'unassigned'}, '2030-04-10', '08:00'), false);
+  const other = {...card, labels:[{id:'label-qa', color:'green', name:'QA'}], assignees:[], assigneeUids:[], completed:false};
+  assert.equal(State.cardMatches(other, '', {label:'label-qa', member:'unassigned', completed:'incomplete'}, '2030-04-10', '08:00'), true);
 });
 
 test('import recognition validates workspace and board shapes before mutation', () => {
@@ -56,4 +76,50 @@ test('bounded undo restores the pre-mutation snapshot without aliasing', () => {
   const result = State.takeUndo(history);
   assert.equal(result.item.workspace.boards[0].title, 'Website Launch');
   assert.equal(result.history.length, 0);
+});
+
+test('card drafts isolate editable fields until an explicit apply', () => {
+  const card = State.makeCard('Draftable card', 'purple');
+  const draft = State.makeCardDraft(card);
+  draft.title = 'Edited title';
+  draft.labels.push({id: 'draft-label', color: 'green', name: 'Next'});
+  draft.checklist.push({id: 'draft-item', text: 'Review', done: false});
+  assert.equal(card.title, 'Draftable card');
+  assert.equal(card.labels.length, 1);
+  assert.equal(card.checklist.length, 0);
+  assert.equal(State.hasCardDraftChanges(card, draft), true);
+  const applied = State.applyCardDraft(card, draft);
+  assert.equal(applied.title, 'Edited title');
+  assert.equal(applied.labels.length, 2);
+  assert.equal(applied.checklist[0].text, 'Review');
+  assert.equal(card.title, 'Draftable card');
+});
+
+test('card movement handles same-list order, self-drop, and empty destinations', () => {
+  const board = State.makeBoard('blank'), source = State.makeList('Source', [State.makeCard('First'), State.makeCard('Second')]), empty = State.makeList('Empty');
+  board.lists = [source, empty];
+  const reordered = State.moveCard(board, source.cards[0].id, source.id, 1);
+  assert.equal(reordered.changed, true);
+  assert.deepEqual(reordered.board.lists[0].cards.map(card => card.title), ['Second', 'First']);
+  const self = State.moveCard(reordered.board, source.cards[0].id, source.id, 1);
+  assert.equal(self.changed, false);
+  const movedEmpty = State.moveCard(reordered.board, source.cards[0].id, empty.id, 0);
+  assert.equal(movedEmpty.changed, true);
+  assert.deepEqual(movedEmpty.board.lists.map(list => list.cards.length), [1, 1]);
+});
+
+test('pure card and list movement commands preserve input and report no-ops', () => {
+  const board = State.makeBoard('tasks');
+  const first = State.makeCard('First'), second = State.makeCard('Second');
+  board.lists[0].cards = [first, second];
+  const moved = State.moveCard(board, first.id, board.lists[1].id, 0);
+  assert.equal(moved.changed, true);
+  assert.deepEqual(board.lists[0].cards.map(card => card.title), ['First', 'Second']);
+  assert.deepEqual(moved.board.lists.map(list => list.cards.length), [1, 1, 0]);
+  const same = State.moveCard(moved.board, first.id, board.lists[1].id, 0);
+  assert.equal(same.changed, false);
+  const reordered = State.moveList(board, board.lists[2].id, 0);
+  assert.equal(reordered.changed, true);
+  assert.equal(reordered.board.lists[0].id, board.lists[2].id);
+  assert.equal(State.moveList(reordered.board, board.lists[2].id, 0).changed, false);
 });

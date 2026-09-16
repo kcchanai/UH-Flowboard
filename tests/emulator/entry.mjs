@@ -28,6 +28,7 @@ const FIXTURE = Object.freeze({
   workspaceName: 'Flowboard Emulator Workflow',
   boardId: 'emulator-board',
   listId: 'emulator-list',
+  secondListId: 'emulator-list-2',
   cardId: 'emulator-card'
 });
 const ACCOUNTS = Object.freeze({
@@ -108,7 +109,7 @@ async function seedFixture() {
     activeBoardId: FIXTURE.boardId,
     status: 'ready',
     lifecycleRevision: 0,
-    migration: {version: 1, state: 'verified', counts: {boards: 1, lists: 1, cards: 1}},
+    migration: {version: 1, state: 'verified', counts: {boards: 1, lists: 2, cards: 1}},
     updatedAt: serverTimestamp()
   });
   bootstrap.set(doc(root, 'members', owner.uid), {uid: owner.uid, role: 'owner', emailLower: owner.email.toLowerCase(), displayName: 'Owner emulator user'});
@@ -125,6 +126,10 @@ async function seedFixture() {
   records.set(doc(root, 'boards', FIXTURE.boardId, 'lists', FIXTURE.listId), {
     id: FIXTURE.listId, title: 'Doing', rank: 0, revision: 0,
     clientMutationId: 'seed-list-mutation-0001', updatedAt: serverTimestamp()
+  });
+  records.set(doc(root, 'boards', FIXTURE.boardId, 'lists', FIXTURE.secondListId), {
+    id: FIXTURE.secondListId, title: 'Review', rank: 1, revision: 0,
+    clientMutationId: 'seed-list-mutation-0002', updatedAt: serverTimestamp()
   });
   records.set(doc(root, 'boards', FIXTURE.boardId, 'cards', FIXTURE.cardId), {
     id: FIXTURE.cardId, listId: FIXTURE.listId, title: 'Synthetic shared card', description: 'Emulator-only card',

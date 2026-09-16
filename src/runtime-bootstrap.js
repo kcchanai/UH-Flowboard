@@ -12,7 +12,7 @@ export async function bootstrapFlowboard({cloudConfigured, cloudStatus, cloudIni
     const activityUI = initializeActivityUI(cloudAdapter);
     const assignmentUI = initializeAssignmentUI(cloudAdapter);
     const commentsUI = initializeCommentsUI(cloudAdapter);
-    initializeAuthUI(cloudAdapter, {onSessionChange:session => { syncController.setSession(session); cloudUI.setSession(session); inviteUI.setSession(session); membersUI.setSession(session); activityUI.setSession(session); assignmentUI.setSession(session); commentsUI.setSession(session); }});
+    initializeAuthUI(cloudAdapter, {onSessionChange:session => { globalThis.FlowboardApp.setSession?.(session); syncController.setSession(session); cloudUI.setSession(session); inviteUI.setSession(session); membersUI.setSession(session); activityUI.setSession(session); assignmentUI.setSession(session); commentsUI.setSession(session); }});
   } else if (cloudConfigured) {
     const accountButton = document.querySelector('#account-button');
     accountButton.disabled = true;

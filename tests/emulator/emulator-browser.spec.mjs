@@ -22,6 +22,7 @@ async function openFixture(page) {
   await expect(row).toBeVisible();
   await row.getByRole('button', {name: `Open ${fixtureName}`}).click();
   await expect(page.locator('.card-open').filter({hasText: cardName})).toBeVisible();
+  await page.locator('#close-cloud-workspaces').click();
 }
 
 test('Auth and Firestore Emulator workflow proves discovery, convergence, denial, conflict, revocation, and lifecycle', async ({browser}) => {
@@ -41,6 +42,11 @@ test('Auth and Firestore Emulator workflow proves discovery, convergence, denial
     await openRole(viewer, 'viewer');
     await openFixture(viewer);
     await expect(viewer.locator('#cloud-status')).toContainText('Cloud preview');
+
+    await editor.locator('.list').first().locator('.list-menu').click();
+    await editor.locator('.list').first().getByRole('menuitem', {name:'Move right'}).click();
+    await expect.poll(() => owner.locator('.list-title').first().inputValue()).toBe('Review');
+    await expect.poll(() => viewer.locator('.list-title').first().inputValue()).toBe('Review');
 
     const firstUpdate = 'Editor converged update';
     await editor.evaluate(title => globalThis.__flowboardEmulatorTest.mutateCard(title), firstUpdate);

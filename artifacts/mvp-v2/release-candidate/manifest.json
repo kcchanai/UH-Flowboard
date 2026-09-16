@@ -1,0 +1,194 @@
+{
+  "candidate": {
+    "repository": "kcchanai/UH-Flowboard",
+    "origin": "https://github.com/kcchanai/UH-Flowboard.git",
+    "localPath": "C:/Code/Stacie-Hermes/UH-Trello",
+    "branch": "luna/trello-style-mvp-v2",
+    "clientSha": "69a182d66bbdb65b146c18b6c66cf49fcbc0c06b",
+    "baselineMainSha": "07859a752e56fd2f01a0b8ff62d1264e2096de93",
+    "originMainSha": "07859a752e56fd2f01a0b8ff62d1264e2096de93",
+    "originCandidateRef": null,
+    "worktreeClean": true,
+    "changedFilesVsMain": 113,
+    "firestoreRulesChanged": false
+  },
+  "validation": {
+    "unitStaticBuildBudgetIsolation": {
+      "result": "passed",
+      "unitTests": "29/29",
+      "workflowGate": "passed"
+    },
+    "firestoreRules": {
+      "result": "passed",
+      "tests": "23/23",
+      "command": "npm.cmd run test:rules"
+    },
+    "emulatorBrowser": {
+      "result": "passed",
+      "tests": "1/1",
+      "command": "npm.cmd run test:emulator-browser"
+    },
+    "builtBrowser": {
+      "result": "passed",
+      "tests": "29/29",
+      "command": "npx playwright test tests/browser-smoke.spec.mjs",
+      "note": "Settled rerun after the known Edge context-start refusal; no application assertion failed."
+    },
+    "lighthouse": {
+      "result": "passed",
+      "accessibilityScore": 1.0,
+      "failedAudits": []
+    },
+    "servedCapture": {
+      "result": "passed",
+      "httpStatus": 200,
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "evidence": "artifacts/mvp-v2/step-12/report.json"
+    },
+    "workflowYaml": {
+      "result": "passed",
+      "guard": "node scripts/validate-workflow-gating.mjs",
+      "yamlParse": "passed"
+    },
+    "diffCheck": "passed",
+    "remoteCandidateCiRuns": []
+  },
+  "budget": {
+    "rawSourceBytes": 217500,
+    "rawSourceCapBytes": 217500,
+    "rawSourceHeadroomBytes": 0,
+    "maintainabilityWarningBytes": 210000,
+    "initialShellGzipBytes": 23607,
+    "initialShellGzipLimitBytes": 25000,
+    "firstPartyLazyGzipBytes": 49560,
+    "firstPartyLazyGzipLimitBytes": 55000,
+    "reachableSourceFiles": 23,
+    "unbudgetedReachableSources": []
+  },
+  "distAssetSha256": [
+    {
+      "path": "dist/index.html",
+      "bytes": 25110,
+      "sha256": "3a1582c86f3e16812058a931c5eed9fba6912105557ebb0933222c86390cc300"
+    },
+    {
+      "path": "dist/assets/activity-ui-C51G-ocn.js",
+      "bytes": 2458,
+      "sha256": "bc701ac7ef6233f3f257b7305c0f7b02bd29cbaea7e4cd9cfd7c949b3bdff34e"
+    },
+    {
+      "path": "dist/assets/app-DoLCiIdr.js",
+      "bytes": 39667,
+      "sha256": "ab1d9913454295443186fbc475adfd22e9d35d099a2f0b378b1b7119f97000e7"
+    },
+    {
+      "path": "dist/assets/assignment-ui-CxFyqA9m.js",
+      "bytes": 2334,
+      "sha256": "be0755064018ac27b417ed93ce2bd9b12ee3a301e6b18646485f502552e4e8b5"
+    },
+    {
+      "path": "dist/assets/auth-ui-CvrGNppG.js",
+      "bytes": 2912,
+      "sha256": "405080838fdf3a2bf82fababe3a6e649d7a61ed44c159f9dc1a96e8b19bc9939"
+    },
+    {
+      "path": "dist/assets/cloud-sync-controller-BJhf3r-V.js",
+      "bytes": 1615,
+      "sha256": "97cb7603590d1ef9225f7d22035c06b5547a4357def21be96f94be033b21aca9"
+    },
+    {
+      "path": "dist/assets/cloud-workspace-ui-BrPT-p26.js",
+      "bytes": 8733,
+      "sha256": "5c83a0a07dc80fe3ce76455d0c5135a699dc5bb286d55259b7fd761fdbc10579"
+    },
+    {
+      "path": "dist/assets/comments-ui-yhNDTofw.js",
+      "bytes": 5119,
+      "sha256": "e0ca728a34164d95e3035d814dec5ec04d25ce3006dd4cc89bb0b3d9d828bae7"
+    },
+    {
+      "path": "dist/assets/favicon-DDIVp1O0.svg",
+      "bytes": 381,
+      "sha256": "cf99cbbcdad71bbf070a47ba4d81ccefcc8f38e215ad208131c074faae3f0f51"
+    },
+    {
+      "path": "dist/assets/firebase-cloud-workspace-CoAa__E9.js",
+      "bytes": 18181,
+      "sha256": "771bc97422b24a8bfb05ed516451d062abaed9349f9288a51a589c48a1d265e8"
+    },
+    {
+      "path": "dist/assets/firebase-phase-h-probes-DtiJ9_N1.js",
+      "bytes": 710,
+      "sha256": "b4fdefa04d75dca81d34eb305d5d490627b42dbf7cfce919ba28a4d5ad71f168"
+    },
+    {
+      "path": "dist/assets/firebase-workspace-adapter-DWRVrZte.js",
+      "bytes": 73299,
+      "sha256": "c6e785563b45b288fbf1e2f6c3677f900173deee6102579dfa15dd838a54352b"
+    },
+    {
+      "path": "dist/assets/firebase-workspace-lifecycle-CamRGMY9.js",
+      "bytes": 1294,
+      "sha256": "476d336c852592bd30b6d22406bd2b33fc5dd6f0a0496bd2d1f59b86c3633991"
+    },
+    {
+      "path": "dist/assets/index-BBUOopbV.css",
+      "bytes": 25363,
+      "sha256": "06c95aeda221b07751134aa71f0331415f81677067c5e34ea1fcd39f12b13a28"
+    },
+    {
+      "path": "dist/assets/index-D_CbHTh2.js",
+      "bytes": 15127,
+      "sha256": "3ae7745bf73069c7a18b4426e07d5b7905beed5ebe00d5143eb89f985822744c"
+    },
+    {
+      "path": "dist/assets/index.esm-DdmZ7nMW.js",
+      "bytes": 449715,
+      "sha256": "5a4363a8db65de665c858e45488edc92124aeda8c8742fb26056e945ee240fc4"
+    },
+    {
+      "path": "dist/assets/index.esm-o5GAWuO1.js",
+      "bytes": 28180,
+      "sha256": "c9937ccaf88c3990687c4f96825255b7592187b0c6ca600bc8e10a1d10abbd57"
+    },
+    {
+      "path": "dist/assets/invite-ui-WnGr7MNE.js",
+      "bytes": 1771,
+      "sha256": "8be312a799650c64e32806e51f1ef4056c4d6511468cc1f2f49e92bd3b086007"
+    },
+    {
+      "path": "dist/assets/members-ui-DKOEK_Fd.js",
+      "bytes": 7463,
+      "sha256": "50750a942330a5321e22e76cd30d36395fbe22d0f66a15a9d0ea22fdcc3459d9"
+    },
+    {
+      "path": "dist/assets/preload-helper-nG4tyN9Z.js",
+      "bytes": 1209,
+      "sha256": "daeeb25809066c77a31386c001de7e60bc7bbbb1bc781ede418c7c6dac44c6fd"
+    },
+    {
+      "path": "dist/assets/workspace-lifecycle-ui-dcDpt5-d.js",
+      "bytes": 3963,
+      "sha256": "f6ca8a1f72f46fff7a3e8545d00877c14ad8d11809e260f6301b1a1bcf4ec3fd"
+    }
+  ],
+  "trackedSensitiveNameScan": {
+    "result": "passed",
+    "matches": []
+  },
+  "productionBoundary": {
+    "status": "unchanged",
+    "rulesPublication": "not run",
+    "pagesDeployment": "not run",
+    "realAccountTesting": "not run",
+    "mainMerge": "not run",
+    "protectedWorkspaceAccess": "not performed",
+    "productionFixtureMutation": "not performed"
+  },
+  "humanGate": {
+    "status": "awaiting explicit Aaron approval",
+    "requiredBefore": "push candidate, merge to main, Pages deployment, Rules publication if needed, real Google-account acceptance, or beta approval",
+    "manualBoundary": "fresh real owner/editor/viewer/non-member sessions and dedicated disposable fixture only"
+  }
+}

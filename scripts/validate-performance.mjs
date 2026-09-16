@@ -1,25 +1,21 @@
 import {readFile, stat} from 'node:fs/promises';
+import {collectReachableSources} from './source-graph.mjs';
+import {PRODUCTION_SOURCE_FILES, SOURCE_CAP_BYTES, SOURCE_LIMITS, SOURCE_WARNING_BYTES} from './source-budget.mjs';
 
-const files = [
-  'index.html', 'styles.css', 'state-core.js', 'app.js',
-  'src/main.js', 'src/runtime-bootstrap.js', 'src/config.js', 'src/cloud-sync-controller.js', 'src/activity-ui.js', 'src/assignment-ui.js', 'src/comments-ui.js',
-  'src/auth-ui.js', 'src/cloud-workspace-ui.js', 'src/workspace-lifecycle-ui.js', 'src/invite-ui.js', 'src/members-ui.js', 'src/adapters/adapter-contract.js', 'src/adapters/local-workspace-adapter.js',
-  'src/adapters/firebase-workspace-adapter.js', 'src/adapters/firebase-cloud-workspace.js', 'src/adapters/firebase-workspace-lifecycle.js', 'src/adapters/firebase-phase-h-probes.js', 'src/granular-workspace.js'
-];
-const limits = {
-  'index.html': 26_000, 'styles.css': 40_000, 'state-core.js': 20_000, 'app.js': 80_000,
-  'src/main.js': 8_000, 'src/runtime-bootstrap.js': 4_000, 'src/config.js': 4_000, 'src/cloud-sync-controller.js': 5_000, 'src/activity-ui.js': 5_000, 'src/assignment-ui.js': 5_000, 'src/comments-ui.js': 9_000,
-  'src/auth-ui.js': 8_000, 'src/cloud-workspace-ui.js': 13_000, 'src/workspace-lifecycle-ui.js': 4_500, 'src/invite-ui.js': 8_000, 'src/members-ui.js': 12_000, 'src/adapters/adapter-contract.js': 8_000,
-  'src/adapters/local-workspace-adapter.js': 12_000, 'src/adapters/firebase-workspace-adapter.js': 8_000,
-  'src/adapters/firebase-cloud-workspace.js': 28_000, 'src/adapters/firebase-workspace-lifecycle.js': 3_000, 'src/adapters/firebase-phase-h-probes.js': 4_000, 'src/granular-workspace.js': 6_000
-};
+const files = PRODUCTION_SOURCE_FILES;
+const limits = SOURCE_LIMITS;
 let total = 0;
 for (const file of files) {
   const bytes = (await stat(file)).size;
   total += bytes;
   if (bytes > limits[file]) throw new Error(`${file} is ${bytes} bytes; budget is ${limits[file]}.`);
 }
-if (total > 210_000) throw new Error(`Initial source assets are ${total} bytes; budget is 210000.`);
+const reachable = await collectReachableSources();
+const budgeted = new Set(files);
+const missing = reachable.filter(file => /\.(?:html|css|js|mjs)$/.test(file) && !budgeted.has(file));
+if (missing.length) throw new Error(`Reachable production sources are missing from the budget manifest: ${missing.join(', ')}`);
+if (total > SOURCE_CAP_BYTES) throw new Error(`Initial source assets are ${total} bytes; cap is ${SOURCE_CAP_BYTES}.`);
+if (total > SOURCE_WARNING_BYTES) console.warn(`Source maintainability warning: ${total} bytes exceeds ${SOURCE_WARNING_BYTES}.`);
 const html = await readFile('index.html', 'utf8');
 if (!html.includes('/src/main.js')) throw new Error('Vite module application entry is not loaded.');
-console.log(`Performance budgets passed: ${total} bytes across ${files.length} source assets (budget 210000).`);
+console.log(`Performance budgets passed: ${total} bytes across ${files.length} source assets (cap ${SOURCE_CAP_BYTES}; warning ${SOURCE_WARNING_BYTES}). Reachable production sources: ${reachable.length}.`);
