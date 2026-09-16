@@ -22,13 +22,15 @@ async function waitForServer() {
 
 function runEmulators() {
   const browserCommand = `${command} playwright test tests/emulator/emulator-browser.spec.mjs --reporter=line`;
-  const emulatorCommand = `${command} --yes firebase-tools@15.25.1 emulators:exec --only auth,firestore --project demo-flowboard-browser "${browserCommand}"`;
+  const childOptions = {
+    stdio: ['ignore', 'pipe', 'pipe'],
+    shell: process.platform === 'win32',
+    env: {...process.env, PLAYWRIGHT_EMULATOR_BASE_URL: baseURL}
+  };
+  const child = process.platform === 'win32'
+    ? spawn(`${command} --yes firebase-tools@15.25.1 emulators:exec --only auth,firestore --project demo-flowboard-browser "${browserCommand}"`, [], childOptions)
+    : spawn(command, ['--yes', 'firebase-tools@15.25.1', 'emulators:exec', '--only', 'auth,firestore', '--project', 'demo-flowboard-browser', browserCommand], childOptions);
   return new Promise((resolve, reject) => {
-    const child = spawn(emulatorCommand, [], {
-      stdio: ['ignore', 'pipe', 'pipe'],
-      shell: true,
-      env: {...process.env, PLAYWRIGHT_EMULATOR_BASE_URL: baseURL}
-    });
     let output = '';
     child.stdout.on('data', chunk => { output += chunk; });
     child.stderr.on('data', chunk => { output += chunk; });
