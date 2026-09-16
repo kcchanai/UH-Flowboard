@@ -14,7 +14,7 @@ Production: unchanged. Step 14 is not authorized.
 | 3 | Implement the coherent visual system | complete | `edb969a1e3ff5f74f69572f875582941acdae6d3` |
 | 4 | Make board and workspace navigation obvious | complete | `71fc682509b9b4b42fe3bdb4e526ee47fc66ed6b` |
 | 5 | Finish practical board and list operations | complete | `aa2cec04f886e2d7b6b6868f1a4f3652021c46b2` |
-| 6 | Fix card draft safety and redesign card details | not started | |
+| 6 | Fix card draft safety and redesign card details | complete | `07d4eaf95086aae36f7c8819ad2b6fa29d553122` |
 | 7 | Make card capture and movement fast on every device | not started | |
 | 8 | Add meaningful completion, scheduling, and filters | not started | |
 | 9 | Make existing collaboration understandable | not started | |
@@ -38,7 +38,7 @@ Production: unchanged. Step 14 is not authorized.
 | Realtime, conflicts, revocation | local-safe mode | memory-only listeners | Emulator browser | real-account gate only |
 | Mobile board navigation | gap identified | role-aware behavior required | to add | not accepted |
 | Explicit completion | gap identified | schema/Rules impact to audit | to add | not accepted |
-| Safe card draft lifecycle | defect reproduced | revision-aware fix required | to add | not accepted |
+| Safe card draft lifecycle | implemented | revision-aware adapter retained | 26 unit + 15 built-browser + 1 Emulator browser | real-account gate only |
 | Combined named-label/member filters | partial | role-aware identity filter required | to add | not accepted |
 
 ## Baseline evidence
@@ -71,6 +71,16 @@ At the final authorized checkpoint report:
 ```text
 Steps 1-13 of 14 complete. Step 14 awaits your approval.
 ```
+
+## Step 6 checkpoint evidence
+
+- Code checkpoint: `07d4eaf95086aae36f7c8819ad2b6fa29d553122`.
+- Draft safety: labels, checklist, descriptions, dates, assignments, and title edits stay in an isolated draft until a confirmed Save; Close, Escape, Archive, Duplicate, and Delete use explicit discard confirmation when changed.
+- Failed-save behavior: the browser test injects a storage-boundary failure and verifies the dialog and draft remain open without a false success.
+- Validation: `npm.cmd run validate` passed 26/26 unit tests, static/runtime guards, production build, and asset isolation; `npm.cmd run test:rules` passed 23/23; the tracked Emulator browser workflow passed 1/1; built-preview browser smoke passed 15/15; Lighthouse accessibility scored 1.0 with zero failed audits; `git diff --check` passed.
+- Budget: 209,631 / 210,000 raw bytes, 369 bytes headroom, 23 reachable production sources, zero unbudgeted sources.
+- Evidence: `artifacts/mvp-v2/step-6/report.json`, six sanitized screenshots in the same directory, and `artifacts/mvp-v2/step-6-budget-measurement.json`.
+- Rules and production: `firestore.rules` was unchanged; no Rules publication, deployment, real-account testing, protected-workspace access, or production fixture mutation occurred.
 
 ## Blockers and decisions
 
