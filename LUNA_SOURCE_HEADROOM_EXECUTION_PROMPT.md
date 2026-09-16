@@ -120,6 +120,7 @@ Remove the complete exported `applyCloudMutation` function. Keep `applyCloudWork
 2. Keep `REMOTE_METHODS` for `createUnavailableCloudAdapter`.
 3. Keep `CloudNotConfiguredError` and the unavailable adapter behavior.
 4. Confirm every remaining contract method is either implemented by the Firebase adapter or intentionally returns `CloudNotConfiguredError` when Firebase is unavailable.
+5. Add a parity test that compares the explicit configured-adapter method object with the unavailable-adapter `REMOTE_METHODS` surface, including `listActivity`.
 
 ### Focused validation after Phase A
 

@@ -105,6 +105,7 @@ Do not remove collaboration normalization or schema fields in this checkpoint. K
 5. Cloud owner/editor/viewer behavior in the Emulator workflow remains unchanged.
 6. Existing state-core tests continue proving legacy collaboration metadata normalizes and round-trips without loss.
 7. Static validation fails if deleted planner IDs are reintroduced into `app.js` without matching markup, or if dangling planner listeners remain.
+8. The configured Firebase adapter method set and unavailable adapter `REMOTE_METHODS` set remain exactly equal, including `listActivity`.
 
 ## Required execution sequence
 
