@@ -20,8 +20,8 @@ Production: unchanged. Step 14 is not authorized.
 | 9 | Make existing collaboration understandable | complete | `9f6f62eafd5ee50428a2dc5744b26e793bd52763` |
 | 10 | Improve onboarding, truthful samples, and recovery | complete | `3ca59c158fc328f42d63ef8be4e0281cc5e6937d` |
 | 11 | Complete mobile and accessibility qualification | complete | `16ca7739e64f2c15b996e3ddee63d2fd0045f355` |
-| 12 | Run full regression and repair release gating | in progress | |
-| 13 | Package and review the release candidate; stop at human gate | not started | |
+| 12 | Run full regression and repair release gating | complete | `9c2d591f0de3d154e6b8a0ccc9e3580894e6a53e` |
+| 13 | Package and review the release candidate; stop at human gate | in progress | |
 | 14 | Authorized release and real-user acceptance | pending explicit approval | not authorized |
 
 ## Capability matrix
@@ -43,6 +43,7 @@ Production: unchanged. Step 14 is not authorized.
 | Collaboration access clarity | implemented | owner/editor/viewer roles, durable invitation history, pending expiry, accepted/expired/revoked states | 29 unit + 23 built-browser + 23 Rules + 1 Emulator browser | real-account gate only |
 | First-run safety and recovery | implemented | local starter guidance, separate cloud-workspace boundary, export/recovery pointers, malformed-input no-change proof | 29 unit + 24 built-browser + 1 isolated lifecycle + 23 Rules + 1 Emulator browser | real-account gate only |
 | Mobile and accessibility qualification | implemented | 320/390/440/700 widths, 44px touch targets, 200% reflow, keyboard menus, forced colors, reduced motion, visible focus | 29 unit + 29 built-browser + 23 Rules + 1 Emulator browser + Lighthouse 1.0 | manual assistive-technology and real-account gates remain |
+| Release gating | implemented | Pages waits for successful main-push validation and checks out its exact workflow-run SHA; local guard protects the workflow contract | 29 unit + workflow guard + YAML parse + 23 Rules + 29 built-browser + 1 Emulator browser + Lighthouse 1.0 | remote CI and Pages status still require the release-candidate gate |
 
 ## Baseline evidence
 
@@ -137,6 +138,18 @@ Steps 1-13 of 14 complete. Step 14 awaits your approval.
 - Evidence: `artifacts/mvp-v2/step-11/report.json`, `artifacts/mvp-v2/step-11/start-here.png`, six additional sanitized responsive screenshots in the same directory, and `artifacts/mvp-v2/step-11-budget-measurement.json`.
 - Remaining boundary: manual screen-reader and assistive-technology testing remains deferred; no real account or production acceptance is implied.
 - Rules and production: `firestore.rules` was unchanged; no Rules publication, deployment, real-account testing, protected-workspace access, or production fixture mutation occurred.
+
+## Step 12 checkpoint evidence
+
+- Code checkpoint: `9c2d591f0de3d154e6b8a0ccc9e3580894e6a53e`.
+- Regression gate: `npm.cmd run validate` passed 29/29 unit tests, all syntax/static/runtime guards, production build, exact source cap, gzip budgets, asset isolation, and the new workflow-release guard. Both deployment workflow YAML files parsed successfully.
+- Browser and accessibility: the settled exact-build browser suite passed 29/29; the initial invocation had the previously observed Edge context-start refusal at the lifecycle test, then the prescribed settled rerun passed 29/29. Lighthouse scored 1.0 with zero failed audits. The final served capture returned HTTP 200 with 0 console errors and 0 page errors at desktop, tablet, 390px, and 320px widths; the preview port was verified released after capture.
+- Cloud validation: Firestore Rules passed 23/23 and the tracked Emulator browser workflow passed 1/1. Expected denied Rules probes remain diagnostics from negative authorization cases, not failures.
+- Release gating: `deploy-pages.yml` now triggers from a successful `Validate Flowboard` `workflow_run` for a push to `main`, checks out `github.event.workflow_run.head_sha`, and permits manual dispatch only on `main`; `scripts/validate-workflow-gating.mjs` is part of `npm run check` and rejects regressions to the independent push-deploy path.
+- Budget: 217,500 / 217,500 raw bytes, with the approved 210,000-byte maintainability warning active and zero cap headroom; initial-shell gzip 23,607 / 25,000; first-party-lazy gzip 49,560 / 55,000; 23 reachable production sources and zero unbudgeted sources.
+- Evidence: `artifacts/mvp-v2/step-12/report.json`, six sanitized responsive screenshots in the same directory, and `artifacts/mvp-v2/step-12-budget-measurement.json`.
+- Remaining warning: Node still emits `MODULE_TYPELESS_PACKAGE_JSON` warnings because the package intentionally does not declare ESM globally; changing that would affect the tested UMD/CommonJS state boundary and was not attempted in this step.
+- Rules and production: `firestore.rules` was unchanged; no Pages deployment, Rules publication, push, merge to `main`, real-account testing, protected-workspace access, or production fixture mutation occurred.
 
 ## Blockers and decisions
 
