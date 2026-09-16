@@ -23,14 +23,15 @@ test('critical local-first card workflow persists after reload', async ({page}) 
 
 test('getting started explains local starter content and safe cloud boundaries', async ({page}) => {
   await page.goto(basePath);
-  const guide = page.locator('details').filter({hasText:'Getting started'});
+  const guide = page.locator('details').filter({hasText:'Start here'});
   await expect(guide).toBeVisible();
   await guide.locator('summary').click();
   await expect(guide).toContainText('Local starter content.');
-  await expect(guide).toContainText('export and recovery');
-  await expect(guide).toContainText('separate cloud workspaces');
-  await expect(guide).toContainText('retain data');
+  await expect(guide).toContainText('export/recovery');
+  await expect(guide).toContainText('cloud workspaces');
+  await expect(guide).toContainText('keep data');
   await page.screenshot({path:'artifacts/mvp-v2/step-10/getting-started.png', fullPage:true});
+  await page.screenshot({path:'artifacts/mvp-v2/step-11/start-here.png', fullPage:true});
 });
 
 test('malformed recovery and import inputs leave local storage unchanged', async ({page}) => {
@@ -99,6 +100,25 @@ test('viewer card dialog close button remains enabled and returns focus', async 
   await close.click();
   await expect(dialog).toBeHidden();
   await expect(card).toBeFocused();
+});
+
+test('remote card changes close stale details and restore focus to the refreshed card', async ({page}) => {
+  await page.goto(basePath);
+  await page.waitForFunction(() => globalThis.FlowboardApp && globalThis.FlowboardState);
+  await page.evaluate(() => {
+    const workspace = FlowboardState.makeWorkspace(), board = workspace.boards[0], next = FlowboardState.clone(board), target = next.lists[0].cards[0];
+    target.title = 'Remote replacement';
+    globalThis.FlowboardApp.openCloudWorkspace(workspace, {id:'remote-card-close', name:'Remote card test', role:'editor'});
+    globalThis.remoteCardPayload = {board:{...next, lists:[]}, lists:next.lists.map(list => ({...list, cards:[]})), cards:next.lists.flatMap(list => list.cards.map(card => ({...card, listId:list.id})))};
+  });
+  const card = page.locator('.card-open').first();
+  await card.click();
+  await page.locator('#card-description-input').fill('Stale draft must be discarded');
+  await page.evaluate(() => FlowboardApp.applyRemoteCloudBoard(globalThis.remoteCardPayload));
+  await expect(page.locator('#card-dialog')).toBeHidden();
+  const refreshed = page.locator('.card-open').filter({hasText:'Remote replacement'});
+  await expect(refreshed).toBeFocused();
+  await expect(page.locator('#announcer')).toContainText('changed elsewhere');
 });
 
 test('local Recovery lists, exports, and safely restores a snapshot', async ({page}) => {
@@ -560,6 +580,46 @@ test('responsive widths confine horizontal scrolling to the board lane', async (
     expect(layout.boardOverflow).toBe('auto');
     if (width === 320) expect(layout.boardScrollable).toBe(true);
   }
+});
+
+test('board actions support keyboard traversal and Escape focus return', async ({page}) => {
+  await page.goto(basePath);
+  const button = page.getByRole('button', {name:'Board actions'});
+  await button.focus();
+  await page.keyboard.press('ArrowDown');
+  const menu = page.getByRole('menu');
+  await expect(menu).toBeVisible();
+  await expect(menu.getByRole('menuitem').first()).toBeFocused();
+  await page.keyboard.press('End');
+  await expect(menu.getByRole('menuitem').last()).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(menu).toBeHidden();
+  await expect(button).toBeFocused();
+});
+
+test('touch controls meet 44px targets and the board keeps intentional scrolling', async ({browser}) => {
+  const context = await browser.newContext({viewport:{width:390,height:844}, hasTouch:true, isMobile:true});
+  const page = await context.newPage();
+  try {
+    await page.goto(basePath);
+    const evidence = await page.locator('button:visible').evaluateAll(elements => elements.map(element => {
+      const box = element.getBoundingClientRect();
+      return {name:element.getAttribute('aria-label') || element.textContent.trim().slice(0,30), width:box.width, height:box.height};
+    }));
+    expect(evidence.length).toBeGreaterThan(0);
+    expect(evidence.every(item => item.width >= 44 && item.height >= 44), JSON.stringify(evidence)).toBe(true);
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    await expect(page.locator('#board')).toHaveCSS('overflow-x', 'auto');
+  } finally { await context.close(); }
+});
+
+test('200 percent reflow keeps page width bounded while the board remains scrollable', async ({page}) => {
+  await page.goto(basePath);
+  await page.evaluate(() => { document.documentElement.style.zoom = '2'; });
+  const layout = await page.evaluate(() => ({pageFits:document.documentElement.scrollWidth <= document.documentElement.clientWidth, boardOverflow:getComputedStyle(document.querySelector('#board')).overflowX, boardScrollable:document.querySelector('#board').scrollWidth > document.querySelector('#board').clientWidth}));
+  expect(layout.pageFits).toBe(true);
+  expect(layout.boardOverflow).toBe('auto');
+  expect(layout.boardScrollable).toBe(true);
 });
 
 test('forced colors and reduced motion retain borders, focus, and bounded motion', async ({page}) => {

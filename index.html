@@ -24,7 +24,7 @@
 
   <header class="topbar">
     <a class="brand" href="#board" aria-label="Flowboard home"><span class="brand-mark" aria-hidden="true"><i></i><i></i></span><span>Flowboard</span></a>
-    <button id="boards-button" class="workspace" type="button" aria-haspopup="dialog" title="Open boards"><svg aria-hidden="true"><use href="#icon-board"></use></svg><span>My workspace</span></button>
+    <button id="boards-button" class="workspace" type="button" aria-haspopup="dialog"><svg aria-hidden="true"><use href="#icon-board"></use></svg><span>My workspace</span></button>
     <div class="search-wrap" role="search"><svg><use href="#icon-search"></use></svg><input id="search" type="search" placeholder="Search cards" autocomplete="off" aria-label="Search cards" /><button id="clear-search" class="clear-search" type="button" aria-label="Clear search" hidden><svg><use href="#icon-close"></use></svg></button></div>
     <button id="theme-toggle" class="icon-button top-action" type="button" aria-label="Switch to dark theme" title="Switch theme"><svg><use href="#icon-moon"></use></svg></button>
     <output id="cloud-status" class="cloud-status" role="status" aria-live="polite">Local-only workspace</output>
@@ -49,8 +49,8 @@
           <button type="button" role="menuitem" data-action="reset-board"><svg><use href="#icon-trash"></use></svg>Reset workspace</button>
         </div>
       </div>
-    <details class="collaboration-notice"><summary>Getting started</summary><p>Local starter content. Board actions: export and recovery. Sign in only for separate cloud workspaces. Archived cloud workspaces retain data.</p></details>
-        <section id="board" class="board" aria-label="Project board" tabindex="-1"></section>
+    <details class="collaboration-notice"><summary>Start here</summary><p>Local starter content. Board actions: export/recovery. Sign in for cloud workspaces. Archived workspaces keep data.</p></details>
+    <section id="board" class="board" aria-label="Project board" tabindex="-1"></section>
   </main>
 
   <dialog id="confirm-dialog" class="dialog" aria-labelledby="confirm-title" aria-describedby="confirm-message">

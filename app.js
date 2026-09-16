@@ -138,10 +138,11 @@
       if (current && JSON.stringify(current) === JSON.stringify(remote)) return false;
       const openBefore = openCardId ? findCard(openCardId)?.card : null, openAfter = openCardId ? remote.lists.flatMap(list => list.cards).find(card => card.id === openCardId) : null;
       const openChanged = Boolean(openCardId && JSON.stringify(openBefore || null) !== JSON.stringify(openAfter || null));
+      const focusId = openChanged && openCardId;
       state.boards = current ? state.boards.map(item => item.id === remote.id ? remote : item) : [...state.boards, remote];
       if (!state.boards.some(item => item.id === state.activeBoardId)) state.activeBoardId = remote.id;
-      if (openChanged && $('#card-dialog').open) { $('#card-dialog').close(); openCardId = null; }
-      render(); if (openChanged) say('This card changed elsewhere. Reopen it to view the current cloud version.'); return true;
+      if (openChanged && $('#card-dialog').open) closeCard(true);
+      render(); focusId && focusCard(focusId); if (openChanged) say('This card changed elsewhere. Reopen it to view the current cloud version.'); return true;
     },
     updateCloudRole(role) {
       if (!isRemote() || !['owner','editor','viewer'].includes(role)) return;

@@ -91,7 +91,7 @@ main { padding:clamp(20px,3vw,32px) clamp(14px,3vw,32px); }
   :focus-visible { outline:3px solid Highlight; outline-offset:3px; }
 }
 @media (pointer:coarse) {
-  .icon-button,.button,.list-menu,.dialog-close,.composer-cancel { min-width:44px; min-height:44px; }
+  .icon-button,.button,.list-menu,.dialog-close,.composer-cancel,.workspace,.add-card { min-width:44px; min-height:44px; }
   .card-open { min-height:48px; }
 }
 @media (max-width:700px) {
