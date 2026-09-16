@@ -13,7 +13,7 @@ Production: unchanged. Step 14 is not authorized.
 | 2 | Create a maintainable, testable foundation | complete | `66b6c854d68087d887273d3204364396e7241811` |
 | 3 | Implement the coherent visual system | complete | `edb969a1e3ff5f74f69572f875582941acdae6d3` |
 | 4 | Make board and workspace navigation obvious | complete | `71fc682509b9b4b42fe3bdb4e526ee47fc66ed6b` |
-| 5 | Finish practical board and list operations | not started | |
+| 5 | Finish practical board and list operations | complete | pending commit |
 | 6 | Fix card draft safety and redesign card details | not started | |
 | 7 | Make card capture and movement fast on every device | not started | |
 | 8 | Add meaningful completion, scheduling, and filters | not started | |

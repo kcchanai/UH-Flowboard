@@ -63,3 +63,7 @@ The 9,271 bytes of remaining raw headroom are a constraint, not a feature budget
 - Unallocated safety reserve: 771 bytes.
 
 This allocation is intentionally conservative. It does not authorize code golf, deletion of safety wording, weakening Rules, or silently raising the cap. A budget transition proposal is required if the plan cannot fit while preserving the stated acceptance criteria.
+
+## Step 5 remeasurement
+
+After the list-menu, title-validation, and list-reorder implementation, the exact source total is **209,611 / 210,000 bytes**, leaving **389 bytes**. All 23 reachable production files remain represented in the manifest. The remaining feature steps must first recover semantic headroom through replacement or removal of obsolete paths; the cap remains unchanged.

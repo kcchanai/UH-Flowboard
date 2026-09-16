@@ -255,6 +255,25 @@ test('workspace navigation remains available on a phone and searches boards', as
   await expect(boardsButton).toBeFocused();
 });
 
+test('list actions reorder locally, validate titles, and retain cloud lists', async ({page}) => {
+  await page.goto(basePath);
+  const firstList = page.locator('.list').first();
+  await firstList.locator('.list-menu').click();
+  await expect(firstList.getByRole('menu')).toBeVisible();
+  await firstList.getByRole('menuitem', {name:'Move right'}).click();
+  await expect(page.locator('.list-title').first()).toHaveValue('To do');
+  await page.reload();
+  await expect(page.locator('.list-title').first()).toHaveValue('To do');
+  const invalidList = page.locator('.list').first().locator('.list-title');
+  await invalidList.fill('');
+  await invalidList.press('Tab');
+  await expect(page.locator('.list-error:visible')).toContainText('List title must be between 1 and 80 characters.');
+  await page.evaluate(() => FlowboardApp.openCloudWorkspace(FlowboardState.makeWorkspace(), {id:'list-retention-test', name:'Retention test', role:'editor'}));
+  const cloudList = page.locator('.list').first();
+  await cloudList.locator('.list-menu').click();
+  await expect(cloudList.getByRole('menuitem', {name:/Delete list unavailable/})).toBeDisabled();
+});
+
 test('compact cloud-copy status fits the responsive top bar', async ({page}) => {
   await page.setViewportSize({width: 573, height: 500});
   await page.goto(basePath);
