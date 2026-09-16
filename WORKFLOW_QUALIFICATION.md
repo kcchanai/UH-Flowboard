@@ -42,7 +42,7 @@ FLOWBOARD_REPOSITORY_NAME=UH-Flowboard npx lighthouse http://127.0.0.1:4173/UH-F
 node scripts/assert-lighthouse.mjs
 ```
 
-The current checkpoint was validated with 23 unit tests, 23 Rules tests, 12 production-preview browser tests under each base path, one Emulator-backed multi-user workflow under each base path, a passing production build/isolation guard, and Lighthouse accessibility score 1 with zero failed audits.
+The current checkpoint was validated with 24 unit tests, 23 Rules tests, 12 production-preview browser tests under each base path, one Emulator-backed multi-user workflow under each base path, a passing production build/isolation guard, and Lighthouse accessibility score 1 with zero failed audits.
 
 ## Phase 7 human gate
 
