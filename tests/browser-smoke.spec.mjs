@@ -255,6 +255,36 @@ test('workspace navigation remains available on a phone and searches boards', as
   await expect(boardsButton).toBeFocused();
 });
 
+test('card edits stay isolated until Save and preserve drafts after a failed save', async ({page}) => {
+  await page.goto(basePath);
+  const card = page.locator('.card-open').first();
+  await card.click();
+  const dialog = page.locator('#card-dialog');
+  const originalTitle = await page.locator('#card-title-input').inputValue();
+  const originalLabels = await dialog.locator('#label-editor .label-row').count();
+  await page.locator('#add-label').click();
+  await expect(dialog.locator('#label-editor .label-row')).toHaveCount(originalLabels + 1);
+  await page.locator('#close-card-dialog').click();
+  await expect(page.locator('#confirm-dialog')).toContainText('Discard unsaved changes?');
+  await page.locator('#confirm-dialog').getByRole('button', {name:'Cancel'}).click();
+  await expect(dialog).toBeVisible();
+  await page.locator('#close-card-dialog').click();
+  await page.locator('#confirm-dialog').getByRole('button', {name:'Discard changes'}).click();
+  await expect(dialog).toBeHidden();
+  await card.click();
+  await expect(dialog.locator('#label-editor .label-row')).toHaveCount(originalLabels);
+  await page.locator('#card-title-input').fill(`${originalTitle} saved`);
+  await page.locator('#card-form').getByRole('button', {name:'Save changes'}).click();
+  await expect(dialog).toBeHidden();
+  await card.click();
+  await expect(page.locator('#card-title-input')).toHaveValue(`${originalTitle} saved`);
+  await page.locator('#card-description-input').fill('Draft must survive a failed local save');
+  await page.evaluate(() => { Storage.prototype.setItem = () => { throw new Error('synthetic storage failure'); }; });
+  await page.locator('#card-form').getByRole('button', {name:'Save changes'}).click();
+  await expect(dialog).toBeVisible();
+  await expect(page.locator('#card-description-input')).toHaveValue('Draft must survive a failed local save');
+});
+
 test('list actions reorder locally, validate titles, and retain cloud lists', async ({page}) => {
   await page.goto(basePath);
   const firstList = page.locator('.list').first();
