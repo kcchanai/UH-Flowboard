@@ -1,7 +1,8 @@
 import {test, expect} from '@playwright/test';
+import {previewUrl} from '../../scripts/repository-path.mjs';
 
 test.describe.configure({mode: 'serial'});
-const baseURL = process.env.PLAYWRIGHT_EMULATOR_BASE_URL || 'http://127.0.0.1:4174/UH-Trello';
+const baseURL = (process.env.PLAYWRIGHT_EMULATOR_BASE_URL || previewUrl(4174)).replace(/\/$/, '');
 const fixtureName = 'Flowboard Emulator Workflow';
 const cardName = 'Synthetic shared card';
 
@@ -71,7 +72,7 @@ test('Auth and Firestore Emulator workflow proves discovery, convergence, denial
 
     await owner.evaluate(() => globalThis.__flowboardEmulatorTest.removeEditor());
     await expect.poll(() => editor.evaluate(() => globalThis.FlowboardApp.getMode().kind)).toBe('local');
-    await expect(editor.getByText('Local owner · owner · local-only')).toBeVisible();
+    await expect(editor.getByText('Browser-local workspace · editable')).toBeVisible();
 
     await owner.evaluate(() => globalThis.__flowboardEmulatorTest.archiveWorkspace());
     await expect.poll(() => owner.evaluate(() => globalThis.FlowboardApp.getMode().kind)).toBe('local');

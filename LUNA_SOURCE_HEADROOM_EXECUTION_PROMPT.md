@@ -279,7 +279,7 @@ npm run test:emulator-browser
 git diff --check
 ```
 
-Then serve the production build at the configured `/UH-Trello/` base path and run:
+Then serve the production build at the derived repository base path and run the production browser suite. Before the repository rename, use `FLOWBOARD_REPOSITORY_NAME=UH-Trello`; repeat with `FLOWBOARD_REPOSITORY_NAME=UH-Flowboard` for the future Pages path.
 
 ```text
 PLAYWRIGHT_EXECUTABLE_PATH='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe' npx playwright test tests/browser-smoke.spec.mjs --reporter=line
@@ -288,7 +288,8 @@ PLAYWRIGHT_EXECUTABLE_PATH='C:/Program Files (x86)/Microsoft/Edge/Application/ms
 Run Lighthouse accessibility against the served production build:
 
 ```text
-npx lighthouse http://127.0.0.1:4173/UH-Trello/ --only-categories=accessibility --chrome-flags='--headless --no-sandbox' --output=json --output-path=lighthouse-report.json
+FLOWBOARD_REPOSITORY_NAME=UH-Trello npx lighthouse http://127.0.0.1:4173/UH-Trello/ --only-categories=accessibility --chrome-flags='--headless --no-sandbox' --output=json --output-path=lighthouse-report.json
+FLOWBOARD_REPOSITORY_NAME=UH-Flowboard npx lighthouse http://127.0.0.1:4173/UH-Flowboard/ --only-categories=accessibility --chrome-flags='--headless --no-sandbox' --output=json --output-path=lighthouse-report.json
 node scripts/assert-lighthouse.mjs
 ```
 

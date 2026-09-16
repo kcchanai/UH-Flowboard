@@ -122,7 +122,8 @@ npm run build
 npm run test:rules
 npm run test:emulator-browser
 PLAYWRIGHT_EXECUTABLE_PATH='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe' npx playwright test tests/browser-smoke.spec.mjs --reporter=line
-npx lighthouse http://127.0.0.1:4173/UH-Trello/ --only-categories=accessibility --chrome-flags='--headless --no-sandbox' --output=json --output-path=lighthouse-report.json
+FLOWBOARD_REPOSITORY_NAME=UH-Trello npx lighthouse http://127.0.0.1:4173/UH-Trello/ --only-categories=accessibility --chrome-flags='--headless --no-sandbox' --output=json --output-path=lighthouse-report.json
+FLOWBOARD_REPOSITORY_NAME=UH-Flowboard npx lighthouse http://127.0.0.1:4173/UH-Flowboard/ --only-categories=accessibility --chrome-flags='--headless --no-sandbox' --output=json --output-path=lighthouse-report.json
 node scripts/assert-lighthouse.mjs
 git diff --check
 ```

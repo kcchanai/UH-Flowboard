@@ -4,9 +4,8 @@ export const REMOTE_METHODS = Object.freeze([
   'getSession', 'onAuthStateChange', 'signInWithGoogle', 'signOut', 'verifyWorkspaceAccess',
   'listWorkspaces', 'fetchWorkspace', 'renameWorkspace', 'archiveWorkspace', 'restoreWorkspace', 'migrateWorkspaceToGranular', 'subscribeWorkspace', 'subscribeComments', 'listOlderComments',
   'createComment', 'updateComment', 'removeComment', 'probeCommentQueryAuthorization', 'probeHardDeleteAuthorization',
-  'createWorkspace', 'applyMutation', 'applyWorkspaceMutation', 'inviteMember', 'createInvite', 'listMembers', 'listInvites', 'revokeInvite', 'acceptInvite',
-  'changeMemberRole', 'removeMember', 'leaveWorkspace', 'transferOwnership', 'uploadLocalWorkspace',
-  'exportRemoteWorkspace'
+  'applyWorkspaceMutation', 'createInvite', 'listMembers', 'listInvites', 'revokeInvite', 'acceptInvite',
+  'changeMemberRole', 'removeMember', 'leaveWorkspace', 'transferOwnership', 'uploadLocalWorkspace'
 ]);
 
 export class CloudNotConfiguredError extends Error {

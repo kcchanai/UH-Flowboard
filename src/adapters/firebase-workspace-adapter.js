@@ -3,16 +3,6 @@ import {
   browserLocalPersistence, getAuth, GoogleAuthProvider, onAuthStateChanged,
   setPersistence, signInWithPopup, signOut as firebaseSignOut
 } from 'firebase/auth';
-import {REMOTE_METHODS} from './adapter-contract.js';
-
-export class CloudFeatureUnavailableError extends Error {
-  constructor(feature) {
-    super(`${feature} is not available yet. Your local workspace has not been uploaded or changed.`);
-    this.name = 'CloudFeatureUnavailableError';
-    this.code = 'CLOUD_FEATURE_UNAVAILABLE';
-  }
-}
-
 const sessionFor = user => user ? Object.freeze({
   uid:user.uid, displayName:user.displayName || '', email:user.email || '',
   emailVerified:Boolean(user.emailVerified), photoURL:user.photoURL || ''
@@ -48,7 +38,6 @@ export function createFirebaseWorkspaceAdapter(config) {
     async createComment(options) { return (await cloud()).createCardComment(app, auth, options); },
     async updateComment(options) { return (await cloud()).updateCardComment(app, auth, options); },
     async removeComment(options) { return (await cloud()).removeCardComment(app, auth, options); },
-    async applyMutation(options) { return (await cloud()).applyCloudMutation(app, auth, options); },
     async applyWorkspaceMutation(options) { return (await cloud()).applyCloudWorkspaceMutation(app, auth, options); },
     async migrateWorkspaceToGranular(workspaceId) { return (await cloud()).migrateWorkspaceToGranular(app, auth, workspaceId); },
     async listMembers(workspaceId) { return (await cloud()).listMembers(app, auth, workspaceId); },
@@ -63,6 +52,5 @@ export function createFirebaseWorkspaceAdapter(config) {
     async uploadLocalWorkspace(options) { return (await cloud()).uploadLocalWorkspace(app, auth, options); }
   };
 
-  for (const method of REMOTE_METHODS) if (!(method in adapter)) adapter[method] = async () => { throw new CloudFeatureUnavailableError(method); };
   return Object.freeze(adapter);
 }

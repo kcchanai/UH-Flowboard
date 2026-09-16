@@ -1,6 +1,6 @@
 import '../state-core.js';
 import {createLocalWorkspaceAdapter} from './adapters/local-workspace-adapter.js';
-import {createUnavailableCloudAdapter, CloudNotConfiguredError} from './adapters/adapter-contract.js';
+import {createUnavailableCloudAdapter} from './adapters/adapter-contract.js';
 import {cloudConfig, cloudConfigured, cloudStatus} from './config.js';
 import {bootstrapFlowboard} from './runtime-bootstrap.js';
 
@@ -26,4 +26,4 @@ if (cloudConfigured) {
   }
 }
 
-await bootstrapFlowboard({cloudConfig, cloudConfigured, cloudStatus, cloudInitializationError, localAdapter, cloudAdapter, CloudNotConfiguredError});
+await bootstrapFlowboard({cloudConfigured, cloudStatus, cloudInitializationError, localAdapter, cloudAdapter});

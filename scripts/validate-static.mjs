@@ -1,7 +1,7 @@
 import {readFile} from 'node:fs/promises';
 
-const [html, app, core, main, localAdapter, firebaseAdapter, cloudAdapter, lifecycleAdapter, phaseHProbes, authUI, cloudUI, lifecycleUI, inviteUI, membersUI, cloudSync, activityUI, assignmentUI, commentsUI, rules] = await Promise.all([
-  'index.html', 'app.js', 'state-core.js', 'src/main.js', 'src/adapters/local-workspace-adapter.js',
+const [html, app, core, main, runtimeBootstrap, contract, localAdapter, firebaseAdapter, cloudAdapter, lifecycleAdapter, phaseHProbes, authUI, cloudUI, lifecycleUI, inviteUI, membersUI, cloudSync, activityUI, assignmentUI, commentsUI, rules] = await Promise.all([
+  'index.html', 'app.js', 'state-core.js', 'src/main.js', 'src/runtime-bootstrap.js', 'src/adapters/adapter-contract.js', 'src/adapters/local-workspace-adapter.js',
   'src/adapters/firebase-workspace-adapter.js', 'src/adapters/firebase-cloud-workspace.js', 'src/adapters/firebase-workspace-lifecycle.js', 'src/adapters/firebase-phase-h-probes.js',
   'src/auth-ui.js', 'src/cloud-workspace-ui.js', 'src/workspace-lifecycle-ui.js', 'src/invite-ui.js', 'src/members-ui.js', 'src/cloud-sync-controller.js', 'src/activity-ui.js', 'src/assignment-ui.js', 'src/comments-ui.js', 'firestore.rules'
 ].map(file => readFile(file, 'utf8')));
@@ -23,6 +23,9 @@ for (const [label, pattern] of required) if (!pattern.test(html)) throw new Erro
 if (!app.includes('FlowboardState.cardMatches') || !app.includes('FlowboardState.csvForBoard')) throw new Error('App does not use tested state helpers.');
 if (app.includes('localStorage.')) throw new Error('App bypasses the local workspace adapter.');
 if (!app.includes('FlowboardRuntime?.localAdapter')) throw new Error('App does not use the local workspace adapter.');
+if (html.includes('id="collaboration-button"') || html.includes('id="collaboration-dialog"') || app.includes('showCollaboration') || app.includes('saveCollaboration') || app.includes('collaborationDraft')) throw new Error('Obsolete local collaboration planner remains wired into the application.');
+if (contract.includes("'applyMutation'") || contract.includes("'createWorkspace'") || contract.includes("'inviteMember'") || contract.includes("'exportRemoteWorkspace'") || firebaseAdapter.includes('applyMutation') || cloudAdapter.includes('export async function applyCloudMutation')) throw new Error('Obsolete cloud adapter mutation surface remains exposed.');
+if (!runtimeBootstrap.includes('Object.freeze({cloudStatus, localAdapter, cloudAdapter})') || runtimeBootstrap.includes('CloudNotConfiguredError') || /\{cloudConfig(?:[,}])/.test(runtimeBootstrap)) throw new Error('Runtime bootstrap exposes an obsolete or sensitive property.');
 if (!core.includes('module.exports')) throw new Error('State helpers are not testable in Node.');
 if (!main.includes('createLocalWorkspaceAdapter') || !localAdapter.includes('loadWorkspace')) throw new Error('Local adapter boundary is incomplete.');
 if (!main.includes('createFirebaseWorkspaceAdapter') || !firebaseAdapter.includes('signInWithPopup')) throw new Error('Firebase Authentication boundary is incomplete.');

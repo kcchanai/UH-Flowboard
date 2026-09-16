@@ -693,7 +693,7 @@ npm run test:rules
 git diff --check
 ```
 
-Browser and accessibility changes also require the repository’s pinned CI versions of Playwright and Lighthouse, the production `/UH-Trello/` base path, and the complete browser suite. If running locally with installed Microsoft Edge, use the existing Edge executable route and cleanly terminate preview processes afterward. Do not treat a successful local run as a replacement for CI.
+Browser and accessibility changes also require the repository’s pinned CI versions of Playwright and Lighthouse, the dynamically derived production base path (validated under both `/UH-Trello/` and `/UH-Flowboard/` before cutover), and the complete browser suite. If running locally with installed Microsoft Edge, use the existing Edge executable route and cleanly terminate preview processes afterward. Do not treat a successful local run as a replacement for CI.
 
 The single final production release requires:
 

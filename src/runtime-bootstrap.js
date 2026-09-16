@@ -1,5 +1,5 @@
-export async function bootstrapFlowboard({cloudConfig, cloudConfigured, cloudStatus, cloudInitializationError = null, localAdapter, cloudAdapter, CloudNotConfiguredError}) {
-  globalThis.FlowboardRuntime = Object.freeze({cloudConfig, cloudConfigured, cloudStatus, cloudInitializationError, localAdapter, cloudAdapter, CloudNotConfiguredError});
+export async function bootstrapFlowboard({cloudConfigured, cloudStatus, cloudInitializationError = null, localAdapter, cloudAdapter}) {
+  globalThis.FlowboardRuntime = Object.freeze({cloudStatus, localAdapter, cloudAdapter});
   await import('../app.js');
   if (cloudConfigured && !cloudInitializationError) {
     const [{initializeAuthUI}, {initializeCloudWorkspaceUI}, {initializeInviteUI}, {initializeMembersUI}, {initializeCloudSyncController}, {initializeActivityUI}, {initializeAssignmentUI}, {initializeCommentsUI}] = await Promise.all([
