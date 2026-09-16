@@ -16,8 +16,8 @@ Production: unchanged. Step 14 is not authorized.
 | 5 | Finish practical board and list operations | complete | `aa2cec04f886e2d7b6b6868f1a4f3652021c46b2` |
 | 6 | Fix card draft safety and redesign card details | complete | `07d4eaf95086aae36f7c8819ad2b6fa29d553122` |
 | 7 | Make card capture and movement fast on every device | complete | `65019f9697cd8d6be38093e37681f322f3090182` |
-| 8 | Add meaningful completion, scheduling, and filters | complete | `e29731e0ec0ddbde883542e9508fc0cf449458f4` |
-| 9 | Make existing collaboration understandable | not started | |
+| 8 | Add meaningful completion, scheduling, and filters | complete | `c9e9cf5e74f247ae4d924322345175b9bee9f50d` |
+| 9 | Make existing collaboration understandable | complete | `9f6f62eafd5ee50428a2dc5744b26e793bd52763` |
 | 10 | Improve onboarding, truthful samples, and recovery | not started | |
 | 11 | Complete mobile and accessibility qualification | not started | |
 | 12 | Run full regression and repair release gating | not started | |
@@ -40,6 +40,7 @@ Production: unchanged. Step 14 is not authorized.
 | Explicit completion | implemented | granular card field, Rules unchanged | 29 unit + 21 built-browser + 1 Emulator browser | real-account gate only |
 | Safe card draft lifecycle | implemented | revision-aware adapter retained | 26 unit + 15 built-browser + 1 Emulator browser | real-account gate only |
 | Combined named-label/member filters | implemented | stable label IDs, member/unassigned, authenticated Assigned-to-me predicate | 29 unit + 21 built-browser + 1 Emulator browser | real-account gate only |
+| Collaboration access clarity | implemented | owner/editor/viewer roles, durable invitation history, pending expiry, accepted/expired/revoked states | 29 unit + 23 built-browser + 23 Rules + 1 Emulator browser | real-account gate only |
 
 ## Baseline evidence
 
@@ -101,6 +102,17 @@ Steps 1-13 of 14 complete. Step 14 awaits your approval.
 - Validation: `npm.cmd run validate` passed 29/29 unit tests, static/runtime guards, production build, gzip-budget enforcement, and asset isolation; `npm.cmd run test:rules` passed 23/23; the tracked Emulator browser workflow passed 1/1; built-preview browser smoke passed 21/21; Lighthouse accessibility scored 1.0 with zero failed audits; `git diff --check` passed.
 - Budget: 217,494 / 217,500 raw bytes, with the approved 210,000-byte maintainability warning active and 6 bytes of cap headroom; initial-shell gzip 23,604 / 25,000; first-party-lazy gzip 49,079 / 55,000; 23 reachable production sources and zero unbudgeted sources.
 - Evidence: `artifacts/mvp-v2/step-8/report.json`, `artifacts/mvp-v2/step-8/completed-card.png`, `artifacts/mvp-v2/step-8/combined-filters.png`, six additional sanitized screenshots in the same directory, and `artifacts/mvp-v2/step-8-budget-measurement.json`.
+- Rules and production: `firestore.rules` was unchanged; no Rules publication, deployment, real-account testing, protected-workspace access, or production fixture mutation occurred.
+
+## Step 9 checkpoint evidence
+
+- Code checkpoint: `9f6f62eafd5ee50428a2dc5744b26e793bd52763`.
+- Collaboration access: owner member administration now shows each member’s display identity, role, and signed-in marker; owner-only role changes, removal, invitations, and ownership transfer remain available behind explicit in-app confirmation; viewer mode exposes no management controls and retains an explicit Leave workspace action.
+- Invitation history: owner rows now identify the recipient, role, and lifecycle state as Pending, Accepted, Expired, or Revoked. Pending invitations retain durable Copy link and Revoke actions; accepted, expired, and revoked records are visible without misleading actions. The section is named Invitation history rather than Pending invitations.
+- Failure handling: role change, member removal, invitation creation/revocation, leave, and ownership-transfer failures restore controls and report that local data was unchanged. Dialog close returns focus to Manage members. The member renderer was deterministically compacted to 8,861 bytes so the approved cap remains enforced.
+- Validation: `npm.cmd run validate` passed 29/29 unit tests, static/runtime guards, production build, gzip-budget enforcement, and asset isolation; `npm.cmd run test:rules` passed 23/23; the tracked Emulator browser workflow passed 1/1; Lighthouse accessibility scored 1.0 with zero failed audits; the settled built-preview browser suite passed 23/23, including the owner invitation-history and viewer read-only contracts. A later fresh-port rerun reproduced the known Edge context-start refusal at the lifecycle test before assertions; 22 other tests completed, and the isolated lifecycle test passed 1/1. No application assertion failure was observed.
+- Budget: 217,307 / 217,500 raw bytes, with the approved 210,000-byte maintainability warning active and 193 bytes of cap headroom; initial-shell gzip 23,606 / 25,000; first-party-lazy gzip 49,524 / 55,000; 23 reachable production sources and zero unbudgeted sources.
+- Evidence: `artifacts/mvp-v2/step-9/report.json`, `artifacts/mvp-v2/step-9/members-owner.png`, `artifacts/mvp-v2/step-9/members-viewer.png`, six additional sanitized responsive screenshots in the same directory, `artifacts/mvp-v2/step-9-budget-measurement.json`, and `artifacts/mvp-v2/step-9-lighthouse.json` was removed after verification.
 - Rules and production: `firestore.rules` was unchanged; no Rules publication, deployment, real-account testing, protected-workspace access, or production fixture mutation occurred.
 
 ## Blockers and decisions

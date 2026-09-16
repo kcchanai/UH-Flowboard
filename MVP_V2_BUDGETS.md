@@ -1,6 +1,6 @@
 # Flowboard MVP V2 budgets
 
-Status: Step 2 baseline and foundation measurement. This is a source-maintainability guard, not a network-transfer or backend-quota claim.
+Status: Step 9 collaboration checkpoint. This is a source-maintainability guard, not a network-transfer or backend-quota claim.
 
 ## Measurement scope
 
@@ -15,12 +15,13 @@ The guard excludes tests, Markdown, scripts, `node_modules`, generated `dist/`, 
 | Reachable first-party source files | 23 |
 | Budgeted source files | 23 |
 | Unbudgeted reachable source files | 0 |
-| Raw source bytes | 200,729 |
-| Existing hard cap | 210,000 |
-| Remaining raw headroom | 9,271 bytes |
+| Raw source bytes | 217,307 |
+| Approved hard cap | 217,500 |
+| Maintainability warning | 210,000 |
+| Remaining raw headroom | 193 bytes |
 | Per-file limit violations | 0 |
 
-The cap remains unchanged. The next feature steps must preserve readable safety, authorization, and accessibility copy. If the required feature set cannot fit through semantic consolidation and measured removal of obsolete paths, pause before changing the cap and present an evidence-based transition proposal.
+The approved hard cap is 217,500 bytes, with the original 210,000-byte maintainability warning still active. The next feature steps must preserve readable safety, authorization, and accessibility copy. If the required feature set cannot fit through semantic consolidation and measured removal of obsolete paths, pause before changing the approved cap and present an evidence-based transition proposal.
 
 ## Built output measurement
 
@@ -52,9 +53,9 @@ Full result: `artifacts/mvp-v2/step-2/benchmark.json`.
 
 The Step 12 lab targets are provisional: typical-fixture usable render at or below 1 second and p95 filter response at or below 200 ms on the recorded test machine. Stress fixtures and repeated samples are required before calling those targets passed.
 
-## Provisional implementation allocation
+## Historical Step 2 implementation allocation
 
-The 9,271 bytes of remaining raw headroom are a constraint, not a feature budget guarantee. Re-measure after every top-level step.
+The original 9,271-byte allocation below predates the approved 217,500-byte cap and is retained for history. Current headroom is recorded in the latest checkpoint sections; re-measure after every top-level step.
 
 - Steps 3-5: prioritize replacement of existing markup/CSS and removal of misleading controls; provisional net allowance 2,500 bytes.
 - Steps 6-7: reuse the Step 2 commands and existing dialog shell; provisional net allowance 2,500 bytes.
@@ -75,3 +76,7 @@ The Step 6 accepted checkpoint measured **209,631 / 210,000 bytes** with 369 byt
 ## Step 8 budget measurement
 
 The accepted Step 8 implementation measures **217,494 / 217,500 bytes**, leaving **6 bytes** of cap headroom while the 210,000-byte maintainability warning remains active. Initial-shell gzip is **23,604 / 25,000** and first-party-lazy gzip is **49,079 / 55,000**. The 23-file reachable source graph remains fully budgeted with zero unbudgeted sources.
+
+## Step 9 budget measurement
+
+The accepted Step 9 implementation measures **217,307 / 217,500 bytes**, leaving **193 bytes** of cap headroom while the 210,000-byte maintainability warning remains active. Initial-shell gzip is **23,606 / 25,000** and first-party-lazy gzip is **49,524 / 55,000**. The 23-file reachable source graph remains fully budgeted with zero unbudgeted sources.
