@@ -55,8 +55,9 @@ jobs:
           npm run dev -- --host 127.0.0.1 --port 4180 > emulator-server.log 2>&1 &
           SERVER_PID=$!
           trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
-          for i in {1..20}; do curl --fail --silent "http://127.0.0.1:4180${FLOWBOARD_BASE_PATH}tests/emulator/index.html" && break; sleep 1; done
+          for i in {1..20}; do curl --fail --silent "http://127.0.0.1:4180${FLOWBOARD_BASE_PATH}tests/emulator/index.html" >/dev/null && break; sleep 1; done
           curl --fail --silent "http://127.0.0.1:4180${FLOWBOARD_BASE_PATH}tests/emulator/index.html" >/dev/null
+          export PLAYWRIGHT_EMULATOR_BASE_URL="http://127.0.0.1:4180${FLOWBOARD_BASE_PATH%/}"
           npx --yes firebase-tools@15.25.1 emulators:exec --only auth,firestore --project demo-flowboard-browser "npx playwright test tests/emulator/emulator-browser.spec.mjs --reporter=line"
       - name: Automated accessibility check
         run: |
