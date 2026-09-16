@@ -15,7 +15,7 @@ Production: unchanged. Step 14 is not authorized.
 | 4 | Make board and workspace navigation obvious | complete | `71fc682509b9b4b42fe3bdb4e526ee47fc66ed6b` |
 | 5 | Finish practical board and list operations | complete | `aa2cec04f886e2d7b6b6868f1a4f3652021c46b2` |
 | 6 | Fix card draft safety and redesign card details | complete | `07d4eaf95086aae36f7c8819ad2b6fa29d553122` |
-| 7 | Make card capture and movement fast on every device | not started | |
+| 7 | Make card capture and movement fast on every device | blocked | |
 | 8 | Add meaningful completion, scheduling, and filters | not started | |
 | 9 | Make existing collaboration understandable | not started | |
 | 10 | Improve onboarding, truthful samples, and recovery | not started | |
@@ -84,4 +84,6 @@ Steps 1-13 of 14 complete. Step 14 awaits your approval.
 
 ## Blockers and decisions
 
-- None recorded yet.
+- Step 7 is blocked pending Aaron's explicit choice in `MVP_V2_BUDGET_TRANSITION_PROPOSAL.md`: keep the 210,000-byte cap and reduce/defer live scope, or approve a measured cap transition. The cap has not been changed.
+- Step 7 behavior is validated but intentionally uncommitted: 27 unit tests pass; the focused Move/drop/capture/filter browser cases pass; the full built-preview suite passed 19/19; the fresh benchmark passed with zero console/page errors; the remaining failure is only the binding raw-source cap at 212,506 / 210,000.
+- Step 7 evidence is in `artifacts/mvp-v2/step-7/`, with the current budget report at `artifacts/mvp-v2/step-7-budget-measurement.json` and benchmark at `artifacts/mvp-v2/step-7-benchmark.json`.
