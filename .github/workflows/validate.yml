@@ -65,7 +65,7 @@ jobs:
           node scripts/assert-lighthouse.mjs
       - name: Archive diagnostics on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: validation-diagnostics
           path: |
