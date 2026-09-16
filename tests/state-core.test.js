@@ -75,6 +75,19 @@ test('card drafts isolate editable fields until an explicit apply', () => {
   assert.equal(card.title, 'Draftable card');
 });
 
+test('card movement handles same-list order, self-drop, and empty destinations', () => {
+  const board = State.makeBoard('blank'), source = State.makeList('Source', [State.makeCard('First'), State.makeCard('Second')]), empty = State.makeList('Empty');
+  board.lists = [source, empty];
+  const reordered = State.moveCard(board, source.cards[0].id, source.id, 1);
+  assert.equal(reordered.changed, true);
+  assert.deepEqual(reordered.board.lists[0].cards.map(card => card.title), ['Second', 'First']);
+  const self = State.moveCard(reordered.board, source.cards[0].id, source.id, 1);
+  assert.equal(self.changed, false);
+  const movedEmpty = State.moveCard(reordered.board, source.cards[0].id, empty.id, 0);
+  assert.equal(movedEmpty.changed, true);
+  assert.deepEqual(movedEmpty.board.lists.map(list => list.cards.length), [1, 1]);
+});
+
 test('pure card and list movement commands preserve input and report no-ops', () => {
   const board = State.makeBoard('tasks');
   const first = State.makeCard('First'), second = State.makeCard('Second');

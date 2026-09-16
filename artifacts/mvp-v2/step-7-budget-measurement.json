@@ -1,8 +1,10 @@
 {
   "source": {
     "manifestBytes": 212506,
-    "capBytes": 210000,
-    "headroomBytes": -2506,
+    "warningBytes": 210000,
+    "warningExceeded": true,
+    "capBytes": 217500,
+    "headroomBytes": 4994,
     "reachableFiles": [
       "app.js",
       "index.html",
@@ -156,10 +158,10 @@
         "gzipBytes": 1062
       },
       {
-        "file": "dist\\assets\\app-dRwk3LAv.js",
+        "file": "dist\\assets\\app-DaOkOaO-.js",
         "category": "initial shell",
-        "bytes": 37828,
-        "gzipBytes": 11261
+        "bytes": 37798,
+        "gzipBytes": 11253
       },
       {
         "file": "dist\\assets\\assignment-ui-CxFyqA9m.js",
@@ -228,10 +230,10 @@
         "gzipBytes": 6031
       },
       {
-        "file": "dist\\assets\\index-D9HiXC7l.js",
+        "file": "dist\\assets\\index-D9NP6ozS.js",
         "category": "initial shell",
         "bytes": 14453,
-        "gzipBytes": 5454
+        "gzipBytes": 5453
       },
       {
         "file": "dist\\assets\\index.esm-DdmZ7nMW.js",
@@ -273,19 +275,19 @@
         "file": "dist\\index.html",
         "category": "first-party lazy",
         "bytes": 24503,
-        "gzipBytes": 5440
+        "gzipBytes": 5441
       }
     ],
     "categories": {
       "first-party lazy": {
         "files": 16,
         "bytes": 154906,
-        "gzipBytes": 48989
+        "gzipBytes": 48990
       },
       "initial shell": {
         "files": 3,
-        "bytes": 77041,
-        "gzipBytes": 22746
+        "bytes": 77011,
+        "gzipBytes": 22737
       },
       "vendor": {
         "files": 2,

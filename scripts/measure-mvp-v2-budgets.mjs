@@ -2,7 +2,7 @@ import {readdir, readFile, stat} from 'node:fs/promises';
 import path from 'node:path';
 import {gzipSync} from 'node:zlib';
 import {collectReachableSources} from './source-graph.mjs';
-import {PRODUCTION_SOURCE_FILES, SOURCE_LIMITS} from './source-budget.mjs';
+import {DIST_GZIP_LIMITS, PRODUCTION_SOURCE_FILES, SOURCE_CAP_BYTES, SOURCE_LIMITS, SOURCE_WARNING_BYTES} from './source-budget.mjs';
 
 const root = process.cwd();
 const bytes = async relative => (await stat(path.join(root, relative))).size;
@@ -27,11 +27,14 @@ const distAssets = await Promise.all(distFiles.map(async file => {
   return {file, category, bytes:buffer.length, gzipBytes:gzipSync(buffer).length};
 }));
 const grouped = Object.groupBy ? Object.groupBy(distAssets, item => item.category) : distAssets.reduce((groups, item) => ((groups[item.category] ||= []).push(item), groups), {});
+const sourceBytes = sourceFiles.reduce((sum, item) => sum + item.bytes, 0);
 const summary = {
   source: {
-    manifestBytes: sourceFiles.reduce((sum, item) => sum + item.bytes, 0),
-    capBytes: 210_000,
-    headroomBytes: 210_000 - sourceFiles.reduce((sum, item) => sum + item.bytes, 0),
+    manifestBytes: sourceBytes,
+    warningBytes: SOURCE_WARNING_BYTES,
+    warningExceeded: sourceBytes > SOURCE_WARNING_BYTES,
+    capBytes: SOURCE_CAP_BYTES,
+    headroomBytes: SOURCE_CAP_BYTES - sourceBytes,
     reachableFiles: reachable,
     unbudgetedReachableFiles: reachable.filter(file => !manifest.has(file)),
     manifestFiles: sourceFiles
@@ -42,4 +45,7 @@ const summary = {
   }
 };
 if (summary.source.unbudgetedReachableFiles.length) throw new Error(`Reachable production sources are missing from the budget manifest: ${summary.source.unbudgetedReachableFiles.join(', ')}`);
+if (summary.source.manifestBytes > SOURCE_CAP_BYTES) throw new Error(`Initial source assets are ${summary.source.manifestBytes} bytes; cap is ${SOURCE_CAP_BYTES}.`);
+for (const [category, limit] of Object.entries(DIST_GZIP_LIMITS)) { const actual = summary.dist.categories[category]?.gzipBytes || 0; if (actual > limit) throw new Error(`${category} gzip assets are ${actual} bytes; budget is ${limit}.`); }
+if (summary.source.warningExceeded) console.warn(`Source maintainability warning: ${summary.source.manifestBytes} bytes exceeds ${SOURCE_WARNING_BYTES}.`);
 console.log(JSON.stringify(summary, null, 2));

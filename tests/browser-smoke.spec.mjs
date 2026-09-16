@@ -285,6 +285,91 @@ test('card edits stay isolated until Save and preserve drafts after a failed sav
   await expect(page.locator('#card-description-input')).toHaveValue('Draft must survive a failed local save');
 });
 
+test('card capture is IME-safe and returns focus for continued entry', async ({page}) => {
+  await page.goto(basePath);
+  const firstList = page.locator('.list').first();
+  await firstList.getByRole('button', {name: /add a card/i}).click();
+  const input = firstList.getByLabel('New card title');
+  await input.fill('Line one');
+  await input.press('Shift+Enter');
+  await input.type('Line two');
+  await expect(input).toHaveValue('Line one\nLine two');
+  const before = await page.locator('.card-open').count();
+  await input.fill('Composed card');
+  await input.evaluate(element => element.dispatchEvent(new KeyboardEvent('keydown', {key:'Enter', bubbles:true, cancelable:true, isComposing:true})));
+  await expect(page.locator('.card-open')).toHaveCount(before);
+  await input.press('Enter');
+  await expect(page.locator('.card-open').filter({hasText:'Composed card'})).toBeVisible();
+  await expect(firstList.getByRole('button', {name: /add a card/i})).toBeFocused();
+});
+
+test('Move card dialog handles empty lists and returns focus with position', async ({page}) => {
+  await page.goto(basePath);
+  await page.evaluate(() => {
+    const workspace = FlowboardState.makeWorkspace(), board = FlowboardState.makeBoard('blank'), card = FlowboardState.makeCard('Move me');
+    board.lists = [FlowboardState.makeList('Source', [card]), FlowboardState.makeList('Empty')];
+    workspace.boards = [board]; workspace.activeBoardId = board.id;
+    localStorage.setItem('flowboard-workspace', JSON.stringify(workspace));
+  });
+  await page.reload();
+  const card = page.locator('.card-open').first(), cardId = await card.locator('xpath=..').getAttribute('data-card-id');
+  await card.click();
+  await page.getByRole('button', {name:'Move', exact:true}).click();
+  const confirm = page.locator('#confirm-dialog'), destination = page.locator('#move-destination'), position = page.locator('#move-position');
+  await expect(confirm).toContainText('Choose a destination list and position.');
+  const emptyId = await page.locator('.list').nth(1).getAttribute('data-list-id');
+  await destination.selectOption(emptyId);
+  await expect(position).toHaveAttribute('max', '1');
+  await position.fill('1');
+  await confirm.getByRole('button', {name:'Move card'}).click();
+  await expect(confirm).toBeHidden();
+  await expect(page.locator('.list').nth(0).locator('.card-open')).toHaveCount(0);
+  await expect(page.locator('.list').nth(1).locator('.card-open')).toHaveText(/Move me/);
+  await expect(page.locator(`[data-card-id="${cardId}"] .card-open`)).toBeFocused();
+  await expect(page.locator('#announcer')).toHaveText('Card moved to Empty, position 1');
+});
+
+test('whole-list drops move precisely and self-drop does not persist', async ({page}) => {
+  await page.goto(basePath);
+  await page.evaluate(() => {
+    const workspace = FlowboardState.makeWorkspace(), board = FlowboardState.makeBoard('blank');
+    board.lists = [FlowboardState.makeList('Source', [FlowboardState.makeCard('Drag me'), FlowboardState.makeCard('Stay')]), FlowboardState.makeList('Destination', [FlowboardState.makeCard('Existing')])];
+    workspace.boards = [board]; workspace.activeBoardId = board.id;
+    localStorage.setItem('flowboard-workspace', JSON.stringify(workspace));
+  });
+  await page.reload();
+  const result = await page.evaluate(() => {
+    const sourceCard = document.querySelector('.list .card'), destination = document.querySelectorAll('.list')[1], dataTransfer = new DataTransfer();
+    sourceCard.dispatchEvent(new DragEvent('dragstart', {bubbles:true, cancelable:true, dataTransfer}));
+    const over = new DragEvent('dragover', {bubbles:true, cancelable:true, dataTransfer});
+    destination.querySelector('.list-head').dispatchEvent(over);
+    const drop = new DragEvent('drop', {bubbles:true, cancelable:true, dataTransfer});
+    destination.querySelector('.list-head').dispatchEvent(drop);
+    const moved = [...document.querySelectorAll('.list')[1].querySelectorAll('.card-title')].map(element => element.textContent);
+    const before = localStorage.getItem('flowboard-workspace'), selfCard = document.querySelector('.list .card'), selfTransfer = new DataTransfer();
+    selfCard.dispatchEvent(new DragEvent('dragstart', {bubbles:true, cancelable:true, dataTransfer:selfTransfer}));
+    const selfDrop = new DragEvent('drop', {bubbles:true, cancelable:true, dataTransfer:selfTransfer});
+    selfCard.querySelector('.card-open').dispatchEvent(selfDrop);
+    return {dropPrevented:drop.defaultPrevented, moved, sourceCount:document.querySelectorAll('.list')[0].querySelectorAll('.card').length, destinationCount:document.querySelectorAll('.list')[1].querySelectorAll('.card').length, selfDropPrevented:selfDrop.defaultPrevented, storageUnchanged:before === localStorage.getItem('flowboard-workspace')};
+  });
+  expect(result).toEqual({dropPrevented:true, moved:['Existing','Drag me'], sourceCount:1, destinationCount:2, selfDropPrevented:true, storageUnchanged:true});
+});
+
+test('filtered cards use explicit Move instead of ambiguous drag reorder', async ({page}) => {
+  await page.goto(basePath);
+  await page.locator('#search').fill('Write homepage copy');
+  await expect(page.locator('#search-count')).toContainText('use Move to reposition filtered cards');
+  const card = page.locator('.card').first();
+  await expect(card).toHaveAttribute('draggable', 'false');
+  const result = await card.evaluate(element => {
+    const before = localStorage.getItem('flowboard-workspace'), dataTransfer = new DataTransfer();
+    const event = new DragEvent('dragstart', {bubbles:true, cancelable:true, dataTransfer});
+    element.dispatchEvent(event);
+    return {defaultPrevented:event.defaultPrevented, storageUnchanged:before === localStorage.getItem('flowboard-workspace')};
+  });
+  expect(result).toEqual({defaultPrevented:true, storageUnchanged:true});
+});
+
 test('list actions reorder locally, validate titles, and retain cloud lists', async ({page}) => {
   await page.goto(basePath);
   const firstList = page.locator('.list').first();
