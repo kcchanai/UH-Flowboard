@@ -599,6 +599,10 @@ Exit gate:
 - no serious/critical accessibility issue remains;
 - source and deployed performance budgets are documented separately.
 
+### Repository rename migration - separate coordinated cutover
+
+The requested rename from `kcchanai/UH-Trello` to `kcchanai/UH-Flowboard` is governed by `LUNA_UH_FLOWBOARD_RENAME_EXECUTION_PLAN.md`. Luna may implement and locally validate the dual-compatible base-path preparation during continuous development, but must stop at that plan's explicit cutover gate before merging the compatibility candidate, renaming the remote repository, dispatching production workflows, or changing the Pages URL. GitHub repository redirects do not cover project Pages URLs, so the rename and new-name Pages deployment must be treated as one verified production operation.
+
 ### Phase 7 - Final Human Gate and production workflow qualification
 
 Goal: prove the released site with real Google authentication and deployed Rules after deterministic tests pass.
