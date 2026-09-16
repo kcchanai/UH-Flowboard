@@ -6,7 +6,7 @@ const builtLifecycleAsset = () => `${basePath}assets/${readdirSync('dist/assets'
 const builtCloudWorkspaceAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('cloud-workspace-ui-') && file.endsWith('.js'))}`;
 const builtCloudSyncAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('cloud-sync-controller-') && file.endsWith('.js'))}`;
 const builtMembersAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('members-ui-') && file.endsWith('.js'))}`;
-const openReady = async page => { await page.goto(basePath); await page.waitForFunction(() => globalThis.FlowboardApp && globalThis.FlowboardState); };
+const openReady = async page => { await page.goto(basePath); await page.waitForFunction(() => globalThis.FlowboardApp && globalThis.FlowboardState); await page.waitForFunction(() => /Google sign-in available|Signed in · local workspace|Local-only workspace/.test(document.querySelector('#cloud-status')?.textContent || '')); };
 
 test('critical local-first card workflow persists after reload', async ({page}) => {
   await openReady(page);
@@ -115,7 +115,8 @@ test('remote card changes close stale details and restore focus to the refreshed
   const card = page.locator('.card-open').first();
   await card.click();
   await page.locator('#card-description-input').fill('Stale draft must be discarded');
-  await page.evaluate(() => FlowboardApp.applyRemoteCloudBoard(globalThis.remoteCardPayload));
+  const applied = await page.evaluate(() => FlowboardApp.applyRemoteCloudBoard(globalThis.remoteCardPayload));
+  expect(applied).toBe(true);
   await expect(page.locator('#card-dialog')).toBeHidden();
   const refreshed = page.locator('.card-open').filter({hasText:'Remote replacement'});
   await expect(refreshed).toBeFocused();

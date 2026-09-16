@@ -141,7 +141,7 @@
       const focusId = openChanged && openCardId;
       state.boards = current ? state.boards.map(item => item.id === remote.id ? remote : item) : [...state.boards, remote];
       if (!state.boards.some(item => item.id === state.activeBoardId)) state.activeBoardId = remote.id;
-      if (openChanged && $('#card-dialog').open) closeCard(true);
+      if (openChanged) closeCard(true);
       render(); focusId && focusCard(focusId); if (openChanged) say('This card changed elsewhere. Reopen it to view the current cloud version.'); return true;
     },
     updateCloudRole(role) {
