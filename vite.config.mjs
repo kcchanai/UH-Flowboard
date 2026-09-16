@@ -1,7 +1,8 @@
 import {defineConfig} from 'vite';
+import {basePath} from './scripts/repository-path.mjs';
 
 export default defineConfig({
-  base: '/UH-Trello/',
+  base: basePath,
   build: {
     outDir: 'dist',
     emptyOutDir: true,

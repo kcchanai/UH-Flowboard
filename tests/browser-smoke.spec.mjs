@@ -1,12 +1,13 @@
 import {test, expect} from '@playwright/test';
 import {readdirSync} from 'node:fs';
+import {basePath} from '../scripts/repository-path.mjs';
 
-const builtLifecycleAsset = () => `/UH-Trello/assets/${readdirSync('dist/assets').find(file => file.startsWith('workspace-lifecycle-ui-') && file.endsWith('.js'))}`;
-const builtCloudWorkspaceAsset = () => `/UH-Trello/assets/${readdirSync('dist/assets').find(file => file.startsWith('cloud-workspace-ui-') && file.endsWith('.js'))}`;
-const builtCloudSyncAsset = () => `/UH-Trello/assets/${readdirSync('dist/assets').find(file => file.startsWith('cloud-sync-controller-') && file.endsWith('.js'))}`;
+const builtLifecycleAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('workspace-lifecycle-ui-') && file.endsWith('.js'))}`;
+const builtCloudWorkspaceAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('cloud-workspace-ui-') && file.endsWith('.js'))}`;
+const builtCloudSyncAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('cloud-sync-controller-') && file.endsWith('.js'))}`;
 
 test('critical local-first card workflow persists after reload', async ({page}) => {
-  await page.goto('/UH-Trello/');
+  await page.goto(basePath);
   await expect(page.getByRole('heading', {level: 1})).toContainText('Website Launch');
   const firstList = page.locator('.list').first();
   await firstList.getByRole('button', {name: /add a card/i}).click();
@@ -19,8 +20,27 @@ test('critical local-first card workflow persists after reload', async ({page}) 
   await expect(page.locator('.card-open').filter({hasText: title})).toBeVisible();
 });
 
+test('browser-local mode remains editable without a fake collaboration planner', async ({page}) => {
+  await page.goto(basePath);
+  await page.evaluate(() => {
+    const workspace = FlowboardState.makeWorkspace(), board = workspace.boards[0], plannedViewer = {id:'legacy-viewer', name:'Legacy viewer', role:'viewer', addedAt:new Date().toISOString()};
+    board.collaboration.members.push(plannedViewer);
+    board.collaboration.currentMemberId = plannedViewer.id;
+    localStorage.setItem('flowboard-workspace', JSON.stringify(workspace));
+  });
+  await page.reload();
+  await expect(page.locator('#collaboration-summary')).toHaveText('Browser-local workspace · editable');
+  await expect(page.locator('#collaboration-button')).toHaveCount(0);
+  await expect(page.locator('#collaboration-dialog')).toHaveCount(0);
+  const firstList = page.locator('.list').first();
+  await firstList.getByRole('button', {name: /add a card/i}).click();
+  await firstList.getByLabel('New card title').fill('Legacy viewer local edit');
+  await firstList.getByRole('button', {name: 'Add card'}).click();
+  await expect(page.locator('.card-open').filter({hasText:'Legacy viewer local edit'})).toBeVisible();
+});
+
 test('card detail dialog closes with Escape and returns focus', async ({page}) => {
-  await page.goto('/UH-Trello/');
+  await page.goto(basePath);
   const card = page.locator('.card-open').first();
   await card.focus();
   await card.click();
@@ -32,7 +52,7 @@ test('card detail dialog closes with Escape and returns focus', async ({page}) =
 });
 
 test('viewer card dialog close button remains enabled and returns focus', async ({page}) => {
-  await page.goto('/UH-Trello/');
+  await page.goto(basePath);
   await page.waitForFunction(() => globalThis.FlowboardApp && globalThis.FlowboardState);
   await page.evaluate(() => FlowboardApp.openCloudPreview(FlowboardState.makeWorkspace(), {id:'viewer-test', name:'Viewer test', role:'viewer'}));
   const card = page.locator('.card-open').first();
@@ -45,10 +65,34 @@ test('viewer card dialog close button remains enabled and returns focus', async 
   await expect(card).toBeFocused();
 });
 
+test('local Recovery lists, exports, and safely restores a snapshot', async ({page}) => {
+  await page.goto(basePath);
+  const firstList = page.locator('.list').first();
+  const title = `Recovery smoke ${Date.now()}`;
+  await firstList.getByRole('button', {name: /add a card/i}).click();
+  await firstList.getByLabel('New card title').fill(title);
+  await firstList.getByRole('button', {name: 'Add card'}).click();
+  await page.getByRole('button', {name: 'Board actions'}).click();
+  const menu = page.getByRole('menu');
+  await menu.getByRole('menuitem', {name: 'Local recovery'}).click();
+  const dialog = page.getByRole('dialog', {name: 'Local recovery'});
+  await expect(dialog).toContainText('Snapshot 1');
+  const downloadPromise = page.waitForEvent('download');
+  await dialog.getByRole('button', {name: 'Export snapshot 1'}).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe('flowboard-recovery-snapshot-1.json');
+  await dialog.getByRole('button', {name: 'Restore snapshot 1'}).click();
+  const confirm = page.getByRole('dialog', {name: 'Restore local snapshot?'});
+  await expect(confirm).toBeVisible();
+  await confirm.getByRole('button', {name: 'Restore snapshot'}).click();
+  await expect(dialog).toBeHidden();
+  await expect(page.locator('.card-open').filter({hasText: title})).toHaveCount(0);
+});
+
 test('workspace root rename converges and archive returns the cloud session to local mode', async ({page}) => {
-  await page.goto('/UH-Trello/');
+  await page.goto(basePath);
   await page.waitForFunction(() => globalThis.FlowboardApp && globalThis.FlowboardState);
-  await expect(page.locator('#cloud-status')).toHaveText('Google sign-in available');
+  await expect(page.locator('#cloud-status')).toHaveText(/Google sign-in available|Local-only workspace/);
   await page.evaluate(async asset => {
     const {initializeCloudSyncController} = await import(asset);
     let listener, subscriptions = 0, stops = 0;
@@ -73,13 +117,17 @@ test('workspace root rename converges and archive returns the cloud session to l
   await expect.poll(() => page.evaluate(() => FlowboardApp.getMode().kind)).toBe('local');
   await page.evaluate(() => { lifecycleRootProbe.late(); window.dispatchEvent(new Event('online')); });
   await expect.poll(() => page.evaluate(() => lifecycleRootProbe.counts())).toEqual({subscriptions:1, stops:1});
-  await expect(page.getByText('Local owner · owner · local-only')).toBeVisible();
+  await expect(page.getByText('Browser-local workspace · editable')).toBeVisible();
 });
 
 test('Google account dialog preserves an explicit local-only boundary', async ({page}) => {
-  await page.goto('/UH-Trello/');
-  await expect(page.locator('#cloud-status')).toHaveText('Google sign-in available');
+  await page.goto(basePath);
+  await expect(page.locator('#cloud-status')).toHaveText(/Google sign-in available|Local-only workspace/);
   const account = page.getByRole('button', {name: 'Sign in with Google'});
+  if (await page.locator('#cloud-status').textContent() === 'Local-only workspace') {
+    await expect(account).toBeHidden();
+    return;
+  }
   await account.click();
   const dialog = page.getByRole('dialog', {name: 'Google sign-in'});
   await expect(dialog).toBeVisible();
@@ -91,7 +139,7 @@ test('Google account dialog preserves an explicit local-only boundary', async ({
 });
 
 test('owner workspace lifecycle dialog renames, archives, restores, and returns focus', async ({page}) => {
-  await page.goto('/UH-Trello/');
+  await page.goto(basePath);
   await page.evaluate(async asset => {
     const {createWorkspaceLifecycleControls} = await import(asset);
     const fixture = document.createElement('section'), openButton = document.createElement('button');
@@ -147,7 +195,7 @@ test('owner workspace lifecycle dialog renames, archives, restores, and returns 
 
 test('owner can retry an interrupted migration and the workspace list refreshes to editable', async ({page}) => {
   await page.setViewportSize({width:390,height:844});
-  await page.goto('/UH-Trello/');
+  await page.goto(basePath);
   await page.evaluate(async asset => {
     document.body.innerHTML = `<dialog id="account-dialog"></dialog><button id="open-cloud-migration"></button><dialog id="cloud-migration-dialog"><button id="close-cloud-migration"></button><input id="cloud-workspace-name"><dl id="cloud-migration-summary"></dl><p id="cloud-migration-status"></p><button id="download-migration-backup"></button><button id="create-cloud-workspace"></button></dialog><button id="open-cloud-workspaces">Cloud workspaces</button><dialog id="cloud-workspaces-dialog"><button id="close-cloud-workspaces"></button><div id="cloud-workspaces-list"></div><p id="cloud-workspaces-status"></p><button id="return-to-local-workspace"></button><button id="migrate-cloud-workspace">Migrate cloud format</button><button id="export-cloud-workspace"></button></dialog><div id="announcer"></div>`;
     let verified = false;
@@ -184,7 +232,7 @@ test('owner can retry an interrupted migration and the workspace list refreshes 
 
 test('compact cloud-copy status fits the responsive top bar', async ({page}) => {
   await page.setViewportSize({width: 573, height: 500});
-  await page.goto('/UH-Trello/');
+  await page.goto(basePath);
   const status = page.locator('#cloud-status');
   await status.evaluate(element => { element.textContent = 'Cloud copy · local'; });
   const dimensions = await status.evaluate(element => ({clientWidth:element.clientWidth, scrollWidth:element.scrollWidth}));
@@ -192,7 +240,7 @@ test('compact cloud-copy status fits the responsive top bar', async ({page}) => 
 });
 
 test('responsive widths confine horizontal scrolling to the board lane', async ({page}) => {
-  await page.goto('/UH-Trello/');
+  await page.goto(basePath);
   for (const width of [1280, 700, 440, 320]) {
     await page.setViewportSize({width, height:720});
     const layout = await page.evaluate(() => {
@@ -211,7 +259,7 @@ test('responsive widths confine horizontal scrolling to the board lane', async (
 
 test('forced colors and reduced motion retain borders, focus, and bounded motion', async ({page}) => {
   await page.emulateMedia({forcedColors:'active', reducedMotion:'reduce'});
-  await page.goto('/UH-Trello/');
+  await page.goto(basePath);
   await page.keyboard.press('Tab');
   const card = page.locator('.card').first();
   const evidence = await card.evaluate(element => {

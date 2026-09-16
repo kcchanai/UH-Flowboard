@@ -1,35 +1,35 @@
 # Flowboard production hardening and beta-readiness plan
 
-Last reevaluated: 2026-08-07 HST
+Last reevaluated: 2026-08-19 HST
 
-This is the authoritative sequential plan for Flowboard. It replaces the earlier implementation handoff for Phases E through H, which are now deployed. Historical architecture and release evidence remain in `COLLABORATION_ARCHITECTURE.md`, `FIREBASE_COLLABORATION_PLAN.md`, and `PHASE_H_RELEASE_VALIDATION.md`.
+This is the authoritative production-safety and acceptance plan for Flowboard. `LUNA_FULL_WORKFLOW_IMPLEMENTATION_PLAN.md` controls continuous non-production development sequencing. It replaces the earlier implementation handoff for Phases E through H, which are now deployed. Historical architecture and release evidence remain in `COLLABORATION_ARCHITECTURE.md`, `FIREBASE_COLLABORATION_PLAN.md`, and `PHASE_H_RELEASE_VALIDATION.md`.
 
 ## 1. Executive recommendation
 
-Freeze new product features until the remaining workspace-lifecycle production gates are complete.
+Continue non-production development without waiting for Aaron-operated lifecycle tests. Keep production pinned at `5a17747`, isolate work on a development branch, run automated/browser/Emulator validation throughout, and consolidate all real-account and production acceptance into the final release-candidate gate.
 
-The core product is already deployed and broadly validated. The highest-value work is now security acceptance, independent-session convergence, evidence consolidation, and beta-risk control. Adding features before these gates close would increase test scope while the source budget has only 547 bytes of headroom.
+The core product is already deployed and broadly validated. Production security acceptance remains necessary, but it no longer blocks isolated development. The first development priority is restoring source headroom because only 547 bytes remain. No development checkpoint may publish Rules, merge production `main`, deploy Pages production, or mutate production data before the Final Human Gate.
 
 Recommended order:
 
-1. consolidate current documentation and acceptance tooling;
-2. complete owner lifecycle tests in independent authenticated browser contexts;
-3. complete editor, viewer, non-member, former-member, and revoked-member lifecycle authorization tests;
-4. close production acceptance and leave the disposable fixture in an approved retained state;
-5. make an explicit beta/no-beta decision, including institutional-data boundaries;
-6. recover maintainability and source-budget headroom before any new feature release;
-7. run a small, reversible beta before broader use.
+1. preserve the `5a17747` production baseline and paused fixture state without further production mutation;
+2. restore maintainability and at least 10,000 bytes of source-budget headroom on an isolated development branch;
+3. implement and agent-test the operational-v1 workflows in `LUNA_FULL_WORKFLOW_IMPLEMENTATION_PLAN.md`;
+4. complete automated, real-browser, accessibility, build, and two-context Firebase Emulator qualification;
+5. present one validated release candidate at the Final Human Gate;
+6. publish reviewed Rules if required, deploy the exact client candidate, and restart owner/role lifecycle acceptance in fresh authenticated contexts;
+7. close production acceptance, make an explicit beta/no-beta decision, and run a small reversible beta before broader use.
 
 ## 2. Current production baseline
 
-Last production-accepted behavior-changing lifecycle client release:
+Current deployed corrective lifecycle client release:
 
 ```text
-0b97993b43093e6cb0ccdda1a706d3e2f8d2b391
-Restore cloud workspace open control
+5a17747e3c9cb526a534659aff39f46f2fd35cbc
+Propagate cloud workspace lifecycle updates
 ```
 
-A corrective client release is under validation before independent-context acceptance. It propagates workspace-root name and archive status through the existing realtime listener so a remote rename updates the active heading and a remote archive immediately stops listeners and returns to local mode.
+The release passed CI, Pages deployment, local/browser/Rules/accessibility validation, production smoke, independent owner rename convergence, and stale lifecycle rejection. Archive propagation and the remaining production role matrix are deferred until the final release candidate and must then be restarted in fresh contexts.
 
 Current architecture:
 
@@ -93,7 +93,9 @@ The production Rules recovery revision was published separately from the Pages c
 - Do not add Cloud Functions, Firebase Hosting, paid email delivery, or billing-dependent features without a separate architecture and cost approval.
 - Public Flowboard copy must not use em dashes.
 
-## 5. Sequential execution plan
+## 5. Production acceptance sequence
+
+Phases 0 through 4 below describe the final production-human sequence. During continuous development, execute the headroom work in Phase 5 first, then Development Phases 2 through 6 in `LUNA_FULL_WORKFLOW_IMPLEMENTATION_PLAN.md`, and return to this production sequence only at its Phase 7 Final Human Gate.
 
 ### Phase 0 - current-state consolidation
 
@@ -234,7 +236,7 @@ Exit gate:
 - privacy and retention copy matches the implemented archive-only model;
 - no claim of institutional approval is made without evidence.
 
-### Phase 5 - engineering headroom before new features
+### Phase 5 - engineering headroom before workflow development
 
 Goal: restore maintainability and a defensible performance margin before adding product scope.
 
@@ -242,14 +244,14 @@ Current source usage is 209,453 of 210,000 bytes, leaving 547 bytes. This is not
 
 Recommended work:
 
-1. Freeze feature additions while the lifecycle acceptance phases run.
+1. Keep production feature releases frozen while allowing isolated development-branch work.
 2. Produce an asset/module size report and identify dead, duplicated, or obsolete code.
 3. Prefer removing dead paths and consolidating repeated logic over further hand-minifying maintainable source.
 4. Preserve semantic static guards and behavioral browser tests while refactoring.
 5. Target at least 10,000 bytes of source-budget headroom, or formally revise the budget only after documenting deployed transfer size, compression, parse cost, and target-device performance. Never raise the budget merely to silence a failing check.
 6. Update stale package metadata and release notes.
 7. Run the full unit, Rules, browser, accessibility, build, diff, and deployed-console gates after any source refactor.
-8. Evaluate replacing the duplicated `app.js` state/domain helpers with the existing `FlowboardState` boundary after lifecycle acceptance. Preserve cloud `revision` and `clientMutationId` fields at workspace, board, list, and card levels, and require focused cloud-mutation coverage; an independent review estimated roughly 6.8 KB of potential source reduction.
+8. Evaluate replacing the duplicated `app.js` state/domain helpers with the existing `FlowboardState` boundary before workflow feature work. Preserve cloud `revision` and `clientMutationId` fields at workspace, board, list, and card levels, and require focused cloud-mutation coverage; an independent review estimated roughly 6.8 KB of potential source reduction.
 
 Exit gate:
 
@@ -326,4 +328,4 @@ Flowboard lifecycle production acceptance is complete only when:
 - documentation matches production behavior;
 - CI, Pages, and the cache-busted production console pass.
 
-New feature development should begin only after this definition is met and Phase 5 restores practical source-budget headroom.
+Production deployment and human beta use should begin only after this definition is met. Isolated development may proceed earlier under `LUNA_FULL_WORKFLOW_IMPLEMENTATION_PLAN.md`, provided Phase 5 restores practical source-budget headroom before product scope grows and all production boundaries remain untouched.

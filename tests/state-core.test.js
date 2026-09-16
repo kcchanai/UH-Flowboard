@@ -18,6 +18,13 @@ test('normalization safely upgrades old workspace data and rejects invalid envel
   assert.equal(State.validWorkspace({schemaVersion: 99, boards: []}), false);
 });
 
+test('cloud normalization preserves revision metadata across board, list, and card records', () => {
+  const normalized = State.normalizeBoard({id: 'board-1', title: 'Cloud', revision: 4, clientMutationId: 'board-mutation', collaboration: {members: [{id: 'owner', name: 'Owner', role: 'owner'}]}, lists: [{id: 'list-1', title: 'Ready', revision: 2, clientMutationId: 'list-mutation', cards: [{id: 'card-1', title: 'Task', revision: 7, clientMutationId: 'card-mutation'}]}]});
+  assert.deepEqual({revision: normalized.revision, clientMutationId: normalized.clientMutationId}, {revision: 4, clientMutationId: 'board-mutation'});
+  assert.deepEqual({revision: normalized.lists[0].revision, clientMutationId: normalized.lists[0].clientMutationId}, {revision: 2, clientMutationId: 'list-mutation'});
+  assert.deepEqual({revision: normalized.lists[0].cards[0].revision, clientMutationId: normalized.lists[0].cards[0].clientMutationId}, {revision: 7, clientMutationId: 'card-mutation'});
+});
+
 test('filtering covers card fields and due/label states without mutating the card', () => {
   const card = {title: 'Write launch copy', description: 'For home page', labels: [{color: 'orange', name: 'Marketing'}], checklist: [{text: 'Review with team', done: false}], assignees: ['Ari'], dueDate: '2030-04-10'};
   assert.equal(State.cardMatches(card, 'team'), true);

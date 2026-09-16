@@ -40,17 +40,28 @@ jobs:
         run: |
           npm install --no-save --ignore-scripts @playwright/test@1.55.0 lighthouse@12.8.2
           npx playwright install --with-deps chromium
+      - name: Derive Pages base path
+        run: echo "FLOWBOARD_BASE_PATH=/${GITHUB_REPOSITORY#*/}/" >> "$GITHUB_ENV"
       - name: Start Vite preview
         run: |
           npm run preview -- --host 127.0.0.1 --port 4173 > server.log 2>&1 &
-          for i in {1..20}; do curl --fail --silent http://127.0.0.1:4173/UH-Trello/ && exit 0; sleep 1; done
+          for i in {1..20}; do curl --fail --silent "http://127.0.0.1:4173${FLOWBOARD_BASE_PATH}" && exit 0; sleep 1; done
           cat server.log
           exit 1
       - name: Browser critical-workflow checks
         run: npx playwright test tests/browser-smoke.spec.mjs
+      - name: Emulator-backed multi-user browser workflow
+        run: |
+          npm run dev -- --host 127.0.0.1 --port 4180 > emulator-server.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          for i in {1..20}; do curl --fail --silent "http://127.0.0.1:4180${FLOWBOARD_BASE_PATH}tests/emulator/index.html" >/dev/null && break; sleep 1; done
+          curl --fail --silent "http://127.0.0.1:4180${FLOWBOARD_BASE_PATH}tests/emulator/index.html" >/dev/null
+          export PLAYWRIGHT_EMULATOR_BASE_URL="http://127.0.0.1:4180${FLOWBOARD_BASE_PATH%/}"
+          npx --yes firebase-tools@15.25.1 emulators:exec --only auth,firestore --project demo-flowboard-browser "npx playwright test tests/emulator/emulator-browser.spec.mjs --reporter=line"
       - name: Automated accessibility check
         run: |
-          npx lighthouse http://127.0.0.1:4173/UH-Trello/ --only-categories=accessibility --chrome-flags='--headless --no-sandbox' --output=json --output-path=lighthouse-report.json
+          npx lighthouse "http://127.0.0.1:4173${FLOWBOARD_BASE_PATH}" --only-categories=accessibility --chrome-flags='--headless --no-sandbox' --output=json --output-path=lighthouse-report.json
           node scripts/assert-lighthouse.mjs
       - name: Archive diagnostics on failure
         if: failure()
