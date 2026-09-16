@@ -67,3 +67,7 @@ This allocation is intentionally conservative. It does not authorize code golf, 
 ## Step 5 remeasurement
 
 After the list-menu, title-validation, and list-reorder implementation, the exact source total is **209,611 / 210,000 bytes**, leaving **389 bytes**. All 23 reachable production files remain represented in the manifest. The remaining feature steps must first recover semantic headroom through replacement or removal of obsolete paths; the cap remains unchanged.
+
+## Step 7 budget-transition boundary
+
+The Step 6 accepted checkpoint measured **209,631 / 210,000 bytes** with 369 bytes of headroom. The Step 7 implementation draft measures **212,506 / 210,000 bytes**, exceeding the unchanged cap by **2,506 bytes**. The draft behavior passed the new capture/movement/filter browser cases and the full built-preview suite at **19/19**; the latest 10-list/200-card benchmark recorded 563.2 ms usable render, 584 ms navigation to a usable board, 43.2 ms single-term filtering, zero console errors, and zero page errors. Built output for the draft measured 77,041 raw / 22,746 gzip bytes for the initial shell and 154,906 raw / 48,989 gzip bytes for first-party lazy chunks. See `MVP_V2_BUDGET_TRANSITION_PROPOSAL.md`; the hard cap remains unchanged pending an explicit decision.
