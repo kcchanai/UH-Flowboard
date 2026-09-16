@@ -10,7 +10,7 @@ Production: unchanged. Step 14 is not authorized.
 | Step | Title | Status | Checkpoint |
 | --- | --- | --- | --- |
 | 1 | Reconcile baseline and establish evidence | complete | `bd6ea6a8f03d11a22f7d94fff4cf4ea3a2a82494` |
-| 2 | Create a maintainable, testable foundation | not started | |
+| 2 | Create a maintainable, testable foundation | complete | pending commit |
 | 3 | Implement the coherent visual system | not started | |
 | 4 | Make board and workspace navigation obvious | not started | |
 | 5 | Finish practical board and list operations | not started | |

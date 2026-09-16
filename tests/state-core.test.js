@@ -57,3 +57,36 @@ test('bounded undo restores the pre-mutation snapshot without aliasing', () => {
   assert.equal(result.item.workspace.boards[0].title, 'Website Launch');
   assert.equal(result.history.length, 0);
 });
+
+test('card drafts isolate editable fields until an explicit apply', () => {
+  const card = State.makeCard('Draftable card', 'purple');
+  const draft = State.makeCardDraft(card);
+  draft.title = 'Edited title';
+  draft.labels.push({id: 'draft-label', color: 'green', name: 'Next'});
+  draft.checklist.push({id: 'draft-item', text: 'Review', done: false});
+  assert.equal(card.title, 'Draftable card');
+  assert.equal(card.labels.length, 1);
+  assert.equal(card.checklist.length, 0);
+  assert.equal(State.hasCardDraftChanges(card, draft), true);
+  const applied = State.applyCardDraft(card, draft);
+  assert.equal(applied.title, 'Edited title');
+  assert.equal(applied.labels.length, 2);
+  assert.equal(applied.checklist[0].text, 'Review');
+  assert.equal(card.title, 'Draftable card');
+});
+
+test('pure card and list movement commands preserve input and report no-ops', () => {
+  const board = State.makeBoard('tasks');
+  const first = State.makeCard('First'), second = State.makeCard('Second');
+  board.lists[0].cards = [first, second];
+  const moved = State.moveCard(board, first.id, board.lists[1].id, 0);
+  assert.equal(moved.changed, true);
+  assert.deepEqual(board.lists[0].cards.map(card => card.title), ['First', 'Second']);
+  assert.deepEqual(moved.board.lists.map(list => list.cards.length), [1, 1, 0]);
+  const same = State.moveCard(moved.board, first.id, board.lists[1].id, 0);
+  assert.equal(same.changed, false);
+  const reordered = State.moveList(board, board.lists[2].id, 0);
+  assert.equal(reordered.changed, true);
+  assert.equal(reordered.board.lists[0].id, board.lists[2].id);
+  assert.equal(State.moveList(reordered.board, board.lists[2].id, 0).changed, false);
+});
