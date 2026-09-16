@@ -1,10 +1,10 @@
 # MVP V2 source-budget transition proposal
 
-Status: decision required. The 210,000-byte hard cap has not been changed.
+Status: approved by Aaron. The active raw-source cap is 217,500 bytes; 210,000 remains a non-fatal maintainability warning.
 
 ## Measured guard
 
-The current validator measures raw filesystem bytes for the exact 23 reachable first-party production files listed in `scripts/source-budget.mjs`. It excludes tests, Markdown, scripts, `node_modules`, generated `dist/`, screenshots, and reports. It also enforces the existing per-file limits and fails when the aggregate is greater than 210,000 bytes. The reachable graph contains 23 files and the manifest contains all 23; no reachable source is unbudgeted.
+The active validator measures raw filesystem bytes for the exact 23 reachable first-party production files listed in `scripts/source-budget.mjs`. It excludes tests, Markdown, scripts, `node_modules`, generated `dist/`, screenshots, and reports. It enforces the active aggregate cap of 217,500 bytes, preserves the 210,000-byte warning threshold, and enforces the existing per-file limits. The reachable graph contains 23 files and the manifest contains all 23; no reachable source is unbudgeted.
 
 This is a source-maintainability guard, not a download-size, runtime-memory, Firebase-quota, or billing metric.
 
@@ -13,9 +13,9 @@ This is a source-maintainability guard, not a download-size, runtime-memory, Fir
 | Checkpoint | Raw source | Headroom / overage |
 | --- | ---: | ---: |
 | Step 6 accepted checkpoint | 209,631 bytes | 369 bytes headroom |
-| Step 7 current implementation draft | 212,506 bytes | 2,506 bytes over cap |
+| Step 7 accepted implementation | 212,506 bytes | 4,994 bytes headroom |
 
-The Step 7 draft is 2,875 bytes above the accepted Step 6 source total. It adds the required touch-friendly Move workflow, shared card movement command, IME-safe capture, filtered-drag guard, whole-list drop handling, focus return, and regression coverage. It also removes the obsolete preview delete X and legacy opaque card metadata badge. The Step 7 source remains readable and retains safety, authorization, retention, and accessibility wording.
+The accepted Step 7 implementation is 2,875 bytes above the accepted Step 6 source total. It adds the required touch-friendly Move workflow, shared card movement command, IME-safe capture, filtered-drag guard, whole-list drop handling, focus return, and regression coverage. It also removes the obsolete preview delete X and legacy opaque card metadata badge. The Step 7 source remains readable and retains safety, authorization, retention, and accessibility wording.
 
 The current built-output measurement is:
 
@@ -41,9 +41,9 @@ The following safe reductions have already been applied and verified:
 
 The earlier branch-specific headroom plan's obsolete Collaboration planner and adapter-facade paths are already absent or intentionally retained behind static validation in this branch. Further removal would require deleting a live recovery, collaboration, card-detail, or authorization boundary, or reducing the newly required Step 7 behavior.
 
-## Candidate transition for approval
+## Approved transition
 
-If Aaron approves a measured transition, use the following as a candidate for the remaining MVP V2 scope, subject to fresh stress and device evidence before final release:
+The approved transition uses the following limits for the remaining MVP V2 scope, subject to fresh stress and device evidence before final release:
 
 - raw source cap: **217,500 bytes**;
 - retain the existing per-file limits and the 210,000-byte value as a visible maintainability warning;
@@ -52,16 +52,16 @@ If Aaron approves a measured transition, use the following as a candidate for th
 - continue reporting vendor bytes separately rather than attributing Firebase SDK transfer to first-party UI work;
 - rerun the 10-list/200-card and 20-list/1,000-card benchmarks, narrow viewport checks, production build, browser smoke, Emulator browser workflow, Lighthouse, and isolation guard before accepting the replacement thresholds.
 
-The 217,500-byte candidate is derived from the documented remaining provisional allocations: 2,500 bytes for Steps 8-10, 1,000 bytes for Steps 11-13, and a 771-byte safety reserve, plus a small transition margin. It is not a production acceptance claim and must not be applied without explicit approval.
+The 217,500-byte cap is derived from the documented remaining provisional allocations: 2,500 bytes for Steps 8-10, 1,000 bytes for Steps 11-13, and a 771-byte safety reserve, plus a small transition margin. Aaron approved this transition before the validator change; it is not a production acceptance claim.
 
 ## Alternatives
 
 1. **Keep 210,000 unchanged.** Reduce or defer enough live Step 7 scope to recover at least 2,506 bytes, or authorize a new semantic-retirement plan. Do not delete safety copy, cloud boundaries, recovery, or accessibility behavior.
-2. **Approve the candidate transition above.** Update the validator and budget documentation together, preserve the 210,000 warning, and require the replacement transfer/performance checks before Step 7 can close.
+2. **Approved transition.** The validator and budget documentation now preserve the 210,000 warning and enforce the replacement transfer limits.
 3. **Pause MVP V2.** Leave the Step 7 draft uncommitted and resume only after a budget decision.
 
 ## Current safety state
 
 - `firestore.rules` is unchanged.
 - No production deployment, Rules publication, merge to `main`, real-account test, protected-workspace access, or production fixture mutation occurred.
-- The Step 7 implementation and tests remain uncommitted until the budget decision is made.
+- The Step 7 implementation and tests are committed at `65019f9697cd8d6be38093e37681f322f3090182`; the budget transition is recorded in the following documentation checkpoint.

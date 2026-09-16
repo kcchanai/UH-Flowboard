@@ -15,7 +15,7 @@ Production: unchanged. Step 14 is not authorized.
 | 4 | Make board and workspace navigation obvious | complete | `71fc682509b9b4b42fe3bdb4e526ee47fc66ed6b` |
 | 5 | Finish practical board and list operations | complete | `aa2cec04f886e2d7b6b6868f1a4f3652021c46b2` |
 | 6 | Fix card draft safety and redesign card details | complete | `07d4eaf95086aae36f7c8819ad2b6fa29d553122` |
-| 7 | Make card capture and movement fast on every device | blocked | |
+| 7 | Make card capture and movement fast on every device | complete | `65019f9697cd8d6be38093e37681f322f3090182` |
 | 8 | Add meaningful completion, scheduling, and filters | not started | |
 | 9 | Make existing collaboration understandable | not started | |
 | 10 | Improve onboarding, truthful samples, and recovery | not started | |
@@ -31,7 +31,7 @@ Production: unchanged. Step 14 is not authorized.
 | Multiple boards and templates | implemented | not applicable | existing tests | historical/deployed, recheck candidate |
 | Lists and card CRUD | implemented | granular adapter | existing tests | historical/deployed, recheck candidate |
 | Rich card details | implemented | granular adapter | existing tests | historical/deployed, recheck candidate |
-| Card drag and Alt+Arrow movement | implemented | granular mutation | existing tests/Emulator | historical/deployed, recheck candidate |
+| Card drag and Alt+Arrow movement | implemented | granular mutation | 27 unit + 19 built-browser + 1 Emulator browser | real-account gate only |
 | Card archive and local recovery | implemented | cloud archive/lifecycle | existing tests/Emulator | historical/deployed, recheck candidate |
 | Import/export and CSV | implemented | cloud export | existing tests | historical/deployed, recheck candidate |
 | Google sign-in and roles | local-safe UI | Firebase Auth and Rules | Rules/Emulator | real-account gate only |
@@ -82,8 +82,16 @@ Steps 1-13 of 14 complete. Step 14 awaits your approval.
 - Evidence: `artifacts/mvp-v2/step-6/report.json`, six sanitized screenshots in the same directory, and `artifacts/mvp-v2/step-6-budget-measurement.json`.
 - Rules and production: `firestore.rules` was unchanged; no Rules publication, deployment, real-account testing, protected-workspace access, or production fixture mutation occurred.
 
+## Step 7 checkpoint evidence
+
+- Code checkpoint: `65019f9697cd8d6be38093e37681f322f3090182`.
+- Card capture: Enter submits, Shift+Enter preserves multiline entry, Escape cancels, IME composition does not submit, and focus returns to the list composer action.
+- Movement: the visible Move dialog accepts destination and bounded position; drag, Alt+Arrow, and Move reuse the canonical `moveCard` command; whole-list drops, empty lists, same-list reorder, self-drop, edge no-ops, and filtered drag guidance are covered.
+- Validation: `npm.cmd run validate` passed 27/27 unit tests, static/runtime guards, production build, gzip-budget enforcement, and asset isolation; `npm.cmd run test:rules` passed 23/23; the tracked Emulator browser workflow passed 1/1; built-preview browser smoke passed 19/19; Lighthouse accessibility scored 1.0 with zero failed audits; `git diff --check` passed.
+- Budget transition: Aaron approved the 217,500-byte raw-source cap. The 210,000-byte maintainability warning remains active. Current source is 212,506 bytes with 4,994 bytes of cap headroom; initial-shell gzip is 22,737 / 25,000 and first-party-lazy gzip is 48,990 / 55,000.
+- Evidence: `artifacts/mvp-v2/step-7/report.json`, `artifacts/mvp-v2/step-7/move-dialog.png`, six additional sanitized screenshots in the same directory, `artifacts/mvp-v2/step-7-budget-measurement.json`, and `artifacts/mvp-v2/step-7-benchmark.json`.
+- Rules and production: `firestore.rules` was unchanged; no Rules publication, deployment, real-account testing, protected-workspace access, or production fixture mutation occurred.
+
 ## Blockers and decisions
 
-- Step 7 is blocked pending Aaron's explicit choice in `MVP_V2_BUDGET_TRANSITION_PROPOSAL.md`: keep the 210,000-byte cap and reduce/defer live scope, or approve a measured cap transition. The cap has not been changed.
-- Step 7 behavior is validated but intentionally uncommitted: 27 unit tests pass; the focused Move/drop/capture/filter browser cases pass; the full built-preview suite passed 19/19; the fresh benchmark passed with zero console/page errors; the remaining failure is only the binding raw-source cap at 212,506 / 210,000.
-- Step 7 evidence is in `artifacts/mvp-v2/step-7/`, with the current budget report at `artifacts/mvp-v2/step-7-budget-measurement.json` and benchmark at `artifacts/mvp-v2/step-7-benchmark.json`.
+- None recorded yet.
