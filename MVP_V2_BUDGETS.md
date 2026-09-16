@@ -1,6 +1,6 @@
 # Flowboard MVP V2 budgets
 
-Status: Step 10 onboarding and recovery checkpoint. This is a source-maintainability guard, not a network-transfer or backend-quota claim.
+Status: Step 11 mobile and accessibility checkpoint. This is a source-maintainability guard, not a network-transfer or backend-quota claim.
 
 ## Measurement scope
 
@@ -15,10 +15,10 @@ The guard excludes tests, Markdown, scripts, `node_modules`, generated `dist/`, 
 | Reachable first-party source files | 23 |
 | Budgeted source files | 23 |
 | Unbudgeted reachable source files | 0 |
-| Raw source bytes | 217,307 |
+| Raw source bytes | 217,500 |
 | Approved hard cap | 217,500 |
 | Maintainability warning | 210,000 |
-| Remaining raw headroom | 193 bytes |
+| Remaining raw headroom | 0 bytes |
 | Per-file limit violations | 0 |
 
 The approved hard cap is 217,500 bytes, with the original 210,000-byte maintainability warning still active. The next feature steps must preserve readable safety, authorization, and accessibility copy. If the required feature set cannot fit through semantic consolidation and measured removal of obsolete paths, pause before changing the approved cap and present an evidence-based transition proposal.
@@ -84,3 +84,7 @@ The accepted Step 9 implementation measures **217,307 / 217,500 bytes**, leaving
 ## Step 10 budget measurement
 
 The accepted Step 10 implementation measures **217,486 / 217,500 bytes**, leaving **14 bytes** of cap headroom while the 210,000-byte maintainability warning remains active. Initial-shell gzip is **23,606 / 25,000** and first-party-lazy gzip is **49,578 / 55,000**. The 23-file reachable source graph remains fully budgeted with zero unbudgeted sources.
+
+## Step 11 budget measurement
+
+The accepted Step 11 implementation measures **217,500 / 217,500 bytes**, leaving **0 bytes** of cap headroom while the 210,000-byte maintainability warning remains active. Initial-shell gzip is **23,607 / 25,000** and first-party-lazy gzip is **49,560 / 55,000**. The 23-file reachable source graph remains fully budgeted with zero unbudgeted sources.
