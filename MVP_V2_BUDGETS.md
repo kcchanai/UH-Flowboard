@@ -1,6 +1,6 @@
 # Flowboard MVP V2 budgets
 
-Status: Step 9 collaboration checkpoint. This is a source-maintainability guard, not a network-transfer or backend-quota claim.
+Status: Step 10 onboarding and recovery checkpoint. This is a source-maintainability guard, not a network-transfer or backend-quota claim.
 
 ## Measurement scope
 
@@ -80,3 +80,7 @@ The accepted Step 8 implementation measures **217,494 / 217,500 bytes**, leaving
 ## Step 9 budget measurement
 
 The accepted Step 9 implementation measures **217,307 / 217,500 bytes**, leaving **193 bytes** of cap headroom while the 210,000-byte maintainability warning remains active. Initial-shell gzip is **23,606 / 25,000** and first-party-lazy gzip is **49,524 / 55,000**. The 23-file reachable source graph remains fully budgeted with zero unbudgeted sources.
+
+## Step 10 budget measurement
+
+The accepted Step 10 implementation measures **217,486 / 217,500 bytes**, leaving **14 bytes** of cap headroom while the 210,000-byte maintainability warning remains active. Initial-shell gzip is **23,606 / 25,000** and first-party-lazy gzip is **49,578 / 55,000**. The 23-file reachable source graph remains fully budgeted with zero unbudgeted sources.

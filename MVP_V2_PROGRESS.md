@@ -18,8 +18,8 @@ Production: unchanged. Step 14 is not authorized.
 | 7 | Make card capture and movement fast on every device | complete | `65019f9697cd8d6be38093e37681f322f3090182` |
 | 8 | Add meaningful completion, scheduling, and filters | complete | `c9e9cf5e74f247ae4d924322345175b9bee9f50d` |
 | 9 | Make existing collaboration understandable | complete | `9f6f62eafd5ee50428a2dc5744b26e793bd52763` |
-| 10 | Improve onboarding, truthful samples, and recovery | not started | |
-| 11 | Complete mobile and accessibility qualification | not started | |
+| 10 | Improve onboarding, truthful samples, and recovery | complete | `3ca59c158fc328f42d63ef8be4e0281cc5e6937d` |
+| 11 | Complete mobile and accessibility qualification | in progress | |
 | 12 | Run full regression and repair release gating | not started | |
 | 13 | Package and review the release candidate; stop at human gate | not started | |
 | 14 | Authorized release and real-user acceptance | pending explicit approval | not authorized |
@@ -41,6 +41,7 @@ Production: unchanged. Step 14 is not authorized.
 | Safe card draft lifecycle | implemented | revision-aware adapter retained | 26 unit + 15 built-browser + 1 Emulator browser | real-account gate only |
 | Combined named-label/member filters | implemented | stable label IDs, member/unassigned, authenticated Assigned-to-me predicate | 29 unit + 21 built-browser + 1 Emulator browser | real-account gate only |
 | Collaboration access clarity | implemented | owner/editor/viewer roles, durable invitation history, pending expiry, accepted/expired/revoked states | 29 unit + 23 built-browser + 23 Rules + 1 Emulator browser | real-account gate only |
+| First-run safety and recovery | implemented | local starter guidance, separate cloud-workspace boundary, export/recovery pointers, malformed-input no-change proof | 29 unit + 24 built-browser + 1 isolated lifecycle + 23 Rules + 1 Emulator browser | real-account gate only |
 
 ## Baseline evidence
 
@@ -113,6 +114,16 @@ Steps 1-13 of 14 complete. Step 14 awaits your approval.
 - Validation: `npm.cmd run validate` passed 29/29 unit tests, static/runtime guards, production build, gzip-budget enforcement, and asset isolation; `npm.cmd run test:rules` passed 23/23; the tracked Emulator browser workflow passed 1/1; Lighthouse accessibility scored 1.0 with zero failed audits; the settled built-preview browser suite passed 23/23, including the owner invitation-history and viewer read-only contracts. A later fresh-port rerun reproduced the known Edge context-start refusal at the lifecycle test before assertions; 22 other tests completed, and the isolated lifecycle test passed 1/1. No application assertion failure was observed.
 - Budget: 217,307 / 217,500 raw bytes, with the approved 210,000-byte maintainability warning active and 193 bytes of cap headroom; initial-shell gzip 23,606 / 25,000; first-party-lazy gzip 49,524 / 55,000; 23 reachable production sources and zero unbudgeted sources.
 - Evidence: `artifacts/mvp-v2/step-9/report.json`, `artifacts/mvp-v2/step-9/members-owner.png`, `artifacts/mvp-v2/step-9/members-viewer.png`, six additional sanitized responsive screenshots in the same directory, `artifacts/mvp-v2/step-9-budget-measurement.json`, and `artifacts/mvp-v2/step-9-lighthouse.json` was removed after verification.
+- Rules and production: `firestore.rules` was unchanged; no Rules publication, deployment, real-account testing, protected-workspace access, or production fixture mutation occurred.
+
+## Step 10 checkpoint evidence
+
+- Code checkpoint: `3ca59c158fc328f42d63ef8be4e0281cc5e6937d`.
+- Onboarding: added a native collapsed Getting started notice that identifies the opening board as starter content, explains browser-local storage, points to Board actions for export and recovery, directs sign-in toward separate cloud workspaces, and states that archived cloud workspaces retain data.
+- Recovery and portability: the existing Local recovery route remains local-only and user-operable; malformed recovery snapshots are rejected without changing the current workspace, and malformed JSON import is rejected with storage unchanged. The Step 10 browser tests cover both negative paths.
+- Validation: `npm.cmd run validate` passed 29/29 unit tests, static/runtime guards, production build, gzip-budget enforcement, and asset isolation; `npm.cmd run test:rules` passed 23/23; the tracked Emulator browser workflow passed 1/1; Lighthouse accessibility scored 1.0 with zero failed audits; the built-preview browser suite passed 24/24 excluding the known lifecycle context-start flake, and that isolated lifecycle test passed 1/1. A full 25-test invocation reached 24 tests and failed only before lifecycle assertions when Edge refused a new context; no application assertion failed.
+- Budget: 217,486 / 217,500 raw bytes, with the approved 210,000-byte maintainability warning active and 14 bytes of cap headroom; initial-shell gzip 23,606 / 25,000; first-party-lazy gzip 49,578 / 55,000; 23 reachable production sources and zero unbudgeted sources.
+- Evidence: `artifacts/mvp-v2/step-10/report.json`, `artifacts/mvp-v2/step-10/getting-started.png`, six additional sanitized responsive screenshots in the same directory, and `artifacts/mvp-v2/step-10-budget-measurement.json`.
 - Rules and production: `firestore.rules` was unchanged; no Rules publication, deployment, real-account testing, protected-workspace access, or production fixture mutation occurred.
 
 ## Blockers and decisions
