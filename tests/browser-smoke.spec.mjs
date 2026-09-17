@@ -31,9 +31,9 @@ test('getting started explains local starter content and safe cloud boundaries',
   await expect(guide).toBeVisible();
   await guide.locator('summary').click();
   await expect(guide).toContainText('Local starter content.');
-  await expect(guide).toContainText('export/recovery');
+  await expect(guide).toContainText('export, recover');
   await expect(guide).toContainText('cloud workspaces');
-  await expect(guide).toContainText('keep data');
+  await expect(guide).toContainText('retained');
   await page.screenshot({path:'artifacts/mvp-v2/step-10/getting-started.png', fullPage:true});
   await page.screenshot({path:'artifacts/mvp-v2/step-11/start-here.png', fullPage:true});
 });
@@ -423,6 +423,28 @@ test('owner can retry an interrupted migration and the workspace list refreshes 
   await expect(page.locator('#cloud-workspaces-status')).toContainText('migration was interrupted');
   await page.getByRole('button',{name:'Migrate cloud format'}).click();
   await expect(page.locator('#cloud-workspaces-list')).toContainText('owner · editable');
+});
+
+test('desktop board discovery handles many long board names', async ({page}) => {
+  await page.setViewportSize({width:1440, height:900});
+  await openReady(page);
+  await page.evaluate(() => {
+    const workspace = FlowboardState.makeWorkspace();
+    workspace.boards = Array.from({length:8}, (_, index) => { const board=FlowboardState.makeBoard('blank'); board.title=`Office planning board ${index + 1} - quarterly launch coordination`; return board; });
+    workspace.activeBoardId = workspace.boards[0].id;
+    localStorage.setItem('flowboard-workspace', JSON.stringify(workspace));
+  });
+  await page.reload(); await page.waitForFunction(() => globalThis.FlowboardApp && globalThis.FlowboardState);
+  const boardsButton = page.locator('#boards-button');
+  await boardsButton.click();
+  const dialog = page.getByRole('dialog', {name:'Your boards'});
+  await expect(dialog).toBeVisible();
+  await expect(dialog.locator('[data-board-id]')).toHaveCount(8);
+  await dialog.getByLabel('Find a board').fill('board 7');
+  await expect(dialog.locator('[data-board-id]')).toHaveCount(1);
+  await dialog.locator('[data-board-id]').click();
+  await expect(page.locator('#board-page-heading')).toHaveText('Office planning board 7 - quarterly launch coordination board');
+  await expect(boardsButton).toBeFocused();
 });
 
 test('workspace navigation remains available on a phone and searches boards', async ({page}) => {
