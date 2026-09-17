@@ -400,10 +400,46 @@ test('card edits stay isolated until Save and preserve drafts after a failed sav
   await card.click();
   await expect(page.locator('#card-title-input')).toHaveValue(`${originalTitle} saved`);
   await page.locator('#card-description-input').fill('Draft must survive a failed local save');
-  await page.evaluate(() => { Storage.prototype.setItem = () => { throw new Error('synthetic storage failure'); }; });
+  await page.evaluate(() => { const originalSetItem = Storage.prototype.setItem; Storage.prototype.setItem = function(key, value) { if (key === 'flowboard-workspace') throw new Error('synthetic storage failure'); return originalSetItem.call(this, key, value); }; });
   await page.locator('#card-form').getByRole('button', {name:'Save changes'}).click();
   await expect(dialog).toBeVisible();
   await expect(page.locator('#card-description-input')).toHaveValue('Draft must survive a failed local save');
+});
+
+test('failed Undo keeps current state and undo history', async ({page}) => {
+  await openReady(page);
+  const firstList = page.locator('.list').first();
+  const title = `Undo failure ${Date.now()}`;
+  await firstList.getByRole('button', {name:/add a card/i}).click();
+  await firstList.getByLabel('New card title').fill(title);
+  await firstList.getByRole('button', {name:'Add card'}).click();
+  const savedAfterAdd = await page.evaluate(() => localStorage.getItem('flowboard-workspace'));
+  await page.evaluate(() => { const originalSetItem = Storage.prototype.setItem; Storage.prototype.setItem = function(key, value) { if (key === 'flowboard-workspace') throw new Error('synthetic storage failure'); return originalSetItem.call(this, key, value); }; });
+  await page.getByRole('button', {name:'Undo', exact:true}).click();
+  await expect(page.locator('.card-open').filter({hasText:title})).toBeVisible();
+  await expect(page.getByRole('button', {name:'Undo', exact:true})).toBeVisible();
+  await expect(page.locator('#toast')).toContainText('Undo could not be saved');
+  expect(await page.evaluate(() => localStorage.getItem('flowboard-workspace'))).toBe(savedAfterAdd);
+});
+
+test('failed import leaves local state and import review unchanged', async ({page}) => {
+  await openReady(page);
+  const before = await page.evaluate(() => localStorage.getItem('flowboard-workspace'));
+  const imported = await page.evaluate(() => JSON.stringify({flowboardExport:'board', schemaVersion:FlowboardState.SCHEMA_VERSION, board:FlowboardState.makeBoard('blank')}));
+  await page.getByRole('button', {name:'Board actions'}).click();
+  await page.getByRole('menuitem', {name:/Import data/}).click();
+  await page.locator('#import-file').setInputFiles({name:'valid.json', mimeType:'application/json', buffer:Buffer.from(imported)});
+  await expect(page.locator('#import-preview')).toContainText('board');
+  await page.locator('#import-options input[value="replace"]').check();
+  await page.getByRole('button', {name:'Review import'}).click();
+  const confirm = page.locator('#confirm-dialog');
+  await expect(confirm).toContainText('replaced');
+  await page.evaluate(() => { const originalSetItem = Storage.prototype.setItem; Storage.prototype.setItem = function(key, value) { if (key === 'flowboard-workspace') throw new Error('synthetic storage failure'); return originalSetItem.call(this, key, value); }; });
+  await confirm.getByRole('button', {name:'Replace workspace'}).click();
+  await expect(page.locator('#board-page-heading')).toHaveText('Website Launch board');
+  await expect(page.locator('#import-dialog')).toBeVisible();
+  await expect(page.locator('#toast')).toContainText('Import could not be saved');
+  expect(await page.evaluate(() => localStorage.getItem('flowboard-workspace'))).toBe(before);
 });
 
 test('card capture is IME-safe and returns focus for continued entry', async ({page}) => {
@@ -448,6 +484,28 @@ test('Move card dialog handles empty lists and returns focus with position', asy
   await expect(page.locator('.list').nth(1).locator('.card-open')).toHaveText(/Move me/);
   await expect(page.locator(`[data-card-id="${cardId}"] .card-open`)).toBeFocused();
   await expect(page.locator('#announcer')).toHaveText('Card moved to Empty, position 1');
+});
+
+test('Move card dialog permits appending after a populated destination', async ({page}) => {
+  await openReady(page);
+  await page.evaluate(() => {
+    const workspace = FlowboardState.makeWorkspace(), board = FlowboardState.makeBoard('blank');
+    board.lists = [FlowboardState.makeList('Source', [FlowboardState.makeCard('Move me')]), FlowboardState.makeList('Destination', [FlowboardState.makeCard('Existing')])];
+    workspace.boards = [board]; workspace.activeBoardId = board.id;
+    localStorage.setItem('flowboard-workspace', JSON.stringify(workspace));
+  });
+  await page.reload(); await page.waitForFunction(() => globalThis.FlowboardApp && globalThis.FlowboardState);
+  const card = page.locator('.card-open').first();
+  await card.click();
+  await page.getByRole('button', {name:'Move', exact:true}).click();
+  const confirm = page.locator('#confirm-dialog'), destination = page.locator('#move-destination'), position = page.locator('#move-position');
+  const destinationId = await page.locator('.list').nth(1).getAttribute('data-list-id');
+  await destination.selectOption(destinationId);
+  await expect(position).toHaveAttribute('max', '2');
+  await position.fill('2');
+  await confirm.getByRole('button', {name:'Move card'}).click();
+  await expect(page.locator('.list').nth(1).locator('.card-title')).toHaveText(['Existing', 'Move me']);
+  await expect(page.locator('#announcer')).toHaveText('Card moved to Destination, position 2');
 });
 
 test('whole-list drops move precisely and self-drop does not persist', async ({page}) => {
@@ -536,6 +594,23 @@ test('named labels, members, and completion filters combine and clear', async ({
   await page.locator('#clear-filters').click();
   await expect(page.locator('.card-open')).toHaveCount(3);
   await expect(page.locator('#filter-chips')).toBeEmpty();
+});
+
+test('clearing all filters resets every control and chip', async ({page}) => {
+  await openReady(page);
+  await page.getByRole('button', {name:'Filters'}).click();
+  await page.locator('#due-filter').selectOption('today');
+  await page.locator('#member-filter').selectOption('assigned');
+  await page.locator('#completion-filter').selectOption('complete');
+  await expect(page.locator('#due-filter')).toHaveValue('today');
+  await expect(page.locator('#filter-chips')).toContainText('Due today');
+  await page.locator('#clear-filters').click();
+  await expect(page.locator('#due-filter')).toHaveValue('all');
+  await expect(page.locator('#label-filter')).toHaveValue('all');
+  await expect(page.locator('#member-filter')).toHaveValue('all');
+  await expect(page.locator('#completion-filter')).toHaveValue('all');
+  await expect(page.locator('#filter-chips')).toBeEmpty();
+  await expect(page.locator('.card-open')).toHaveCount(10);
 });
 
 test('list actions reorder locally, validate titles, and retain cloud lists', async ({page}) => {
