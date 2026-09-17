@@ -1,0 +1,23 @@
+{
+  "scope": "Isolated anonymous public-site visual inspection. No login or cloud writes. Theme previews changed DOM only.",
+  "views": [
+    {
+      "theme": "light",
+      "lists": 4,
+      "cards": 10,
+      "canvas": "radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 544px), linear-gradient(135deg, rgb(19, 95, 168), rgb(62, 76, 168))",
+      "documentWidth": 1440,
+      "viewport": 1440
+    },
+    {
+      "theme": "dark",
+      "lists": 4,
+      "cards": 10,
+      "canvas": "radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.06), rgba(0, 0, 0, 0) 544px), linear-gradient(135deg, rgb(23, 43, 80), rgb(52, 39, 95))",
+      "documentWidth": 1440,
+      "viewport": 1440
+    }
+  ],
+  "pageErrorCount": 0,
+  "consoleErrorCount": 0
+}

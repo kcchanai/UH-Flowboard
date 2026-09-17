@@ -17,39 +17,42 @@ export function createFirebaseWorkspaceAdapter(config) {
   let workspaceModule, lifecycleModule;
   const cloud = () => workspaceModule ||= import('./firebase-cloud-workspace.js');
   const lifecycle = () => lifecycleModule ||= import('./firebase-workspace-lifecycle.js');
+  const cloudCall = (method, ...args) => cloud().then(module => module[method](app, auth, ...args));
+  const lifecycleCall = (method, ...args) => lifecycle().then(module => module[method](app, auth, ...args));
 
   const adapter = {
     async getSession() { await persistenceReady; return sessionFor(auth.currentUser); },
     onAuthStateChange(callback) { return onAuthStateChanged(auth, user => callback(sessionFor(user))); },
     async signInWithGoogle() { await persistenceReady; return sessionFor((await signInWithPopup(auth, provider)).user); },
     async signOut() { await firebaseSignOut(auth); },
-    async verifyWorkspaceAccess(workspaceId) { return (await cloud()).verifyWorkspaceAccess(app, auth, workspaceId); },
-    async listWorkspaces() { return (await cloud()).listCloudWorkspaces(app, auth); },
-    async fetchWorkspace(workspaceId) { return (await cloud()).fetchCloudWorkspace(app, auth, workspaceId); },
-    async renameWorkspace(options) { return (await lifecycle()).renameCloudWorkspace(app, auth, options); },
-    async archiveWorkspace(options) { return (await lifecycle()).archiveCloudWorkspace(app, auth, options); },
-    async restoreWorkspace(options) { return (await lifecycle()).restoreCloudWorkspace(app, auth, options); },
-    async subscribeWorkspace(options) { return (await cloud()).subscribeCloudWorkspace(app, auth, options); },
-    async listActivity(workspaceId, options) { return (await cloud()).listWorkspaceActivity(app, auth, workspaceId, options); },
-    async subscribeComments(options) { return (await cloud()).subscribeCardComments(app, auth, options); },
-    async listOlderComments(options) { return (await cloud()).listOlderCardComments(app, auth, options); },
-    async probeCommentQueryAuthorization(options) { return (await cloud()).probeCommentQueryAuthorization(app, auth, options); },
+    verifyWorkspaceAccess(workspaceId) { return cloudCall('verifyWorkspaceAccess', workspaceId); },
+    listWorkspaces() { return cloudCall('listCloudWorkspaces'); },
+    fetchWorkspace(workspaceId) { return cloudCall('fetchCloudWorkspace', workspaceId); },
+    renameWorkspace(options) { return lifecycleCall('renameCloudWorkspace', options); },
+    archiveWorkspace(options) { return lifecycleCall('archiveCloudWorkspace', options); },
+    restoreWorkspace(options) { return lifecycleCall('restoreCloudWorkspace', options); },
+    subscribeWorkspace(options) { return cloudCall('subscribeCloudWorkspace', options); },
+    listActivity(workspaceId, options) { return cloudCall('listWorkspaceActivity', workspaceId, options); },
+    subscribeComments(options) { return cloudCall('subscribeCardComments', options); },
+    listOlderComments(options) { return cloudCall('listOlderCardComments', options); },
+    probeCommentQueryAuthorization(options) { return cloudCall('probeCommentQueryAuthorization', options); },
     async probeHardDeleteAuthorization(options) { return (await import('./firebase-phase-h-probes.js')).probeHardDeleteAuthorization(app, auth, options); },
-    async createComment(options) { return (await cloud()).createCardComment(app, auth, options); },
-    async updateComment(options) { return (await cloud()).updateCardComment(app, auth, options); },
-    async removeComment(options) { return (await cloud()).removeCardComment(app, auth, options); },
-    async applyWorkspaceMutation(options) { return (await cloud()).applyCloudWorkspaceMutation(app, auth, options); },
-    async migrateWorkspaceToGranular(workspaceId) { return (await cloud()).migrateWorkspaceToGranular(app, auth, workspaceId); },
-    async listMembers(workspaceId) { return (await cloud()).listMembers(app, auth, workspaceId); },
-    async listInvites(workspaceId) { return (await cloud()).listInvites(app, auth, workspaceId); },
-    async createInvite(options) { return (await cloud()).createInvite(app, auth, options); },
-    async revokeInvite(workspaceId, inviteId) { return (await cloud()).revokeInvite(app, auth, workspaceId, inviteId); },
-    async acceptInvite(options) { return (await cloud()).acceptInvite(app, auth, options); },
-    async changeMemberRole(workspaceId, uid, role) { return (await cloud()).changeMemberRole(app, auth, workspaceId, uid, role); },
-    async removeMember(workspaceId, uid) { return (await cloud()).removeMember(app, auth, workspaceId, uid); },
-    async leaveWorkspace(workspaceId) { return (await cloud()).leaveWorkspace(app, auth, workspaceId); },
-    async transferOwnership(options) { return (await cloud()).transferOwnership(app, auth, options); },
-    async uploadLocalWorkspace(options) { return (await cloud()).uploadLocalWorkspace(app, auth, options); }
+    createComment(options) { return cloudCall('createCardComment', options); },
+    updateComment(options) { return cloudCall('updateCardComment', options); },
+    removeComment(options) { return cloudCall('removeCardComment', options); },
+    applyWorkspaceMutation(options) { return cloudCall('applyCloudWorkspaceMutation', options); },
+    migrateWorkspaceToGranular(workspaceId) { return cloudCall('migrateWorkspaceToGranular', workspaceId); },
+    listMembers(workspaceId) { return cloudCall('listMembers', workspaceId); },
+    updateOwnMemberProfile(workspaceId, options) { return cloudCall('updateOwnMemberProfile', workspaceId, options); },
+    listInvites(workspaceId) { return cloudCall('listInvites', workspaceId); },
+    createInvite(options) { return cloudCall('createInvite', options); },
+    revokeInvite(workspaceId, inviteId) { return cloudCall('revokeInvite', workspaceId, inviteId); },
+    acceptInvite(options) { return cloudCall('acceptInvite', options); },
+    changeMemberRole(workspaceId, uid, role) { return cloudCall('changeMemberRole', workspaceId, uid, role); },
+    removeMember(workspaceId, uid) { return cloudCall('removeMember', workspaceId, uid); },
+    leaveWorkspace(workspaceId) { return cloudCall('leaveWorkspace', workspaceId); },
+    transferOwnership(options) { return cloudCall('transferOwnership', options); },
+    uploadLocalWorkspace(options) { return cloudCall('uploadLocalWorkspace', options); }
   };
 
   return Object.freeze(adapter);

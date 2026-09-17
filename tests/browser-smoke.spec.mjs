@@ -9,6 +9,8 @@ const builtMembersAsset = () => `${basePath}assets/${readdirSync('dist/assets').
 const builtActivityAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('activity-ui-') && file.endsWith('.js'))}`;
 const builtAssignmentAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('assignment-ui-') && file.endsWith('.js'))}`;
 const builtCommentsAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('comments-ui-') && file.endsWith('.js'))}`;
+const builtAuthAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('auth-ui-') && file.endsWith('.js'))}`;
+const builtRosterAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('cloud-roster-ui-') && file.endsWith('.js'))}`;
 const openReady = async page => { await page.goto(basePath); await page.waitForFunction(() => globalThis.FlowboardApp && globalThis.FlowboardState); await page.waitForFunction(() => /Google sign-in available|Signed in · local workspace|Local-only workspace/.test(document.querySelector('#cloud-status')?.textContent || '')); };
 
 test('critical local-first card workflow persists after reload', async ({page}) => {
@@ -848,4 +850,161 @@ test('forced colors and reduced motion retain borders, focus, and bounded motion
   expect(evidence.borderStyle).toBe('solid');
   expect(evidence.transitionSeconds).toBeLessThanOrEqual(0.001);
   expect(evidence.focusVisible).toBe(true);
+});
+
+test('canvas tokens preserve board controls across light and dark modes', async ({page}) => {
+  await openReady(page);
+  for (const theme of ['light', 'dark']) {
+    await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
+    const evidence = await page.evaluate(() => {
+      const root = getComputedStyle(document.documentElement), header = getComputedStyle(document.querySelector('.board-header')), title = getComputedStyle(document.querySelector('.board-title')), addList = getComputedStyle(document.querySelector('.add-list'));
+      return {canvasInk:root.getPropertyValue('--canvas-ink').trim(), headerColor:header.color, titleColor:title.color, addListBackground:addList.backgroundColor};
+    });
+    expect(evidence.canvasInk).not.toBe('');
+    expect(evidence.headerColor).toBe(evidence.titleColor);
+    expect(evidence.addListBackground).not.toBe('rgba(0, 0, 0, 0)');
+  }
+});
+
+test('curated canvas palettes render gradient and solid finishes', async ({page}) => {
+  await openReady(page);
+  const evidence = await page.evaluate(() => {
+    const results = [];
+    for (const palette of globalThis.FlowboardRuntime.canvasPalettes) {
+      const gradient = globalThis.FlowboardRuntime.applyCanvasPalette(palette.id, 'gradient', 'light');
+      const gradientImage = getComputedStyle(document.body).backgroundImage;
+      const solid = globalThis.FlowboardRuntime.applyCanvasPalette(palette.id, 'solid', 'dark');
+      const solidImage = getComputedStyle(document.body).backgroundImage;
+      results.push({id:palette.id, gradientMode:gradient.mode, gradientFinish:gradient.finish, gradientImage, solidMode:solid.mode, solidFinish:solid.finish, solidImage, canvas:document.documentElement.dataset.canvas});
+    }
+    globalThis.FlowboardRuntime.applyCanvasPalette('classic-flow', 'gradient', 'light');
+    return results;
+  });
+  expect(evidence).toHaveLength(8);
+  for (const item of evidence) {
+    expect(item.gradientMode).toBe('light');
+    expect(item.gradientFinish).toBe('gradient');
+    expect(item.gradientImage).toContain('linear-gradient');
+    expect(item.solidMode).toBe('dark');
+    expect(item.solidFinish).toBe('solid');
+    expect(item.solidImage).toBe('none');
+    expect(item.canvas).toBe(item.id);
+  }
+});
+
+test('appearance preview is lazy, draft-only, and cancel preserves workspace bytes', async ({page}) => {
+  await openReady(page);
+  const before = await page.evaluate(() => localStorage.getItem('flowboard-workspace'));
+  await page.getByRole('button', {name:'Open appearance settings'}).click();
+  const dialog = page.locator('#appearance-dialog');
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole('radio')).toHaveCount(15);
+  await expect(page.locator('#appearance-palettes input[type="radio"]')).toHaveCount(8);
+  await expect(page.locator('#appearance-scope')).toContainText('does not change shared boards');
+  await page.getByRole('radio', {name:/Ocean Slate/}).check();
+  await page.getByRole('radio', {name:'Dark', exact:true}).check();
+  await page.getByRole('radio', {name:'Solid color', exact:true}).check();
+  await expect(page.locator('#appearance-status')).toContainText('Preview only');
+  await expect.poll(() => page.evaluate(() => ({canvas:document.documentElement.dataset.canvas,finish:document.documentElement.dataset.canvasFinish,theme:document.documentElement.dataset.theme}))).toEqual({canvas:'ocean-slate',finish:'solid',theme:'dark'});
+  await page.getByRole('button', {name:'Cancel', exact:true}).click();
+  await expect(dialog).toBeHidden();
+  const after = await page.evaluate(() => ({workspace:localStorage.getItem('flowboard-workspace'),appearance:localStorage.getItem('flowboard-appearance'),canvas:document.documentElement.dataset.canvas,finish:document.documentElement.dataset.canvasFinish}));
+  expect(after.workspace).toBe(before);
+  expect(after.appearance).toBeNull();
+  expect(after.canvas).toBe('classic-flow');
+  expect(after.finish).toBe('gradient');
+});
+
+test('saved appearance persists independently through reload', async ({page}) => {
+  await openReady(page);
+  const before = await page.evaluate(() => localStorage.getItem('flowboard-workspace'));
+  await page.getByRole('button', {name:'Open appearance settings'}).click();
+  await page.getByRole('radio', {name:/Lagoon/}).check();
+  await page.getByRole('radio', {name:'Light', exact:true}).check();
+  await page.getByRole('radio', {name:'Solid color', exact:true}).check();
+  await page.getByRole('radio', {name:'Use initials', exact:true}).check();
+  await page.getByRole('button', {name:'Save appearance'}).click();
+  await expect(page.locator('#appearance-dialog')).toBeHidden();
+  const saved = await page.evaluate(() => ({workspace:localStorage.getItem('flowboard-workspace'),appearance:JSON.parse(localStorage.getItem('flowboard-appearance')),canvas:document.documentElement.dataset.canvas,finish:document.documentElement.dataset.canvasFinish,photos:document.documentElement.dataset.appearancePhotos}));
+  expect(saved.workspace).toBe(before);
+  expect(saved.appearance).toEqual({version:1,mode:'light',canvas:'lagoon',finish:'solid',showPhotos:false});
+  expect(saved.canvas).toBe('lagoon');
+  expect(saved.finish).toBe('solid');
+  expect(saved.photos).toBe('initials');
+  await page.reload();
+  await page.waitForFunction(() => globalThis.FlowboardApp && globalThis.FlowboardRuntime);
+  await expect.poll(() => page.evaluate(() => ({canvas:document.documentElement.dataset.canvas,finish:document.documentElement.dataset.canvasFinish,photos:document.documentElement.dataset.appearancePhotos}))).toEqual({canvas:'lagoon',finish:'solid',photos:'initials'});
+  await page.getByRole('button', {name:'Open appearance settings'}).click();
+  await expect(page.locator('input[name="appearance-canvas"][value="lagoon"]')).toBeChecked();
+  await expect(page.locator('input[name="appearance-finish"][value="solid"]')).toBeChecked();
+  await expect(page.locator('input[name="appearance-photos"][value="initials"]')).toBeChecked();
+});
+
+test('appearance save failure keeps draft open and workspace unchanged', async ({page}) => {
+  await openReady(page);
+  const before = await page.evaluate(() => { const workspace=localStorage.getItem('flowboard-workspace'); const original=Storage.prototype.setItem; Storage.prototype.setItem=function(key,value){ if(key==='flowboard-appearance') throw new Error('synthetic appearance storage failure'); return original.call(this,key,value); }; return workspace; });
+  await page.getByRole('button', {name:'Open appearance settings'}).click();
+  await page.getByRole('radio', {name:/Warm Sand/}).check();
+  await page.getByRole('button', {name:'Save appearance'}).click();
+  await expect(page.locator('#appearance-dialog')).toBeVisible();
+  await expect(page.locator('#appearance-status')).toContainText('could not be saved');
+  const after = await page.evaluate(() => ({workspace:localStorage.getItem('flowboard-workspace'),appearance:localStorage.getItem('flowboard-appearance')}));
+  expect(after.workspace).toBe(before);
+  expect(after.appearance).toBeNull();
+});
+
+test('person badges validate photos and preserve initials-only fallback', async ({page}) => {
+  await openReady(page);
+  const evidence = await page.evaluate(async url => {
+    const {personInitials, safePhotoURL, renderPersonBadge} = await import(url);
+    const host = document.createElement('div'); document.body.append(host);
+    renderPersonBadge(host, {displayName:'Avery Lee', photoURL:'https://lh3.googleusercontent.com/a/synthetic=s96-c'}, {photoPreference:false});
+    const initialsOnly = {text:host.textContent, hasImage:Boolean(host.querySelector('img')), safe:Boolean(safePhotoURL('https://lh3.googleusercontent.com/a/synthetic=s96-c')), unsafe:safePhotoURL('https://evil.example.test/avatar.png'), initials:personInitials({displayName:'Avery Lee'})};
+    renderPersonBadge(host, {displayName:'Avery Lee', photoURL:'https://lh3.googleusercontent.com/a/synthetic=s96-c'}, {photoPreference:true});
+    const image=host.querySelector('img'); image?.dispatchEvent(new Event('error')); const broken={text:host.textContent,hasImage:Boolean(host.querySelector('img'))};
+    host.remove();
+    return {...initialsOnly,broken};
+  }, builtAuthAsset());
+  expect(evidence).toEqual({text:'AL',hasImage:false,safe:true,unsafe:'',initials:'AL',broken:{text:'AL',hasImage:false}});
+});
+
+test('member profile controls share and stop the current account photo', async ({page}) => {
+  await openReady(page);
+  await page.evaluate(async asset => {
+    document.body.innerHTML = `<button id="open-workspace-members">Manage members</button><dialog id="workspace-members-dialog" aria-labelledby="workspace-members-heading"><h2 id="workspace-members-heading">Members and invitations</h2><button id="close-workspace-members">Close</button><p id="workspace-members-status"></p><section id="workspace-profile-section"><h3>My profile</h3><p id="workspace-profile-status"></p><div><button id="share-profile-photo">Share Google profile photo</button><button id="refresh-profile-photo">Refresh shared photo</button><button id="stop-profile-photo">Stop sharing photo</button></div></section><form id="create-invite-form" hidden><input id="invite-email"><select id="invite-role"><option value="editor">Editor</option></select><button type="submit">Create invitation</button></form><p id="invite-link-status"></p><div id="workspace-members-list"></div><section id="workspace-invites-section" hidden><div id="workspace-invites-list"></div></section><form id="transfer-ownership-form" hidden><select id="ownership-successor"></select><select id="former-owner-role"><option value="editor">Editor</option></select><button type="submit">Transfer ownership</button></form></dialog>`;
+    globalThis.FlowboardApp = {getMode:() => ({kind:'cloud',id:'profile-fixture',role:'owner'})};
+    let member={uid:'owner',displayName:'Owner',role:'owner',emailLower:'owner@example.test',photoURL:''};
+    globalThis.profileWrites=[];
+    const adapter={listMembers:async()=>[member],listInvites:async()=>[],updateOwnMemberProfile:async(workspaceId,options)=>{globalThis.profileWrites.push({workspaceId,options});member={...member,...options};},changeMemberRole:async()=>{},removeMember:async()=>{},leaveWorkspace:async()=>{},transferOwnership:async()=>{},revokeInvite:async()=>{},createInvite:async()=>({})};
+    const {initializeMembersUI}=await import(asset); initializeMembersUI(adapter).setSession({uid:'owner',displayName:'Owner',email:'owner@example.test',photoURL:'https://lh3.googleusercontent.com/a/synthetic=s96-c'});
+  }, builtMembersAsset());
+  await page.getByRole('button',{name:'Manage members'}).click();
+  await expect(page.locator('#workspace-profile-section')).toBeVisible();
+  await expect(page.getByRole('button',{name:'Share Google profile photo'})).toBeEnabled();
+  await page.getByRole('button',{name:'Share Google profile photo'}).click();
+  await expect.poll(() => page.evaluate(() => globalThis.profileWrites.length)).toBe(1);
+  expect(await page.evaluate(() => globalThis.profileWrites[0].options.photoURL)).toContain('lh3.googleusercontent.com');
+  await expect(page.getByRole('button',{name:'Stop sharing photo'})).toBeVisible();
+  await page.getByRole('button',{name:'Stop sharing photo'}).click();
+  await page.getByRole('button',{name:'Stop sharing',exact:true}).click();
+  await expect.poll(() => page.evaluate(() => globalThis.profileWrites.length)).toBe(2);
+  expect(await page.evaluate(() => globalThis.profileWrites[1].options.photoURL)).toBe('');
+});
+
+test('cloud roster maps assignment UIDs to three badges and overflow', async ({page}) => {
+  await openReady(page);
+  await page.evaluate(async asset => {
+    document.body.innerHTML = '<div id="board"><div class="assignees" data-assignee-uids="a,b,c,d"></div></div>';
+    globalThis.FlowboardApp = {getMode:() => ({kind:'cloud',id:'roster-fixture',role:'editor'})};
+    const adapter={listMembers:async()=>[
+      {uid:'a',displayName:'Avery Lee',emailLower:'avery@example.test',photoURL:''},
+      {uid:'b',displayName:'Sam Rivera',emailLower:'sam@example.test',photoURL:''},
+      {uid:'c',displayName:'Mina Chen',emailLower:'mina@example.test',photoURL:''},
+      {uid:'d',displayName:'Jordan Patel',emailLower:'jordan@example.test',photoURL:''}
+    ]};
+    const {initializeCloudRosterUI}=await import(asset); initializeCloudRosterUI(adapter).setSession({uid:'a'}); window.dispatchEvent(new Event('flowboard:cloud-selection'));
+  }, builtRosterAsset());
+  await expect(page.locator('.assignees .person-badge')).toHaveCount(3);
+  await expect(page.locator('.assignee-overflow')).toHaveText('+1');
+  await expect(page.locator('.assignees')).toHaveAttribute('aria-label','Assigned to Avery Lee, Sam Rivera, Mina Chen, Jordan Patel');
 });

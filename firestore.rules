@@ -38,6 +38,23 @@ service cloud.firestore {
         );
     }
     function validRole(role) { return role in ['owner', 'editor', 'viewer']; }
+    function validMemberProfile(data) {
+      return (!data.keys().hasAny(['displayName']) || data.displayName is string && data.displayName.size() <= 120)
+        && (!data.keys().hasAny(['photoURL']) || data.photoURL == '' || data.photoURL is string && data.photoURL.size() <= 2048 && data.photoURL.matches('https://lh3[.]googleusercontent[.]com/.*'))
+        && (!data.keys().hasAny(['profileUpdatedAt']) || data.profileUpdatedAt == request.time);
+    }
+    function validOwnMemberProfileUpdate(workspaceId, uid) {
+      return isActiveWorkspace(workspaceId)
+        && uid == request.auth.uid
+        && resource.data.uid == uid
+        && request.resource.data.uid == uid
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.emailLower == resource.data.emailLower
+        && request.resource.data.keys().hasAll(['displayName', 'photoURL', 'profileUpdatedAt'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'photoURL', 'profileUpdatedAt'])
+        && validMemberProfile(request.resource.data)
+        && request.resource.data.profileUpdatedAt == request.time;
+    }
     function invitePath(workspaceId, inviteId) {
       return /databases/$(database)/documents/workspaces/$(workspaceId)/invites/$(inviteId);
     }
@@ -316,6 +333,7 @@ service cloud.firestore {
         allow create: if signedIn()
           && request.resource.data.uid == uid
           && validRole(request.resource.data.role)
+          && validMemberProfile(request.resource.data)
           && (
             (uid == request.auth.uid
               && request.resource.data.role == 'owner'
@@ -325,7 +343,7 @@ service cloud.firestore {
               || (uid == request.auth.uid && validInviteMembershipCreate(workspaceId, uid))
             ))
           );
-        allow update: if isActiveWorkspace(workspaceId) && (
+        allow update: if validOwnMemberProfileUpdate(workspaceId, uid) || isActiveWorkspace(workspaceId) && (
           validTransferredMemberUpdate(workspaceId, uid) || (
             isOwner(workspaceId)
             && resource.data.role in ['editor', 'viewer']

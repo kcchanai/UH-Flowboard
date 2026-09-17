@@ -1,0 +1,10 @@
+[
+  {"id":"classic-flow","name":"Classic Flow","note":"Familiar blue and indigo","light":["#135FA8","#3E4CA8"],"ink":"#FFFFFF","solid":"#28569F","dark":["#172B50","#34275F"]},
+  {"id":"ocean-slate","name":"Ocean Slate","note":"Recommended calm office default","light":["#2B5D88","#3B4E7A"],"ink":"#FFFFFF","solid":"#33567F","dark":["#182C41","#28354E"]},
+  {"id":"lagoon","name":"Lagoon","note":"Blue and deep teal","light":["#155E75","#246B67"],"ink":"#FFFFFF","solid":"#205F69","dark":["#102F3C","#183D37"]},
+  {"id":"sage-studio","name":"Sage Studio","note":"Soft sage and cool mint","light":["#DCE9DF","#C8DEDA"],"ink":"#203D36","solid":"#D5E4DC","dark":["#1C302B","#293B35"]},
+  {"id":"warm-sand","name":"Warm Sand","note":"Warm ivory and pale clay","light":["#F1E7D7","#E7D5C7"],"ink":"#45372F","solid":"#EBDDCF","dark":["#302923","#3D302B"]},
+  {"id":"lavender-mist","name":"Lavender Mist","note":"Pale lilac and cool periwinkle","light":["#E8E3F3","#D6DFF0"],"ink":"#34334F","solid":"#DFE1F1","dark":["#28263C","#303551"]},
+  {"id":"dusk-plum","name":"Dusk Plum","note":"Muted plum and dusky blue","light":["#59416F","#3B527D"],"ink":"#FFFFFF","solid":"#4C4977","dark":["#302339","#24334B"]},
+  {"id":"graphite","name":"Graphite","note":"Neutral slate, minimal distraction","light":["#465567","#303C4C"],"ink":"#FFFFFF","solid":"#3A485A","dark":["#191F28","#252C38"]}
+]
