@@ -8,7 +8,7 @@ Safety boundary: local implementation and synthetic Emulator validation only. No
 | Step | Scope | Status | Evidence | Commit |
 | --- | --- | --- | --- | --- |
 | 1 | Pin baseline and acceptance contract | complete | `artifacts/aesthetic/step-01/` | pending commit |
-| 2 | Resolve source-budget capacity | in_progress | | |
+| 2 | Resolve source-budget capacity | blocked | `artifacts/aesthetic/step-02/results.md` | pending commit |
 | 3 | Establish reusable visual token system | not_started | | |
 | 4 | Implement curated canvas library | not_started | | |
 | 5 | Add personal appearance selection and persistence | not_started | | |
