@@ -14,8 +14,8 @@ Production and Rules boundary: unchanged. No real-account or protected-fixture t
 | 6 | Apply a coherent visual system | complete | pending commit |
 | 7 | Refine the card editor and action dialogs | complete | pending commit |
 | 8 | Polish discovery, onboarding, and secondary workflows | complete | pending commit |
-| 9 | Qualify desktop accessibility and mouse/keyboard workflows | in_progress | |
-| 10 | Stress-test performance and browser resilience | not_started | |
+| 9 | Qualify desktop accessibility and mouse/keyboard workflows | complete | pending commit |
+| 10 | Stress-test performance and browser resilience | in_progress | |
 | 11 | Package and independently qualify the release candidate | not_started | |
 | 12 | Authorized release and real-user acceptance | awaiting_release_authorization | |
 
