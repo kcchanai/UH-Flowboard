@@ -14,8 +14,8 @@ Safety boundary: local implementation and synthetic Emulator validation only. No
 | 5 | Add personal appearance selection and persistence | complete | `artifacts/aesthetic/step-05/` | `dd77964f61ff4a60b43b942c227524cfa81f34e2` |
 | 6 | Create resilient person badges and own-account photos | complete | `artifacts/aesthetic/step-06/` | `cff612961b631cac2a1f4d70a5351c8bc4c98fb9` |
 | 7 | Implement workspace-scoped photo sharing under strict Rules | complete | `artifacts/aesthetic/step-07/` | `a59c03b8f8ac71fc77cf83a52d987a584003f318` |
-| 8 | Integrate assignee identity throughout desktop workflows | complete | `artifacts/aesthetic/step-08/` | pending commit |
-| 9 | Qualify visual quality, accessibility, resilience, performance | in_progress | | |
-| 10 | Package candidate and stop at human release gate | not_started | | |
+| 8 | Integrate assignee identity throughout desktop workflows | complete | `artifacts/aesthetic/step-08/` | `2e9f85ade5e1a221cca04335a0e9235baee2336a` |
+| 9 | Qualify visual quality, accessibility, resilience, performance | complete | `artifacts/aesthetic/step-09/` | pending commit |
+| 10 | Package candidate and stop at human release gate | in_progress | | |
 
 Every completed step must record exact commands, counts, evidence paths, measured budgets, commit SHA, and worktree state before the next step begins.
