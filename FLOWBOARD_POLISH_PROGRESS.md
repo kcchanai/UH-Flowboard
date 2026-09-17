@@ -16,7 +16,7 @@ Production and Rules boundary: unchanged. No real-account or protected-fixture t
 | 8 | Polish discovery, onboarding, and secondary workflows | complete | pending commit |
 | 9 | Qualify desktop accessibility and mouse/keyboard workflows | complete | pending commit |
 | 10 | Stress-test performance and browser resilience | complete | pending commit |
-| 11 | Package and independently qualify the release candidate | in_progress | |
+| 11 | Package and independently qualify the release candidate | complete | pending commit |
 | 12 | Authorized release and real-user acceptance | awaiting_release_authorization | |
 
 Each completed step must record exact commands, results, evidence paths, budget measurements, commit SHA, and worktree state before changing the next step to `in_progress`.

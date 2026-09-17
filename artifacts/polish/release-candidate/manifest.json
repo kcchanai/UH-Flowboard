@@ -1,0 +1,50 @@
+{
+  "candidateSourceSha": "2bd93e93673b3cfb641934c67c4016e581bc9041",
+  "branch": "luna/flowboard-comprehensive-polish",
+  "baseMainSha": "b208b564236ead57b3dd5b33b70686445ae92e67",
+  "originMainAtPackaging": "b208b564236ead57b3dd5b33b70686445ae92e67",
+  "rulesSha256": "6e736958316b451a207cb0954d0f6ca39aedf007cd63130c1b3f4d3485f2ada8",
+  "qualification": {
+    "unitTests": {"passed": 29, "failed": 0, "skipped": 0},
+    "rulesTests": {"passed": 23, "failed": 0, "skipped": 0},
+    "emulatorBrowser": {"passed": 1, "failed": 0},
+    "browserSmokeRuns": [40, 40, 40],
+    "lighthouseAccessibility": {"score": 1, "failedScoredAudits": []}
+  },
+  "budgets": {
+    "reachableSourceBytes": 216103,
+    "rawSourceCapBytes": 217500,
+    "headroomBytes": 1397,
+    "initialShellGzipBytes": 23767,
+    "initialShellGzipCapBytes": 25000,
+    "firstPartyLazyGzipBytes": 44248,
+    "firstPartyLazyGzipCapBytes": 55000,
+    "documentGzipBytes": 5455
+  },
+  "benchmark": {
+    "fixture": {"lists": 10, "cards": 1000},
+    "viewport": {"width": 1440, "height": 900},
+    "medianRenderMs": 623.1,
+    "maxRenderMs": 626.5,
+    "medianNavigationMs": 645,
+    "maxNavigationMs": 648,
+    "medianFilterMs": 47.2,
+    "maxFilterMs": 50.8,
+    "consoleErrors": 0,
+    "pageErrors": 0
+  },
+  "production": {
+    "merged": false,
+    "pushed": false,
+    "deployed": false,
+    "rulesPublished": false,
+    "productionFirestoreTouched": false,
+    "realAccountTested": false,
+    "protectedWorkspaceOpened": false
+  },
+  "manualGaps": [
+    "Native browser zoom acceptance remains for the human gate.",
+    "Real Google owner/editor/viewer/non-member acceptance remains for the human gate.",
+    "Production Pages deployment and live smoke remain unauthorized in this step."
+  ]
+}
