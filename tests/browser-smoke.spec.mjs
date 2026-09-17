@@ -480,6 +480,19 @@ test('card edits stay isolated until Save and preserve drafts after a failed sav
   await expect(page.locator('#card-description-input')).toHaveValue('Draft must survive a failed local save');
 });
 
+test('desktop card editor gives assignee guidance a full-width field', async ({page}) => {
+  await page.setViewportSize({width:1440, height:900});
+  await openReady(page);
+  const card = page.locator('.card-open').first();
+  await card.click();
+  const field = page.locator('#local-assignees-field');
+  const metrics = await field.evaluate(element => { const box=element.getBoundingClientRect(), style=getComputedStyle(element); return {width:box.width, gridColumnEnd:style.gridColumnEnd, overflow:element.scrollWidth > element.clientWidth}; });
+  expect(metrics.gridColumnEnd).toBe('-1');
+  expect(metrics.width).toBeGreaterThan(500);
+  expect(metrics.overflow).toBe(false);
+  await expect(field.getByLabel('Assignees')).toHaveAttribute('placeholder', 'Names or initials, separated by commas');
+});
+
 test('failed Undo keeps current state and undo history', async ({page}) => {
   await openReady(page);
   const firstList = page.locator('.list').first();
