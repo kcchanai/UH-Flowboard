@@ -863,3 +863,29 @@ test('canvas tokens preserve board controls across light and dark modes', async 
     expect(evidence.addListBackground).not.toBe('rgba(0, 0, 0, 0)');
   }
 });
+
+test('curated canvas palettes render gradient and solid finishes', async ({page}) => {
+  await openReady(page);
+  const evidence = await page.evaluate(() => {
+    const results = [];
+    for (const palette of globalThis.FlowboardRuntime.canvasPalettes) {
+      const gradient = globalThis.FlowboardRuntime.applyCanvasPalette(palette.id, 'gradient', 'light');
+      const gradientImage = getComputedStyle(document.body).backgroundImage;
+      const solid = globalThis.FlowboardRuntime.applyCanvasPalette(palette.id, 'solid', 'dark');
+      const solidImage = getComputedStyle(document.body).backgroundImage;
+      results.push({id:palette.id, gradientMode:gradient.mode, gradientFinish:gradient.finish, gradientImage, solidMode:solid.mode, solidFinish:solid.finish, solidImage, canvas:document.documentElement.dataset.canvas});
+    }
+    globalThis.FlowboardRuntime.applyCanvasPalette('classic-flow', 'gradient', 'light');
+    return results;
+  });
+  expect(evidence).toHaveLength(8);
+  for (const item of evidence) {
+    expect(item.gradientMode).toBe('light');
+    expect(item.gradientFinish).toBe('gradient');
+    expect(item.gradientImage).toContain('linear-gradient');
+    expect(item.solidMode).toBe('dark');
+    expect(item.solidFinish).toBe('solid');
+    expect(item.solidImage).toBe('none');
+    expect(item.canvas).toBe(item.id);
+  }
+});

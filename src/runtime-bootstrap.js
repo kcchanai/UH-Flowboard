@@ -1,5 +1,7 @@
+import {applyCanvasPalette, CANVAS_PALETTES} from './canvas-palettes.js';
+
 export async function bootstrapFlowboard({cloudConfigured, cloudStatus, cloudInitializationError = null, localAdapter, cloudAdapter}) {
-  globalThis.FlowboardRuntime = Object.freeze({cloudStatus, localAdapter, cloudAdapter});
+  globalThis.FlowboardRuntime = Object.freeze({cloudStatus, localAdapter, cloudAdapter, canvasPalettes:CANVAS_PALETTES, applyCanvasPalette});
   await import('../app.js');
   if (cloudConfigured && !cloudInitializationError) {
     const [{initializeAuthUI}, {initializeCloudWorkspaceUI}, {initializeInviteUI}, {initializeMembersUI}, {initializeCloudSyncController}, {initializeActivityUI}, {initializeAssignmentUI}, {initializeCommentsUI}] = await Promise.all([
