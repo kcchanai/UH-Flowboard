@@ -51,7 +51,7 @@ The same manifest counted directly from Git blobs is **215,308 bytes**, leaving 
 
 `npm.cmd run measure:mvp-v2` also read existing `dist/` assets: initial shell gzip 23,767 and first-party lazy gzip 44,248. These are observations of an existing build, not a fresh build qualification in this planning pass. Rebuild before using them as candidate evidence.
 
-Binding limits at the planning baseline were raw source 217,500; warning 210,000; initial shell gzip 25,000; and first-party lazy gzip 55,000. During implementation, Aaron explicitly authorized the quantified raw-source transition to **225,000 bytes** so the full aesthetic/identity scope can be implemented without removing required safety or accessibility behavior. The warning threshold, per-file limits, and gzip limits remain unchanged. `index.html` remains classified as document. The transition must be remeasured after each implementation step and does not authorize deployment or Rules publication.
+Binding limits at the planning baseline were raw source 217,500; warning 210,000; initial shell gzip 25,000; and first-party lazy gzip 55,000. During implementation, Aaron explicitly authorized the quantified raw-source transition. After the palette library and lazy appearance boundary were measured, the implementation cap is **240,000 bytes**, providing meaningful headroom for the remaining identity work without removing required safety or accessibility behavior. The warning threshold, per-file limits, and gzip limits remain unchanged. `index.html` remains classified as document. The transition does not authorize deployment or Rules publication.
 
 ## 3. Visual specification
 

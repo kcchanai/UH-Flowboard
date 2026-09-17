@@ -889,3 +889,64 @@ test('curated canvas palettes render gradient and solid finishes', async ({page}
     expect(item.canvas).toBe(item.id);
   }
 });
+
+test('appearance preview is lazy, draft-only, and cancel preserves workspace bytes', async ({page}) => {
+  await openReady(page);
+  const before = await page.evaluate(() => localStorage.getItem('flowboard-workspace'));
+  await page.getByRole('button', {name:'Open appearance settings'}).click();
+  const dialog = page.locator('#appearance-dialog');
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole('radio')).toHaveCount(15);
+  await expect(page.locator('#appearance-palettes input[type="radio"]')).toHaveCount(8);
+  await expect(page.locator('#appearance-scope')).toContainText('does not change shared boards');
+  await page.getByRole('radio', {name:/Ocean Slate/}).check();
+  await page.getByRole('radio', {name:'Dark', exact:true}).check();
+  await page.getByRole('radio', {name:'Solid color', exact:true}).check();
+  await expect(page.locator('#appearance-status')).toContainText('Preview only');
+  await expect.poll(() => page.evaluate(() => ({canvas:document.documentElement.dataset.canvas,finish:document.documentElement.dataset.canvasFinish,theme:document.documentElement.dataset.theme}))).toEqual({canvas:'ocean-slate',finish:'solid',theme:'dark'});
+  await page.getByRole('button', {name:'Cancel', exact:true}).click();
+  await expect(dialog).toBeHidden();
+  const after = await page.evaluate(() => ({workspace:localStorage.getItem('flowboard-workspace'),appearance:localStorage.getItem('flowboard-appearance'),canvas:document.documentElement.dataset.canvas,finish:document.documentElement.dataset.canvasFinish}));
+  expect(after.workspace).toBe(before);
+  expect(after.appearance).toBeNull();
+  expect(after.canvas).toBe('classic-flow');
+  expect(after.finish).toBe('gradient');
+});
+
+test('saved appearance persists independently through reload', async ({page}) => {
+  await openReady(page);
+  const before = await page.evaluate(() => localStorage.getItem('flowboard-workspace'));
+  await page.getByRole('button', {name:'Open appearance settings'}).click();
+  await page.getByRole('radio', {name:/Lagoon/}).check();
+  await page.getByRole('radio', {name:'Light', exact:true}).check();
+  await page.getByRole('radio', {name:'Solid color', exact:true}).check();
+  await page.getByRole('radio', {name:'Use initials', exact:true}).check();
+  await page.getByRole('button', {name:'Save appearance'}).click();
+  await expect(page.locator('#appearance-dialog')).toBeHidden();
+  const saved = await page.evaluate(() => ({workspace:localStorage.getItem('flowboard-workspace'),appearance:JSON.parse(localStorage.getItem('flowboard-appearance')),canvas:document.documentElement.dataset.canvas,finish:document.documentElement.dataset.canvasFinish,photos:document.documentElement.dataset.appearancePhotos}));
+  expect(saved.workspace).toBe(before);
+  expect(saved.appearance).toEqual({version:1,mode:'light',canvas:'lagoon',finish:'solid',showPhotos:false});
+  expect(saved.canvas).toBe('lagoon');
+  expect(saved.finish).toBe('solid');
+  expect(saved.photos).toBe('initials');
+  await page.reload();
+  await page.waitForFunction(() => globalThis.FlowboardApp && globalThis.FlowboardRuntime);
+  await expect.poll(() => page.evaluate(() => ({canvas:document.documentElement.dataset.canvas,finish:document.documentElement.dataset.canvasFinish,photos:document.documentElement.dataset.appearancePhotos}))).toEqual({canvas:'lagoon',finish:'solid',photos:'initials'});
+  await page.getByRole('button', {name:'Open appearance settings'}).click();
+  await expect(page.locator('input[name="appearance-canvas"][value="lagoon"]')).toBeChecked();
+  await expect(page.locator('input[name="appearance-finish"][value="solid"]')).toBeChecked();
+  await expect(page.locator('input[name="appearance-photos"][value="initials"]')).toBeChecked();
+});
+
+test('appearance save failure keeps draft open and workspace unchanged', async ({page}) => {
+  await openReady(page);
+  const before = await page.evaluate(() => { const workspace=localStorage.getItem('flowboard-workspace'); const original=Storage.prototype.setItem; Storage.prototype.setItem=function(key,value){ if(key==='flowboard-appearance') throw new Error('synthetic appearance storage failure'); return original.call(this,key,value); }; return workspace; });
+  await page.getByRole('button', {name:'Open appearance settings'}).click();
+  await page.getByRole('radio', {name:/Warm Sand/}).check();
+  await page.getByRole('button', {name:'Save appearance'}).click();
+  await expect(page.locator('#appearance-dialog')).toBeVisible();
+  await expect(page.locator('#appearance-status')).toContainText('could not be saved');
+  const after = await page.evaluate(() => ({workspace:localStorage.getItem('flowboard-workspace'),appearance:localStorage.getItem('flowboard-appearance')}));
+  expect(after.workspace).toBe(before);
+  expect(after.appearance).toBeNull();
+});
