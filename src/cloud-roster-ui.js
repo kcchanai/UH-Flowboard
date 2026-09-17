@@ -20,7 +20,7 @@ export function initializeCloudRosterUI(adapter) {
   const refresh = async () => {
     const active=mode(), token=++generation;
     if (!session || !['cloud','cloud-preview'].includes(active.kind) || !active.id) { members=new Map(); schedulePaint(); return; }
-    try { const list=await adapter.listMembers(active.id); if (token !== generation) return; members=new Map(list.map(member => [member.uid, member])); generation++; schedulePaint(); }
+    try { const list=await adapter.listMembers(active.id); if (token !== generation) return; members=new Map(list.map(member => [member.uid, member])); generation++; paint(); }
     catch { if (token === generation) { members=new Map(); schedulePaint(); } }
   };
   const board=document.querySelector('#board');
