@@ -12,9 +12,9 @@ Safety boundary: local implementation and synthetic Emulator validation only. No
 | 3 | Establish reusable visual token system | complete | `artifacts/aesthetic/step-03/` | `f85236b94052dead49de180c9b6701e064157d87` |
 | 4 | Implement curated canvas library | complete | `artifacts/aesthetic/step-04/` | `7cf4bba94b755a5a55f55a53ec65a7768f690e9e` |
 | 5 | Add personal appearance selection and persistence | complete | `artifacts/aesthetic/step-05/` | `dd77964f61ff4a60b43b942c227524cfa81f34e2` |
-| 6 | Create resilient person badges and own-account photos | complete | `artifacts/aesthetic/step-06/` | pending commit |
-| 7 | Implement workspace-scoped photo sharing under strict Rules | in_progress | | |
-| 8 | Integrate assignee identity throughout desktop workflows | not_started | | |
+| 6 | Create resilient person badges and own-account photos | complete | `artifacts/aesthetic/step-06/` | `cff612961b631cac2a1f4d70a5351c8bc4c98fb9` |
+| 7 | Implement workspace-scoped photo sharing under strict Rules | complete | `artifacts/aesthetic/step-07/` | pending commit |
+| 8 | Integrate assignee identity throughout desktop workflows | in_progress | | |
 | 9 | Qualify visual quality, accessibility, resilience, performance | not_started | | |
 | 10 | Package candidate and stop at human release gate | not_started | | |
 

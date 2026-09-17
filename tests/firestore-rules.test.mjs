@@ -436,3 +436,16 @@ test('only owners can rename, archive, and restore retained cloud workspaces', a
   await assertSucceeds(updateDoc(ownerWorkspace, {status:'ready', lifecycleRevision:3, archivedAt:null, archivedByUid:null, updatedAt:serverTimestamp()}));
   await assertSucceeds(getDoc(editorBoard));
 });
+
+test('member profile photo sharing is self-only, allowlisted, and blocked when archived', async () => {
+  const viewer=dbFor('editor-a'), owner=dbFor('owner-a'), viewerMember=doc(viewer,'workspaces','alpha','members','editor-a');
+  await assertSucceeds(updateDoc(viewerMember,{displayName:'Viewer A Updated',photoURL:'https://lh3.googleusercontent.com/a/synthetic=s96-c',profileUpdatedAt:serverTimestamp()}));
+  await assertSucceeds(updateDoc(viewerMember,{displayName:'Viewer A Updated',photoURL:'',profileUpdatedAt:serverTimestamp()}));
+  await assertFails(updateDoc(viewerMember,{role:'owner',displayName:'Escalated',photoURL:'',profileUpdatedAt:serverTimestamp()}));
+  await assertFails(updateDoc(viewerMember,{displayName:'Bad host',photoURL:'https://evil.example.test/photo',profileUpdatedAt:serverTimestamp()}));
+  await assertFails(updateDoc(viewerMember,{displayName:'Forged field',photoURL:'',profileUpdatedAt:serverTimestamp(),unknownField:true}));
+  await assertFails(updateDoc(doc(owner,'workspaces','alpha','members','viewer-a'),{displayName:'Owner forged viewer',photoURL:'',profileUpdatedAt:serverTimestamp()}));
+  await assertFails(setDoc(doc(owner,'workspaces','alpha','members','invalid-photo-member'),{uid:'invalid-photo-member',role:'viewer',emailLower:'invalid@example.com',photoURL:'http://lh3.googleusercontent.com/photo'}));
+  await env.withSecurityRulesDisabled(async context => { const db=context.firestore(); await setDoc(doc(db,'workspaces','archived-profile'),{name:'Archived profile',ownerUid:'archived-owner',schemaVersion:1,status:'archived'}); await setDoc(doc(db,'workspaces','archived-profile','members','archived-owner'),{uid:'archived-owner',role:'owner',emailLower:'archived@example.com'}); });
+  await assertFails(updateDoc(doc(dbFor('archived-owner'),'workspaces','archived-profile','members','archived-owner'),{displayName:'Archived',photoURL:'',profileUpdatedAt:serverTimestamp()}));
+});

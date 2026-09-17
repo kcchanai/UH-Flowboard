@@ -43,6 +43,7 @@ export function createFirebaseWorkspaceAdapter(config) {
     applyWorkspaceMutation(options) { return cloudCall('applyCloudWorkspaceMutation', options); },
     migrateWorkspaceToGranular(workspaceId) { return cloudCall('migrateWorkspaceToGranular', workspaceId); },
     listMembers(workspaceId) { return cloudCall('listMembers', workspaceId); },
+    updateOwnMemberProfile(workspaceId, options) { return cloudCall('updateOwnMemberProfile', workspaceId, options); },
     listInvites(workspaceId) { return cloudCall('listInvites', workspaceId); },
     createInvite(options) { return cloudCall('createInvite', options); },
     revokeInvite(workspaceId, inviteId) { return cloudCall('revokeInvite', workspaceId, inviteId); },

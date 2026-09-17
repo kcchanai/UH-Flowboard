@@ -1,4 +1,5 @@
 import {granularizeBoard, rehydrateGranularWorkspace} from '../granular-workspace.js';
+import {safePhotoURL} from '../person-badges.js';
 import {
   arrayRemove, arrayUnion, collection, deleteDoc, doc, getDoc, getDocs, getFirestore, limit, onSnapshot, orderBy, query,
   runTransaction, serverTimestamp, startAfter, Timestamp, updateDoc, writeBatch
@@ -259,6 +260,11 @@ export async function listMembers(app, auth, workspaceId) {
   const {db}=context(app,auth);
   const snapshots = await getDocs(collection(db, 'workspaces', workspaceId, 'members'));
   return snapshots.docs.map(item => ({id:item.id, ...item.data()}));
+}
+export async function updateOwnMemberProfile(app, auth, workspaceId, {displayName = '', photoURL = ''} = {}) {
+  const {db,user}=context(app,auth), cleanName=String(displayName || '').trim().slice(0,120), cleanPhoto=String(photoURL || '').trim();
+  if (cleanName.length > 120 || cleanPhoto && !safePhotoURL(cleanPhoto)) throw Object.assign(new Error('The profile photo or display name is invalid.'), {code:'INVALID_MEMBER_PROFILE'});
+  await updateDoc(doc(db, 'workspaces', workspaceId, 'members', user.uid), {displayName:cleanName, photoURL:cleanPhoto, profileUpdatedAt:serverTimestamp()});
 }
 
 export async function listInvites(app, auth, workspaceId) {
