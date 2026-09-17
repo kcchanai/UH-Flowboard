@@ -715,6 +715,26 @@ test('compact cloud-copy status fits the responsive top bar', async ({page}) => 
   expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
 });
 
+test('desktop board structure keeps navigation separate and controls reachable', async ({page}) => {
+  await openReady(page);
+  for (const width of [1280, 1440, 1920, 960]) {
+    await page.setViewportSize({width, height:720});
+    const layout = await page.evaluate(() => {
+      const main = document.querySelector('#main-content'), header = document.querySelector('.board-header'), board = document.querySelector('#board'), menu = document.querySelector('#board-menu'), search = document.querySelector('#search'), firstList = document.querySelector('.list');
+      const box = element => { const value = element?.getBoundingClientRect(); return value ? {left:value.left, right:value.right, top:value.top, bottom:value.bottom, width:value.width, height:value.height} : null; };
+      return {boardIsMainChild:board?.parentElement === main, boardNestedInHeader:header?.contains(board), pageFits:document.documentElement.scrollWidth <= document.documentElement.clientWidth, boardOverflow:getComputedStyle(board).overflowX, boardScrollable:board.scrollWidth > board.clientWidth, menu:box(menu), search:box(search), firstList:box(firstList)};
+    });
+    expect(layout.boardIsMainChild, `board structure at ${width}px`).toBe(true);
+    expect(layout.boardNestedInHeader, `board nesting at ${width}px`).toBe(false);
+    expect(layout.pageFits, `page overflow at ${width}px`).toBe(true);
+    expect(layout.boardOverflow).toBe('auto');
+    if (width <= 1440) expect(layout.boardScrollable, `board scroll at ${width}px`).toBe(true);
+    expect(layout.menu.width).toBeGreaterThan(0);
+    expect(layout.search.width).toBeGreaterThan(0);
+    expect(layout.firstList.right).toBeGreaterThan(layout.firstList.left);
+  }
+});
+
 test('responsive widths confine horizontal scrolling to the board lane', async ({page}) => {
   await openReady(page);
   for (const width of [1280, 700, 440, 320]) {
