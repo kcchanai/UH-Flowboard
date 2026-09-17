@@ -6,6 +6,9 @@ const builtLifecycleAsset = () => `${basePath}assets/${readdirSync('dist/assets'
 const builtCloudWorkspaceAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('cloud-workspace-ui-') && file.endsWith('.js'))}`;
 const builtCloudSyncAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('cloud-sync-controller-') && file.endsWith('.js'))}`;
 const builtMembersAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('members-ui-') && file.endsWith('.js'))}`;
+const builtActivityAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('activity-ui-') && file.endsWith('.js'))}`;
+const builtAssignmentAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('assignment-ui-') && file.endsWith('.js'))}`;
+const builtCommentsAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('comments-ui-') && file.endsWith('.js'))}`;
 const openReady = async page => { await page.goto(basePath); await page.waitForFunction(() => globalThis.FlowboardApp && globalThis.FlowboardState); await page.waitForFunction(() => /Google sign-in available|Signed in · local workspace|Local-only workspace/.test(document.querySelector('#cloud-status')?.textContent || '')); };
 
 test('critical local-first card workflow persists after reload', async ({page}) => {
@@ -28,9 +31,9 @@ test('getting started explains local starter content and safe cloud boundaries',
   await expect(guide).toBeVisible();
   await guide.locator('summary').click();
   await expect(guide).toContainText('Local starter content.');
-  await expect(guide).toContainText('export/recovery');
+  await expect(guide).toContainText('export, recover');
   await expect(guide).toContainText('cloud workspaces');
-  await expect(guide).toContainText('keep data');
+  await expect(guide).toContainText('retained');
   await page.screenshot({path:'artifacts/mvp-v2/step-10/getting-started.png', fullPage:true});
   await page.screenshot({path:'artifacts/mvp-v2/step-11/start-here.png', fullPage:true});
 });
@@ -314,6 +317,77 @@ test('viewer collaboration access stays read-only with an explicit leave action'
   await page.screenshot({path:'artifacts/mvp-v2/step-9/members-viewer.png', fullPage:true});
 });
 
+test('late member results never paint a different workspace', async ({page}) => {
+  await openReady(page);
+  await page.evaluate(async asset => {
+    document.body.innerHTML = `<button id="open-workspace-members">Manage members</button><dialog id="workspace-members-dialog"><button id="close-workspace-members">Close</button><p id="workspace-members-status"></p><div id="workspace-members-list"></div><form id="create-invite-form"></form><input id="invite-email"><select id="invite-role"><option value="viewer">Viewer</option></select><section id="workspace-invites-section"><div id="workspace-invites-list"></div></section><p id="invite-link-status"></p><form id="transfer-ownership-form"><select id="ownership-successor"></select><select id="former-owner-role"><option value="editor">Editor</option></select></form></dialog>`;
+    globalThis.memberWorkspace = 'workspace-a';
+    globalThis.memberResolvers = [];
+    globalThis.FlowboardApp = {getMode:() => ({kind:'cloud', id:globalThis.memberWorkspace, role:'owner'}), returnToLocal:() => {}};
+    const adapter = {listMembers:async() => new Promise(resolve => { globalThis.memberResolvers.push(resolve); }), listInvites:async() => [], changeMemberRole:async() => {}, removeMember:async() => {}, leaveWorkspace:async() => {}, transferOwnership:async() => {}, createInvite:async() => ({url:'https://example.test/invite'}), revokeInvite:async() => {}};
+    const {initializeMembersUI} = await import(asset);
+    initializeMembersUI(adapter).setSession({uid:'owner'});
+    document.querySelector('#open-workspace-members').click();
+  }, builtMembersAsset());
+  await page.waitForFunction(() => globalThis.memberResolvers.length > 0);
+  await page.evaluate(() => { globalThis.memberWorkspace = 'workspace-b'; window.dispatchEvent(new Event('flowboard:cloud-preview-change')); globalThis.memberResolvers[0]([{uid:'owner', displayName:'Stale member', role:'owner'}]); });
+  await expect(page.locator('#workspace-members-list')).not.toContainText('Stale member');
+});
+
+test('late activity results are discarded after returning local', async ({page}) => {
+  await openReady(page);
+  await page.evaluate(async asset => {
+    document.body.innerHTML = `<button id="view-cloud-activity">View activity</button><dialog id="cloud-activity-dialog"><button id="close-cloud-activity">Close</button><p id="cloud-activity-status"></p><ol id="cloud-activity-list"></ol><button id="load-more-cloud-activity"></button></dialog>`;
+    globalThis.resolveActivity = null;
+    const adapter = {listActivity:async() => new Promise(resolve => { globalThis.resolveActivity = resolve; })};
+    const {initializeActivityUI} = await import(asset);
+    initializeActivityUI(adapter).setSession({uid:'owner'});
+    window.dispatchEvent(new CustomEvent('flowboard:cloud-selection', {detail:{id:'workspace-a'}}));
+    document.querySelector('#view-cloud-activity').click();
+  }, builtActivityAsset());
+  await page.waitForFunction(() => typeof globalThis.resolveActivity === 'function');
+  await page.evaluate(() => { window.dispatchEvent(new CustomEvent('flowboard:cloud-selection', {detail:null})); globalThis.resolveActivity({entries:[{actorUid:'owner',action:'workspace-updated',createdAt:null}],cursor:null,hasMore:false}); });
+  await expect(page.locator('#cloud-activity-list li')).toHaveCount(0);
+});
+
+test('late assignment members are discarded after card closure', async ({page}) => {
+  await openReady(page);
+  await page.evaluate(async asset => {
+    document.body.innerHTML = `<dialog id="card-dialog"><div id="local-assignees-field"></div><fieldset id="cloud-assignees-field"><p id="cloud-assignees-status"></p><div id="cloud-assignees-options"></div></fieldset><input id="assignee-uids-input" value=""><input id="assignees-input" value=""><input id="legacy-assignees-input" value=""></dialog>`;
+    globalThis.assignmentMode = {kind:'cloud', id:'workspace-a', role:'editor'};
+    globalThis.resolveAssignment = null;
+    globalThis.FlowboardApp = {getMode:() => globalThis.assignmentMode};
+    const adapter = {listMembers:async() => new Promise(resolve => { globalThis.resolveAssignment = resolve; })};
+    const {initializeAssignmentUI} = await import(asset);
+    initializeAssignmentUI(adapter).setSession({uid:'owner'});
+    const dialog = document.querySelector('#card-dialog'); dialog.dataset.cardId = 'card-a'; dialog.showModal();
+  }, builtAssignmentAsset());
+  await page.waitForFunction(() => typeof globalThis.resolveAssignment === 'function');
+  await page.evaluate(() => { globalThis.assignmentMode = {kind:'local'}; document.querySelector('#card-dialog').close(); globalThis.resolveAssignment([{uid:'owner',displayName:'Stale member',role:'editor'}]); });
+  await expect(page.locator('#cloud-assignees-options')).not.toContainText('Stale member');
+});
+
+test('late comment pagination is discarded after card closure', async ({page}) => {
+  await openReady(page);
+  await page.evaluate(async asset => {
+    document.body.innerHTML = `<dialog id="card-dialog" data-card-id="card-a"><section id="cloud-comments-section"><p id="cloud-comments-status"></p><span id="cloud-comments-count"></span><ol id="cloud-comments-list"></ol><button id="load-older-comments" hidden>Load older</button><div id="cloud-comment-form"><textarea id="cloud-comment-input"></textarea><button id="add-cloud-comment">Comment</button></div><p id="cloud-comments-readonly"></p></section></dialog><dialog id="comment-delete-dialog"></dialog>`;
+    globalThis.commentSubscription = null;
+    globalThis.resolveOlderComments = null;
+    globalThis.FlowboardApp = {getMode:() => ({kind:'cloud', id:'workspace-a', role:'editor'}), getActiveBoardId:() => 'board-a'};
+    const adapter = {listMembers:async() => [{uid:'owner',displayName:'Owner',role:'editor'}], subscribeComments:async options => { globalThis.commentSubscription = options; return () => {}; }, listOlderComments:async() => new Promise(resolve => { globalThis.resolveOlderComments = resolve; }), createComment:async() => {}, updateComment:async() => {}, removeComment:async() => {}};
+    const {initializeCommentsUI} = await import(asset);
+    initializeCommentsUI(adapter).setSession({uid:'owner'});
+    document.querySelector('#card-dialog').showModal();
+  }, builtCommentsAsset());
+  await page.waitForFunction(() => typeof globalThis.commentSubscription?.onComments === 'function');
+  await page.evaluate(() => globalThis.commentSubscription.onComments({entries:[],cursor:{id:'cursor'},hasMore:true}));
+  await page.locator('#load-older-comments').click();
+  await page.waitForFunction(() => typeof globalThis.resolveOlderComments === 'function');
+  await page.locator('#card-dialog').evaluate(dialog => dialog.close());
+  await page.evaluate(() => globalThis.resolveOlderComments({entries:[{id:'stale-comment',authorUid:'owner',body:'Stale comment',createdAt:null}],cursor:null,hasMore:false}));
+  await expect(page.locator('#cloud-comments-list')).not.toContainText('Stale comment');
+});
+
 test('owner can retry an interrupted migration and the workspace list refreshes to editable', async ({page}) => {
   await page.setViewportSize({width:390,height:844});
   await openReady(page);
@@ -349,6 +423,28 @@ test('owner can retry an interrupted migration and the workspace list refreshes 
   await expect(page.locator('#cloud-workspaces-status')).toContainText('migration was interrupted');
   await page.getByRole('button',{name:'Migrate cloud format'}).click();
   await expect(page.locator('#cloud-workspaces-list')).toContainText('owner · editable');
+});
+
+test('desktop board discovery handles many long board names', async ({page}) => {
+  await page.setViewportSize({width:1440, height:900});
+  await openReady(page);
+  await page.evaluate(() => {
+    const workspace = FlowboardState.makeWorkspace();
+    workspace.boards = Array.from({length:8}, (_, index) => { const board=FlowboardState.makeBoard('blank'); board.title=`Office planning board ${index + 1} - quarterly launch coordination`; return board; });
+    workspace.activeBoardId = workspace.boards[0].id;
+    localStorage.setItem('flowboard-workspace', JSON.stringify(workspace));
+  });
+  await page.reload(); await page.waitForFunction(() => globalThis.FlowboardApp && globalThis.FlowboardState);
+  const boardsButton = page.locator('#boards-button');
+  await boardsButton.click();
+  const dialog = page.getByRole('dialog', {name:'Your boards'});
+  await expect(dialog).toBeVisible();
+  await expect(dialog.locator('[data-board-id]')).toHaveCount(8);
+  await dialog.getByLabel('Find a board').fill('board 7');
+  await expect(dialog.locator('[data-board-id]')).toHaveCount(1);
+  await dialog.locator('[data-board-id]').click();
+  await expect(page.locator('#board-page-heading')).toHaveText('Office planning board 7 - quarterly launch coordination board');
+  await expect(boardsButton).toBeFocused();
 });
 
 test('workspace navigation remains available on a phone and searches boards', async ({page}) => {
@@ -400,10 +496,59 @@ test('card edits stay isolated until Save and preserve drafts after a failed sav
   await card.click();
   await expect(page.locator('#card-title-input')).toHaveValue(`${originalTitle} saved`);
   await page.locator('#card-description-input').fill('Draft must survive a failed local save');
-  await page.evaluate(() => { Storage.prototype.setItem = () => { throw new Error('synthetic storage failure'); }; });
+  await page.evaluate(() => { const originalSetItem = Storage.prototype.setItem; Storage.prototype.setItem = function(key, value) { if (key === 'flowboard-workspace') throw new Error('synthetic storage failure'); return originalSetItem.call(this, key, value); }; });
   await page.locator('#card-form').getByRole('button', {name:'Save changes'}).click();
   await expect(dialog).toBeVisible();
   await expect(page.locator('#card-description-input')).toHaveValue('Draft must survive a failed local save');
+});
+
+test('desktop card editor gives assignee guidance a full-width field', async ({page}) => {
+  await page.setViewportSize({width:1440, height:900});
+  await openReady(page);
+  const card = page.locator('.card-open').first();
+  await card.click();
+  const field = page.locator('#local-assignees-field');
+  const metrics = await field.evaluate(element => { const box=element.getBoundingClientRect(), style=getComputedStyle(element); return {width:box.width, gridColumnEnd:style.gridColumnEnd, overflow:element.scrollWidth > element.clientWidth}; });
+  expect(metrics.gridColumnEnd).toBe('-1');
+  expect(metrics.width).toBeGreaterThan(500);
+  expect(metrics.overflow).toBe(false);
+  await expect(field.getByLabel('Assignees')).toHaveAttribute('placeholder', 'Names or initials, separated by commas');
+});
+
+test('failed Undo keeps current state and undo history', async ({page}) => {
+  await openReady(page);
+  const firstList = page.locator('.list').first();
+  const title = `Undo failure ${Date.now()}`;
+  await firstList.getByRole('button', {name:/add a card/i}).click();
+  await firstList.getByLabel('New card title').fill(title);
+  await firstList.getByRole('button', {name:'Add card'}).click();
+  const savedAfterAdd = await page.evaluate(() => localStorage.getItem('flowboard-workspace'));
+  await page.evaluate(() => { const originalSetItem = Storage.prototype.setItem; Storage.prototype.setItem = function(key, value) { if (key === 'flowboard-workspace') throw new Error('synthetic storage failure'); return originalSetItem.call(this, key, value); }; });
+  await page.getByRole('button', {name:'Undo', exact:true}).click();
+  await expect(page.locator('.card-open').filter({hasText:title})).toBeVisible();
+  await expect(page.getByRole('button', {name:'Undo', exact:true})).toBeVisible();
+  await expect(page.locator('#toast')).toContainText('Undo could not be saved');
+  expect(await page.evaluate(() => localStorage.getItem('flowboard-workspace'))).toBe(savedAfterAdd);
+});
+
+test('failed import leaves local state and import review unchanged', async ({page}) => {
+  await openReady(page);
+  const before = await page.evaluate(() => localStorage.getItem('flowboard-workspace'));
+  const imported = await page.evaluate(() => JSON.stringify({flowboardExport:'board', schemaVersion:FlowboardState.SCHEMA_VERSION, board:FlowboardState.makeBoard('blank')}));
+  await page.getByRole('button', {name:'Board actions'}).click();
+  await page.getByRole('menuitem', {name:/Import data/}).click();
+  await page.locator('#import-file').setInputFiles({name:'valid.json', mimeType:'application/json', buffer:Buffer.from(imported)});
+  await expect(page.locator('#import-preview')).toContainText('board');
+  await page.locator('#import-options input[value="replace"]').check();
+  await page.getByRole('button', {name:'Review import'}).click();
+  const confirm = page.locator('#confirm-dialog');
+  await expect(confirm).toContainText('replaced');
+  await page.evaluate(() => { const originalSetItem = Storage.prototype.setItem; Storage.prototype.setItem = function(key, value) { if (key === 'flowboard-workspace') throw new Error('synthetic storage failure'); return originalSetItem.call(this, key, value); }; });
+  await confirm.getByRole('button', {name:'Replace workspace'}).click();
+  await expect(page.locator('#board-page-heading')).toHaveText('Website Launch board');
+  await expect(page.locator('#import-dialog')).toBeVisible();
+  await expect(page.locator('#toast')).toContainText('Import could not be saved');
+  expect(await page.evaluate(() => localStorage.getItem('flowboard-workspace'))).toBe(before);
 });
 
 test('card capture is IME-safe and returns focus for continued entry', async ({page}) => {
@@ -448,6 +593,28 @@ test('Move card dialog handles empty lists and returns focus with position', asy
   await expect(page.locator('.list').nth(1).locator('.card-open')).toHaveText(/Move me/);
   await expect(page.locator(`[data-card-id="${cardId}"] .card-open`)).toBeFocused();
   await expect(page.locator('#announcer')).toHaveText('Card moved to Empty, position 1');
+});
+
+test('Move card dialog permits appending after a populated destination', async ({page}) => {
+  await openReady(page);
+  await page.evaluate(() => {
+    const workspace = FlowboardState.makeWorkspace(), board = FlowboardState.makeBoard('blank');
+    board.lists = [FlowboardState.makeList('Source', [FlowboardState.makeCard('Move me')]), FlowboardState.makeList('Destination', [FlowboardState.makeCard('Existing')])];
+    workspace.boards = [board]; workspace.activeBoardId = board.id;
+    localStorage.setItem('flowboard-workspace', JSON.stringify(workspace));
+  });
+  await page.reload(); await page.waitForFunction(() => globalThis.FlowboardApp && globalThis.FlowboardState);
+  const card = page.locator('.card-open').first();
+  await card.click();
+  await page.getByRole('button', {name:'Move', exact:true}).click();
+  const confirm = page.locator('#confirm-dialog'), destination = page.locator('#move-destination'), position = page.locator('#move-position');
+  const destinationId = await page.locator('.list').nth(1).getAttribute('data-list-id');
+  await destination.selectOption(destinationId);
+  await expect(position).toHaveAttribute('max', '2');
+  await position.fill('2');
+  await confirm.getByRole('button', {name:'Move card'}).click();
+  await expect(page.locator('.list').nth(1).locator('.card-title')).toHaveText(['Existing', 'Move me']);
+  await expect(page.locator('#announcer')).toHaveText('Card moved to Destination, position 2');
 });
 
 test('whole-list drops move precisely and self-drop does not persist', async ({page}) => {
@@ -538,6 +705,23 @@ test('named labels, members, and completion filters combine and clear', async ({
   await expect(page.locator('#filter-chips')).toBeEmpty();
 });
 
+test('clearing all filters resets every control and chip', async ({page}) => {
+  await openReady(page);
+  await page.getByRole('button', {name:'Filters'}).click();
+  await page.locator('#due-filter').selectOption('today');
+  await page.locator('#member-filter').selectOption('assigned');
+  await page.locator('#completion-filter').selectOption('complete');
+  await expect(page.locator('#due-filter')).toHaveValue('today');
+  await expect(page.locator('#filter-chips')).toContainText('Due today');
+  await page.locator('#clear-filters').click();
+  await expect(page.locator('#due-filter')).toHaveValue('all');
+  await expect(page.locator('#label-filter')).toHaveValue('all');
+  await expect(page.locator('#member-filter')).toHaveValue('all');
+  await expect(page.locator('#completion-filter')).toHaveValue('all');
+  await expect(page.locator('#filter-chips')).toBeEmpty();
+  await expect(page.locator('.card-open')).toHaveCount(10);
+});
+
 test('list actions reorder locally, validate titles, and retain cloud lists', async ({page}) => {
   await openReady(page);
   const firstList = page.locator('.list').first();
@@ -564,6 +748,26 @@ test('compact cloud-copy status fits the responsive top bar', async ({page}) => 
   await status.evaluate(element => { element.textContent = 'Cloud copy · local'; });
   const dimensions = await status.evaluate(element => ({clientWidth:element.clientWidth, scrollWidth:element.scrollWidth}));
   expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
+});
+
+test('desktop board structure keeps navigation separate and controls reachable', async ({page}) => {
+  await openReady(page);
+  for (const width of [1280, 1440, 1920, 960]) {
+    await page.setViewportSize({width, height:720});
+    const layout = await page.evaluate(() => {
+      const main = document.querySelector('#main-content'), header = document.querySelector('.board-header'), board = document.querySelector('#board'), menu = document.querySelector('#board-menu'), search = document.querySelector('#search'), firstList = document.querySelector('.list');
+      const box = element => { const value = element?.getBoundingClientRect(); return value ? {left:value.left, right:value.right, top:value.top, bottom:value.bottom, width:value.width, height:value.height} : null; };
+      return {boardIsMainChild:board?.parentElement === main, boardNestedInHeader:header?.contains(board), pageFits:document.documentElement.scrollWidth <= document.documentElement.clientWidth, boardOverflow:getComputedStyle(board).overflowX, boardScrollable:board.scrollWidth > board.clientWidth, menu:box(menu), search:box(search), firstList:box(firstList)};
+    });
+    expect(layout.boardIsMainChild, `board structure at ${width}px`).toBe(true);
+    expect(layout.boardNestedInHeader, `board nesting at ${width}px`).toBe(false);
+    expect(layout.pageFits, `page overflow at ${width}px`).toBe(true);
+    expect(layout.boardOverflow).toBe('auto');
+    if (width <= 1440) expect(layout.boardScrollable, `board scroll at ${width}px`).toBe(true);
+    expect(layout.menu.width).toBeGreaterThan(0);
+    expect(layout.search.width).toBeGreaterThan(0);
+    expect(layout.firstList.right).toBeGreaterThan(layout.firstList.left);
+  }
 });
 
 test('responsive widths confine horizontal scrolling to the board lane', async ({page}) => {

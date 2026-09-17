@@ -1,0 +1,22 @@
+{
+  "url": "http://127.0.0.1:4173/UH-Flowboard/",
+  "fixture": {
+    "lists": 10,
+    "cards": 1000
+  },
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "initialBoardRenderMs": 623.1,
+  "browserNavigationToUsableMs": 645,
+  "singleTermFilterMs": 50.8,
+  "afterFilter": {
+    "cards": 1,
+    "documentWidth": 1440,
+    "boardScrollWidth": 4084
+  },
+  "consoleErrorCount": 0,
+  "pageErrorCount": 0,
+  "dataBoundary": "Synthetic local benchmark only. No sign-in, cloud workspace, production fixture, raw storage, or credentials accessed."
+}

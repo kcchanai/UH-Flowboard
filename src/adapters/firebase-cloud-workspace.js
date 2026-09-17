@@ -8,6 +8,8 @@ const requireUser = auth => {
   if (!auth.currentUser) throw Object.assign(new Error('Sign in before using a cloud workspace.'), {code:'AUTH_REQUIRED'});
   return auth.currentUser;
 };
+const context = (app, auth) => ({db:getFirestore(app), user:requireUser(auth)});
+const pageSizeOf = value => Math.min(Math.max(Number.isInteger(value) ? value : 25, 1), 25);
 const bytes = value => new TextEncoder().encode(JSON.stringify(value)).length;
 const normalizeEmail = value => String(value || '').trim().toLowerCase();
 const randomId = () => {
@@ -16,7 +18,7 @@ const randomId = () => {
 };
 
 export async function listCloudWorkspaces(app, auth) {
-  const db = getFirestore(app), user = requireUser(auth);
+  const {db,user}=context(app,auth);
   const userSnapshot = await getDoc(doc(db, 'users', user.uid));
   const ids = [...new Set(userSnapshot.data()?.workspaceIds || [])].filter(id => typeof id === 'string' && id).slice(0, 100);
   const results = await Promise.allSettled(ids.map(async id => {
@@ -29,7 +31,7 @@ export async function listCloudWorkspaces(app, auth) {
 }
 
 export async function fetchCloudWorkspace(app, auth, workspaceId) {
-  const db = getFirestore(app); requireUser(auth);
+  const {db}=context(app,auth);
   const metadata = await getDoc(doc(db, 'workspaces', workspaceId));
   if (!metadata.exists()) throw Object.assign(new Error('Cloud workspace was not found.'), {code:'WORKSPACE_NOT_FOUND'});
   const boards = await getDocs(query(collection(db, 'workspaces', workspaceId, 'boards'), orderBy('rank')));
@@ -44,8 +46,8 @@ export async function fetchCloudWorkspace(app, auth, workspaceId) {
 }
 
 export async function listWorkspaceActivity(app, auth, workspaceId, {cursor = null, pageSize = 25} = {}) {
-  const db = getFirestore(app); requireUser(auth);
-  const safeSize = Math.min(Math.max(Number.isInteger(pageSize) ? pageSize : 25, 1), 25);
+  const {db}=context(app,auth);
+  const safeSize = pageSizeOf(pageSize);
   const constraints = [orderBy('createdAt', 'desc'), limit(safeSize)];
   if (cursor) constraints.splice(1, 0, startAfter(cursor));
   const snapshot = await getDocs(query(collection(db, 'workspaces', workspaceId, 'activity'), ...constraints));
@@ -53,15 +55,15 @@ export async function listWorkspaceActivity(app, auth, workspaceId, {cursor = nu
 }
 
 export function subscribeCardComments(app, auth, {workspaceId, boardId, cardId, pageSize = 25, onComments, onError}) {
-  const db = getFirestore(app); requireUser(auth);
-  const safeSize = Math.min(Math.max(Number.isInteger(pageSize) ? pageSize : 25, 1), 25);
+  const {db}=context(app,auth);
+  const safeSize = pageSizeOf(pageSize);
   const reference = query(collection(db, 'workspaces', workspaceId, 'boards', boardId, 'cards', cardId, 'comments'), orderBy('createdAt', 'desc'), limit(safeSize));
   return onSnapshot(reference, snapshot => onComments?.({entries:snapshot.docs.map(item => ({id:item.id, ...item.data()})), cursor:snapshot.docs.at(-1) || null, hasMore:snapshot.size === safeSize}), onError);
 }
 
 export async function listOlderCardComments(app, auth, {workspaceId, boardId, cardId, cursor, pageSize = 25}) {
-  const db = getFirestore(app); requireUser(auth);
-  const safeSize = Math.min(Math.max(Number.isInteger(pageSize) ? pageSize : 25, 1), 25);
+  const {db}=context(app,auth);
+  const safeSize = pageSizeOf(pageSize);
   const constraints = [orderBy('createdAt', 'desc')];
   if (cursor) constraints.push(startAfter(cursor));
   constraints.push(limit(safeSize));
@@ -70,7 +72,7 @@ export async function listOlderCardComments(app, auth, {workspaceId, boardId, ca
 }
 
 export async function probeCommentQueryAuthorization(app, auth, {workspaceId, boardId, cardId}) {
-  const db = getFirestore(app); requireUser(auth);
+  const {db}=context(app,auth);
   const comments = collection(db, 'workspaces', workspaceId, 'boards', boardId, 'cards', cardId, 'comments');
   const classify = async reference => {
     try { await getDocs(reference); return 'allowed'; }
@@ -90,7 +92,7 @@ const commentRefs = (db, workspaceId, boardId, cardId, commentId, mutationId) =>
 const commentActivity = (user, action, boardId, mutationId) => ({actorUid:user.uid, action, boardId, clientMutationId:mutationId, createdAt:serverTimestamp()});
 
 export async function createCardComment(app, auth, {workspaceId, boardId, cardId, body}) {
-  const db = getFirestore(app), user = requireUser(auth), commentId = randomId(), cleanBody = String(body || '').trim();
+  const {db,user}=context(app,auth), commentId = randomId(), cleanBody = String(body || '').trim();
   if (!cleanBody || cleanBody.length > 2000) throw Object.assign(new Error('Enter a comment up to 2,000 characters.'), {code:'INVALID_COMMENT'});
   const refs = commentRefs(db, workspaceId, boardId, cardId, commentId, commentId), batch = writeBatch(db);
   batch.set(refs.comment, {authorUid:user.uid, body:cleanBody, createdAt:serverTimestamp(), updatedAt:serverTimestamp(), deletedAt:null, revision:0, clientMutationId:commentId});
@@ -99,7 +101,7 @@ export async function createCardComment(app, auth, {workspaceId, boardId, cardId
 }
 
 async function changeCardComment(app, auth, {workspaceId, boardId, cardId, commentId, revision, body, remove = false}) {
-  const db = getFirestore(app), user = requireUser(auth), mutationId = randomId(), cleanBody = String(body || '').trim();
+  const {db,user}=context(app,auth), mutationId = randomId(), cleanBody = String(body || '').trim();
   if (!remove && (!cleanBody || cleanBody.length > 2000)) throw Object.assign(new Error('Enter a comment up to 2,000 characters.'), {code:'INVALID_COMMENT'});
   if (!Number.isInteger(revision) || revision < 0) throw Object.assign(new Error('The comment revision is invalid.'), {code:'INVALID_COMMENT'});
   const refs = commentRefs(db, workspaceId, boardId, cardId, commentId, mutationId);
@@ -116,7 +118,7 @@ export const updateCardComment = (app, auth, options) => changeCardComment(app, 
 export const removeCardComment = (app, auth, options) => changeCardComment(app, auth, {...options, remove:true});
 
 export function subscribeCloudWorkspace(app, auth, {workspaceId, boardId, onWorkspace, onBoard, onMembership, onStatus, onError}) {
-  const db = getFirestore(app), user = requireUser(auth), snapshots = {board:null, lists:null, cards:null};
+  const {db,user}=context(app,auth), snapshots = {board:null, lists:null, cards:null};
   let stopped = false, unsubscribers = [];
   const stop = () => { if (stopped) return; stopped = true; unsubscribers.splice(0).forEach(unsubscribe => unsubscribe()); };
   const fail = error => { if (stopped) return; stop(); onError?.(error); };
@@ -143,7 +145,7 @@ export function subscribeCloudWorkspace(app, auth, {workspaceId, boardId, onWork
 }
 
 export async function verifyWorkspaceAccess(app, auth, workspaceId) {
-  const db = getFirestore(app), user = requireUser(auth);
+  const {db,user}=context(app,auth);
   const membership = await getDoc(doc(db, 'workspaces', workspaceId, 'members', user.uid));
   if (!membership.exists()) throw Object.assign(new Error('Workspace access was removed.'), {code:'ACCESS_REMOVED'});
   return membership.data().role;
@@ -164,7 +166,7 @@ const granularDocuments = workspace => {
 };
 
 export async function applyCloudWorkspaceMutation(app, auth, {workspaceId, before, next, clientMutationId, activityAction = null}) {
-  const db = getFirestore(app), user = requireUser(auth);
+  const {db,user}=context(app,auth);
   const allowedActivityActions = ['board-created','board-updated','card-created','card-updated','card-moved','card-assigned','list-created','list-updated','workspace-updated'];
   if (!/^[A-Za-z0-9_-]{16,128}$/.test(clientMutationId || '') || !before || !next) throw Object.assign(new Error('The cloud edit request is invalid.'), {code:'INVALID_MUTATION'});
   const previous = granularDocuments(before), desired = granularDocuments(next);
@@ -204,7 +206,7 @@ export async function applyCloudWorkspaceMutation(app, auth, {workspaceId, befor
 }
 
 export async function uploadLocalWorkspace(app, auth, {name, workspace}) {
-  const db = getFirestore(app), user = requireUser(auth);
+  const {db,user}=context(app,auth);
   if (!user.emailVerified) throw Object.assign(new Error('Verify your Google email before creating a cloud workspace.'), {code:'EMAIL_NOT_VERIFIED'});
   if (!workspace || !Array.isArray(workspace.boards) || !workspace.boards.length) throw Object.assign(new Error('The local workspace has no boards to upload.'), {code:'INVALID_WORKSPACE'});
   if (workspace.boards.length > 450) throw Object.assign(new Error('This workspace has too many boards for one safe migration.'), {code:'WORKSPACE_TOO_LARGE'});
@@ -254,19 +256,19 @@ export async function uploadLocalWorkspace(app, auth, {name, workspace}) {
 }
 
 export async function listMembers(app, auth, workspaceId) {
-  const db = getFirestore(app); requireUser(auth);
+  const {db}=context(app,auth);
   const snapshots = await getDocs(collection(db, 'workspaces', workspaceId, 'members'));
   return snapshots.docs.map(item => ({id:item.id, ...item.data()}));
 }
 
 export async function listInvites(app, auth, workspaceId) {
-  const db = getFirestore(app); requireUser(auth);
+  const {db}=context(app,auth);
   const snapshots = await getDocs(collection(db, 'workspaces', workspaceId, 'invites'));
   return snapshots.docs.map(item => ({id:item.id, ...item.data()}));
 }
 
 export async function createInvite(app, auth, {workspaceId, email, role, baseUrl}) {
-  const db = getFirestore(app), user = requireUser(auth), emailLower = normalizeEmail(email);
+  const {db,user}=context(app,auth), emailLower = normalizeEmail(email);
   if (!user.emailVerified) throw Object.assign(new Error('Verify your Google email before inviting a member.'), {code:'EMAIL_NOT_VERIFIED'});
   if (!/^\S+@\S+\.\S+$/.test(emailLower)) throw Object.assign(new Error('Enter a valid Google email address.'), {code:'INVALID_EMAIL'});
   if (!['editor', 'viewer'].includes(role)) throw Object.assign(new Error('Choose editor or viewer access.'), {code:'INVALID_ROLE'});
@@ -279,12 +281,12 @@ export async function createInvite(app, auth, {workspaceId, email, role, baseUrl
 }
 
 export async function revokeInvite(app, auth, workspaceId, inviteId) {
-  const db = getFirestore(app); requireUser(auth);
+  const {db}=context(app,auth);
   await updateDoc(doc(db, 'workspaces', workspaceId, 'invites', inviteId), {revokedAt:serverTimestamp()});
 }
 
 export async function acceptInvite(app, auth, {workspaceId, inviteId}) {
-  const db = getFirestore(app), user = requireUser(auth);
+  const {db,user}=context(app,auth);
   if (!user.emailVerified) throw Object.assign(new Error('Verify your Google email before accepting an invitation.'), {code:'EMAIL_NOT_VERIFIED'});
   const invite = await getDoc(doc(db, 'workspaces', workspaceId, 'invites', inviteId));
   if (!invite.exists()) throw Object.assign(new Error('This invitation is unavailable.'), {code:'INVITE_UNAVAILABLE'});
@@ -297,19 +299,19 @@ export async function acceptInvite(app, auth, {workspaceId, inviteId}) {
 
 export async function changeMemberRole(app, auth, workspaceId, uid, role) {
   if (!['editor', 'viewer'].includes(role)) throw Object.assign(new Error('Only editor and viewer roles can be assigned here.'), {code:'INVALID_ROLE'});
-  const db = getFirestore(app); requireUser(auth);
+  const {db}=context(app,auth);
   await updateDoc(doc(db, 'workspaces', workspaceId, 'members', uid), {role});
 }
-export async function removeMember(app, auth, workspaceId, uid) { const db = getFirestore(app); requireUser(auth); await deleteDoc(doc(db, 'workspaces', workspaceId, 'members', uid)); }
+export async function removeMember(app, auth, workspaceId, uid) { const {db}=context(app,auth); await deleteDoc(doc(db, 'workspaces', workspaceId, 'members', uid)); }
 export async function leaveWorkspace(app, auth, workspaceId) {
-  const db = getFirestore(app), user = requireUser(auth), batch = writeBatch(db);
+  const {db,user}=context(app,auth), batch = writeBatch(db);
   batch.delete(doc(db, 'workspaces', workspaceId, 'members', user.uid));
   batch.set(doc(db, 'users', user.uid), {workspaceIds:arrayRemove(workspaceId), updatedAt:serverTimestamp()}, {merge:true});
   await batch.commit();
 }
 export async function transferOwnership(app, auth, {workspaceId, successorUid, formerOwnerRole = 'editor'}) {
   if (!['editor', 'viewer'].includes(formerOwnerRole)) throw Object.assign(new Error('Choose editor or viewer for the former owner.'), {code:'INVALID_ROLE'});
-  const db = getFirestore(app), user = requireUser(auth), batch = writeBatch(db), workspace = doc(db, 'workspaces', workspaceId);
+  const {db,user}=context(app,auth), batch = writeBatch(db), workspace = doc(db, 'workspaces', workspaceId);
   batch.update(workspace, {ownerUid:successorUid, updatedAt:serverTimestamp()});
   batch.update(doc(db, 'workspaces', workspaceId, 'members', user.uid), {role:formerOwnerRole});
   batch.update(doc(db, 'workspaces', workspaceId, 'members', successorUid), {role:'owner'});

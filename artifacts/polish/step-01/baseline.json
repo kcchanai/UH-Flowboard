@@ -1,0 +1,68 @@
+{
+  "step": "1 of 12",
+  "title": "Establish a reproducible baseline",
+  "implementationBranch": "luna/flowboard-comprehensive-polish",
+  "baselineSha": "b208b564236ead57b3dd5b33b70686445ae92e67",
+  "originMainAtBaseline": "b208b564236ead57b3dd5b33b70686445ae92e67",
+  "rulesSha256": "6e736958316b451a207cb0954d0f6ca39aedf007cd63130c1b3f4d3485f2ada8",
+  "runtime": {
+    "node": "v22.23.0",
+    "browser": "Chrome 153.0.8010.48 via isolated Playwright executable session",
+    "browserProfile": "fresh isolated contexts; no normal browser profile inspected"
+  },
+  "commands": {
+    "npm.cmd run validate": {"exit": 0, "unitTests": {"passed": 29, "failed": 0, "skipped": 0}, "staticGuards": "passed", "build": "passed", "isolation": "passed"},
+    "npm.cmd run test:rules": {"exit": 0, "rulesTests": {"passed": 23, "failed": 0, "skipped": 0}},
+    "npm.cmd run test:emulator-browser": {"initialExit": 1, "initialResult": "environment blocked: Playwright Chromium executable absent", "retryWithInstalledSystemChromeExit": 0, "retryResult": "1 test passed"},
+    "builtPreviewBrowserSmoke": {"exit": 0, "tests": {"passed": 29, "failed": 0, "skipped": 0}},
+    "baselineScreenshotCapture": {"exit": 0, "screenshots": 5}
+  },
+  "budgets": {
+    "rawSourceBytes": 217207,
+    "rawSourceCapBytes": 217500,
+    "rawSourceHeadroomBytes": 293,
+    "warningThresholdBytes": 210000,
+    "initialShellGzipBytes": 23632,
+    "initialShellGzipCapBytes": 25000,
+    "firstPartyLazyGzipBytes": 44000,
+    "firstPartyLazyGzipCapBytes": 55000,
+    "documentGzipBytes": 5556
+  },
+  "visualEvidence": [
+    "artifacts/polish/step-01/desktop-1280x720.png",
+    "artifacts/polish/step-01/desktop-1440x900.png",
+    "artifacts/polish/step-01/desktop-1920x1080.png",
+    "artifacts/polish/step-01/resized-960x720.png",
+    "artifacts/polish/step-01/secondary-390x844.png"
+  ],
+  "confirmedPlanningFindings": [
+    "F01 filter control/chip state can disagree after Clear filters",
+    "F02 narrow list width can clip right-side controls",
+    "F03 board is nested inside an unclosed board-header section",
+    "F04 desktop hierarchy and background continuity need refinement",
+    "F05 card editor assignee guidance is too narrow",
+    "F06 raw source budget has only 293 bytes of headroom"
+  ],
+  "visualInspection": {
+    "desktop": "Four full board columns scan clearly, with a partially visible fifth panel at the right edge, spacious vertical whitespace, and a distinct darker bottom background band.",
+    "resizedDesktop": "Header remains usable at 960px, while the third board column is clipped at the right edge without an obvious visible scrollbar.",
+    "secondaryNarrow": "Core board remains legible; compressed multi-row controls and partial next-column visibility are secondary compatibility concerns, not a phone redesign target."
+  },
+  "baselineFailureClassification": [
+    "The first emulator-browser invocation failed only because the Playwright-managed Chromium executable was not installed locally.",
+    "The same tracked runner passed with an installed system Chrome executable through an isolated Playwright context.",
+    "Existing MODULE_TYPELESS_PACKAGE_JSON warnings remain non-blocking and are recorded in validate.log."
+  ],
+  "productionBoundary": {
+    "productionChanged": false,
+    "firestoreRulesChanged": false,
+    "productionFirestoreTouched": false,
+    "realAccountTesting": false,
+    "protectedWorkspaceOpened": false
+  },
+  "evidence": [
+    "artifacts/polish/step-01/baseline.json",
+    "artifacts/polish/step-01/baseline-results.md",
+    "artifacts/polish/step-01/capture-baseline.mjs"
+  ]
+}

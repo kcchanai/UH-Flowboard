@@ -1,0 +1,69 @@
+{
+  "url": "https://kcchanai.github.io/UH-Flowboard/?audit=polish-plan",
+  "httpStatus": 200,
+  "scope": "Fresh anonymous context, synthetic browser-local data only; no sign-in or Firestore access.",
+  "states": [
+    {
+      "width": 1440,
+      "clientWidth": 1440,
+      "scrollWidth": 1440,
+      "boardParent": "board-header",
+      "boardWidth": 1376,
+      "listWidths": [
+        325,
+        325,
+        325,
+        325
+      ],
+      "status": "Google sign-in available"
+    },
+    {
+      "width": 700,
+      "clientWidth": 700,
+      "scrollWidth": 700,
+      "boardParent": "board-header",
+      "boardWidth": 672,
+      "listWidths": [
+        325,
+        325,
+        325,
+        325
+      ],
+      "status": "Google sign-in available"
+    },
+    {
+      "width": 390,
+      "clientWidth": 390,
+      "scrollWidth": 390,
+      "boardParent": "board-header",
+      "boardWidth": 362,
+      "listWidths": [
+        325,
+        325,
+        325,
+        325
+      ],
+      "status": "Google sign-in available"
+    },
+    {
+      "width": 320,
+      "clientWidth": 320,
+      "scrollWidth": 320,
+      "boardParent": "board-header",
+      "boardWidth": 292,
+      "listWidths": [
+        325,
+        325,
+        325,
+        325
+      ],
+      "status": "Google sign-in available"
+    }
+  ],
+  "clearFilters": {
+    "dueValue": "today",
+    "chips": "Due today×",
+    "visibleCards": 10
+  },
+  "errors": []
+}

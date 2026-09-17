@@ -1,6 +1,5 @@
 import {createUnavailableCloudAdapter} from './adapter-contract.js';
 
-/** Browser-local adapter with injected schema helpers for UI-independent tests. */
 export function createLocalWorkspaceAdapter({
   storage = globalThis.localStorage,
   storageKey = 'flowboard-workspace',
@@ -27,6 +26,8 @@ export function createLocalWorkspaceAdapter({
     }
   };
 
+  const save = workspace => storage.setItem(storageKey, JSON.stringify(workspace));
+
   const backupWorkspace = (workspace, createdAt = new Date().toISOString()) => {
     try {
       const next = [{createdAt, workspace:clone(workspace)}, ...readBackups()].slice(0, backupLimit);
@@ -49,14 +50,14 @@ export function createLocalWorkspaceAdapter({
           const parsed = parse(saved);
           if (!validWorkspace(parsed)) throw new Error('Unsupported workspace schema');
           const workspace = normalizeWorkspace(parsed);
-          storage.setItem(storageKey, JSON.stringify(workspace));
+          save(workspace);
           return {workspace, migrated:parsed.schemaVersion !== workspace.schemaVersion, source:'current'};
         }
         const legacy = storage.getItem(legacyKey);
         if (legacy) {
           const workspace = migrateLegacy(parse(legacy));
           if (workspace) {
-            storage.setItem(storageKey, JSON.stringify(workspace));
+            save(workspace);
             storage.removeItem(legacyKey);
             return {workspace, migrated:true, source:'legacy'};
           }
@@ -65,13 +66,13 @@ export function createLocalWorkspaceAdapter({
         return {workspace:makeWorkspace(), migrated:false, source:'recovery', error};
       }
       const workspace = makeWorkspace();
-      try { storage.setItem(storageKey, JSON.stringify(workspace)); } catch (error) { return {workspace, migrated:false, source:'fresh', error}; }
+      try { save(workspace); } catch (error) { return {workspace, migrated:false, source:'fresh', error}; }
       return {workspace, migrated:false, source:'fresh'};
     },
     saveWorkspace(workspace, {createBackup = true, announceAt = new Date().toISOString()} = {}) {
       if (createBackup) backupWorkspace(workspace, announceAt);
       try {
-        storage.setItem(storageKey, JSON.stringify(workspace));
+        save(workspace);
         return {ok:true};
       } catch (error) {
         return {ok:false, error};

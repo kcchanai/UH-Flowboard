@@ -5,6 +5,8 @@ const {chromium} = require('playwright');
 const url = process.env.MVP_BENCHMARK_URL || 'http://127.0.0.1:4191/UH-Flowboard/';
 const output = path.resolve(process.env.MVP_BENCHMARK_OUTPUT || 'artifacts/mvp-v2/step-2/benchmark.json');
 const executablePath = process.env.PLAYWRIGHT_EXECUTABLE_PATH || 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
+const listCount = Math.max(1, Number.parseInt(process.env.MVP_BENCHMARK_LISTS || '10', 10));
+const cardsPerList = Math.max(1, Number.parseInt(process.env.MVP_BENCHMARK_CARDS_PER_LIST || '20', 10));
 fs.mkdirSync(path.dirname(output), {recursive: true});
 
 (async () => {
@@ -19,19 +21,19 @@ fs.mkdirSync(path.dirname(output), {recursive: true});
 
   await page.goto(url, {waitUntil: 'networkidle'});
   await page.locator('.card-open').first().waitFor();
-  const seeded = await page.evaluate(() => {
+  const seeded = await page.evaluate(({listCount, cardsPerList}) => {
     const workspace = FlowboardState.makeWorkspace();
     const board = FlowboardState.makeBoard('blank');
     board.title = 'Synthetic benchmark board';
-    board.lists = Array.from({length: 10}, (_, listIndex) => FlowboardState.makeList(`Benchmark list ${listIndex + 1}`, Array.from({length: 20}, (_, cardIndex) => FlowboardState.makeCard(`Benchmark card ${listIndex * 20 + cardIndex + 1}`))));
+    board.lists = Array.from({length: listCount}, (_, listIndex) => FlowboardState.makeList(`Benchmark list ${listIndex + 1}`, Array.from({length: cardsPerList}, (_, cardIndex) => FlowboardState.makeCard(`Benchmark card ${listIndex * cardsPerList + cardIndex + 1}`))));
     workspace.boards = [board];
     workspace.activeBoardId = board.id;
     localStorage.setItem('flowboard-workspace', JSON.stringify(workspace));
     return {lists: board.lists.length, cards: board.lists.reduce((sum, list) => sum + list.cards.length, 0)};
-  });
+  }, {listCount, cardsPerList});
   const reloadStart = Date.now();
   await page.reload({waitUntil: 'networkidle'});
-  await page.waitForFunction(() => document.querySelectorAll('.card-open').length === 200);
+  await page.waitForFunction(expected => document.querySelectorAll('.card-open').length === expected, listCount * cardsPerList);
   const browserNavigationToUsableMs = Date.now() - reloadStart;
   const inPageRenderToUsableMs = await page.evaluate(() => performance.now() - globalThis.__mvpBenchmarkStart);
   const filterStart = await page.evaluate(() => performance.now());
@@ -56,6 +58,6 @@ fs.mkdirSync(path.dirname(output), {recursive: true});
   await context.close();
   await browser.close();
 })().catch(error => {
-  console.error(`Benchmark failed: ${error.name}`);
+  console.error(`Benchmark failed: ${error.stack || error}`);
   process.exitCode = 1;
 });
