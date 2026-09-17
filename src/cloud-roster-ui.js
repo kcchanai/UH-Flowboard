@@ -1,12 +1,12 @@
 import {renderPersonBadge} from './person-badges.js';
 
 export function initializeCloudRosterUI(adapter) {
-  let session = null, members = new Map(), generation = 0, scheduled = false;
+  let session = null, members = new Map(), generation = 0, scheduled = false, board = document.querySelector('#board');
   const mode = () => globalThis.FlowboardApp?.getMode?.() || {kind:'local'};
   const paint = () => {
     scheduled = false;
     const preference = document.documentElement.dataset.appearancePhotos !== 'initials';
-    document.querySelectorAll('.assignees[data-assignee-uids]').forEach(container => {
+    board?.querySelectorAll('.assignees[data-assignee-uids]').forEach(container => {
       const ids = container.dataset.assigneeUids.split(',').filter(Boolean), key = `${generation}:${preference}:${ids.join(',')}`;
       if (container.dataset.rosterPaint === key) return;
       container.dataset.rosterPaint = key; container.replaceChildren();
@@ -23,7 +23,6 @@ export function initializeCloudRosterUI(adapter) {
     try { const list=await adapter.listMembers(active.id); if (token !== generation) return; members=new Map(list.map(member => [member.uid, member])); generation++; paint(); }
     catch { if (token === generation) { members=new Map(); schedulePaint(); } }
   };
-  const board=document.querySelector('#board');
   const observer=board ? new MutationObserver(schedulePaint) : null;
   observer?.observe(board,{childList:true,subtree:true});
   window.addEventListener('flowboard:cloud-selection', refresh);
