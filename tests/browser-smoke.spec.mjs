@@ -6,6 +6,9 @@ const builtLifecycleAsset = () => `${basePath}assets/${readdirSync('dist/assets'
 const builtCloudWorkspaceAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('cloud-workspace-ui-') && file.endsWith('.js'))}`;
 const builtCloudSyncAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('cloud-sync-controller-') && file.endsWith('.js'))}`;
 const builtMembersAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('members-ui-') && file.endsWith('.js'))}`;
+const builtActivityAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('activity-ui-') && file.endsWith('.js'))}`;
+const builtAssignmentAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('assignment-ui-') && file.endsWith('.js'))}`;
+const builtCommentsAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('comments-ui-') && file.endsWith('.js'))}`;
 const openReady = async page => { await page.goto(basePath); await page.waitForFunction(() => globalThis.FlowboardApp && globalThis.FlowboardState); await page.waitForFunction(() => /Google sign-in available|Signed in · local workspace|Local-only workspace/.test(document.querySelector('#cloud-status')?.textContent || '')); };
 
 test('critical local-first card workflow persists after reload', async ({page}) => {
@@ -312,6 +315,77 @@ test('viewer collaboration access stays read-only with an explicit leave action'
   await expect(dialog.locator('#workspace-members-list select')).toHaveCount(0);
   await expect(dialog.getByRole('button', {name:'Leave workspace'})).toBeVisible();
   await page.screenshot({path:'artifacts/mvp-v2/step-9/members-viewer.png', fullPage:true});
+});
+
+test('late member results never paint a different workspace', async ({page}) => {
+  await openReady(page);
+  await page.evaluate(async asset => {
+    document.body.innerHTML = `<button id="open-workspace-members">Manage members</button><dialog id="workspace-members-dialog"><button id="close-workspace-members">Close</button><p id="workspace-members-status"></p><div id="workspace-members-list"></div><form id="create-invite-form"></form><input id="invite-email"><select id="invite-role"><option value="viewer">Viewer</option></select><section id="workspace-invites-section"><div id="workspace-invites-list"></div></section><p id="invite-link-status"></p><form id="transfer-ownership-form"><select id="ownership-successor"></select><select id="former-owner-role"><option value="editor">Editor</option></select></form></dialog>`;
+    globalThis.memberWorkspace = 'workspace-a';
+    globalThis.memberResolvers = [];
+    globalThis.FlowboardApp = {getMode:() => ({kind:'cloud', id:globalThis.memberWorkspace, role:'owner'}), returnToLocal:() => {}};
+    const adapter = {listMembers:async() => new Promise(resolve => { globalThis.memberResolvers.push(resolve); }), listInvites:async() => [], changeMemberRole:async() => {}, removeMember:async() => {}, leaveWorkspace:async() => {}, transferOwnership:async() => {}, createInvite:async() => ({url:'https://example.test/invite'}), revokeInvite:async() => {}};
+    const {initializeMembersUI} = await import(asset);
+    initializeMembersUI(adapter).setSession({uid:'owner'});
+    document.querySelector('#open-workspace-members').click();
+  }, builtMembersAsset());
+  await page.waitForFunction(() => globalThis.memberResolvers.length > 0);
+  await page.evaluate(() => { globalThis.memberWorkspace = 'workspace-b'; window.dispatchEvent(new Event('flowboard:cloud-preview-change')); globalThis.memberResolvers[0]([{uid:'owner', displayName:'Stale member', role:'owner'}]); });
+  await expect(page.locator('#workspace-members-list')).not.toContainText('Stale member');
+});
+
+test('late activity results are discarded after returning local', async ({page}) => {
+  await openReady(page);
+  await page.evaluate(async asset => {
+    document.body.innerHTML = `<button id="view-cloud-activity">View activity</button><dialog id="cloud-activity-dialog"><button id="close-cloud-activity">Close</button><p id="cloud-activity-status"></p><ol id="cloud-activity-list"></ol><button id="load-more-cloud-activity"></button></dialog>`;
+    globalThis.resolveActivity = null;
+    const adapter = {listActivity:async() => new Promise(resolve => { globalThis.resolveActivity = resolve; })};
+    const {initializeActivityUI} = await import(asset);
+    initializeActivityUI(adapter).setSession({uid:'owner'});
+    window.dispatchEvent(new CustomEvent('flowboard:cloud-selection', {detail:{id:'workspace-a'}}));
+    document.querySelector('#view-cloud-activity').click();
+  }, builtActivityAsset());
+  await page.waitForFunction(() => typeof globalThis.resolveActivity === 'function');
+  await page.evaluate(() => { window.dispatchEvent(new CustomEvent('flowboard:cloud-selection', {detail:null})); globalThis.resolveActivity({entries:[{actorUid:'owner',action:'workspace-updated',createdAt:null}],cursor:null,hasMore:false}); });
+  await expect(page.locator('#cloud-activity-list li')).toHaveCount(0);
+});
+
+test('late assignment members are discarded after card closure', async ({page}) => {
+  await openReady(page);
+  await page.evaluate(async asset => {
+    document.body.innerHTML = `<dialog id="card-dialog"><div id="local-assignees-field"></div><fieldset id="cloud-assignees-field"><p id="cloud-assignees-status"></p><div id="cloud-assignees-options"></div></fieldset><input id="assignee-uids-input" value=""><input id="assignees-input" value=""><input id="legacy-assignees-input" value=""></dialog>`;
+    globalThis.assignmentMode = {kind:'cloud', id:'workspace-a', role:'editor'};
+    globalThis.resolveAssignment = null;
+    globalThis.FlowboardApp = {getMode:() => globalThis.assignmentMode};
+    const adapter = {listMembers:async() => new Promise(resolve => { globalThis.resolveAssignment = resolve; })};
+    const {initializeAssignmentUI} = await import(asset);
+    initializeAssignmentUI(adapter).setSession({uid:'owner'});
+    const dialog = document.querySelector('#card-dialog'); dialog.dataset.cardId = 'card-a'; dialog.showModal();
+  }, builtAssignmentAsset());
+  await page.waitForFunction(() => typeof globalThis.resolveAssignment === 'function');
+  await page.evaluate(() => { globalThis.assignmentMode = {kind:'local'}; document.querySelector('#card-dialog').close(); globalThis.resolveAssignment([{uid:'owner',displayName:'Stale member',role:'editor'}]); });
+  await expect(page.locator('#cloud-assignees-options')).not.toContainText('Stale member');
+});
+
+test('late comment pagination is discarded after card closure', async ({page}) => {
+  await openReady(page);
+  await page.evaluate(async asset => {
+    document.body.innerHTML = `<dialog id="card-dialog" data-card-id="card-a"><section id="cloud-comments-section"><p id="cloud-comments-status"></p><span id="cloud-comments-count"></span><ol id="cloud-comments-list"></ol><button id="load-older-comments" hidden>Load older</button><div id="cloud-comment-form"><textarea id="cloud-comment-input"></textarea><button id="add-cloud-comment">Comment</button></div><p id="cloud-comments-readonly"></p></section></dialog><dialog id="comment-delete-dialog"></dialog>`;
+    globalThis.commentSubscription = null;
+    globalThis.resolveOlderComments = null;
+    globalThis.FlowboardApp = {getMode:() => ({kind:'cloud', id:'workspace-a', role:'editor'}), getActiveBoardId:() => 'board-a'};
+    const adapter = {listMembers:async() => [{uid:'owner',displayName:'Owner',role:'editor'}], subscribeComments:async options => { globalThis.commentSubscription = options; return () => {}; }, listOlderComments:async() => new Promise(resolve => { globalThis.resolveOlderComments = resolve; }), createComment:async() => {}, updateComment:async() => {}, removeComment:async() => {}};
+    const {initializeCommentsUI} = await import(asset);
+    initializeCommentsUI(adapter).setSession({uid:'owner'});
+    document.querySelector('#card-dialog').showModal();
+  }, builtCommentsAsset());
+  await page.waitForFunction(() => typeof globalThis.commentSubscription?.onComments === 'function');
+  await page.evaluate(() => globalThis.commentSubscription.onComments({entries:[],cursor:{id:'cursor'},hasMore:true}));
+  await page.locator('#load-older-comments').click();
+  await page.waitForFunction(() => typeof globalThis.resolveOlderComments === 'function');
+  await page.locator('#card-dialog').evaluate(dialog => dialog.close());
+  await page.evaluate(() => globalThis.resolveOlderComments({entries:[{id:'stale-comment',authorUid:'owner',body:'Stale comment',createdAt:null}],cursor:null,hasMore:false}));
+  await expect(page.locator('#cloud-comments-list')).not.toContainText('Stale comment');
 });
 
 test('owner can retry an interrupted migration and the workspace list refreshes to editable', async ({page}) => {

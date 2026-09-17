@@ -9,8 +9,8 @@ Production and Rules boundary: unchanged. No real-account or protected-fixture t
 | 1 | Establish a reproducible baseline | complete | `b208b564236ead57b3dd5b33b70686445ae92e67` |
 | 2 | Recover safe engineering headroom | complete | pending commit |
 | 3 | Fix core state and persistence reliability | complete | pending commit |
-| 4 | Harden cloud state transitions and feedback | in_progress | |
-| 5 | Optimize desktop workspace layout and navigation | not_started | |
+| 4 | Harden cloud state transitions and feedback | complete | pending commit |
+| 5 | Optimize desktop workspace layout and navigation | in_progress | |
 | 6 | Apply a coherent visual system | not_started | |
 | 7 | Refine the card editor and action dialogs | not_started | |
 | 8 | Polish discovery, onboarding, and secondary workflows | not_started | |

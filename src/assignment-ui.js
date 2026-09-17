@@ -1,6 +1,6 @@
 export function initializeAssignmentUI(adapter) {
   const dialog=document.querySelector('#card-dialog'), localField=document.querySelector('#local-assignees-field'), cloudField=document.querySelector('#cloud-assignees-field'), options=document.querySelector('#cloud-assignees-options'), status=document.querySelector('#cloud-assignees-status'), uidInput=document.querySelector('#assignee-uids-input'), namesInput=document.querySelector('#assignees-input'), legacyInput=document.querySelector('#legacy-assignees-input');
-  let session=null, members=[];
+  let session=null, members=[], generation=0;
   const mode=()=>globalThis.FlowboardApp?.getMode?.() || {kind:'local'};
   const memberName=member=>member.displayName || member.emailLower || member.uid;
   const updateSelection=()=>{
@@ -11,12 +11,13 @@ export function initializeAssignmentUI(adapter) {
     uidInput.dataset.touched='true';
   };
   const render=async()=>{
-    const active=mode(), cloud=['cloud','cloud-preview'].includes(active.kind);
+    const token=++generation, active=mode(), cardId=dialog.dataset.cardId, cloud=['cloud','cloud-preview'].includes(active.kind);
     localField.hidden=cloud; cloudField.hidden=!cloud;
     if (!cloud || !dialog.open || !session) return;
     status.textContent='Loading workspace members...'; options.replaceChildren();
     try {
       members=await adapter.listMembers(active.id);
+      if (token!==generation || !dialog.open || !session || dialog.dataset.cardId!==cardId || mode().kind!==active.kind || mode().id!==active.id) return;
       const selected=uidInput.value.split(',').filter(Boolean), current=new Set(members.map(member=>member.uid));
       const legacy=legacyInput.value.split(',').map(value=>value.trim()).filter(Boolean), former=selected.filter(uid=>!current.has(uid));
       [...members, ...former.map(uid=>({uid, displayName:'Former member', role:'removed'}))].forEach(member=>{
@@ -27,7 +28,7 @@ export function initializeAssignmentUI(adapter) {
       if (legacy.length) status.textContent=`Legacy labels: ${legacy.join(', ')}. Select workspace members to map them.`;
       else if (former.length) status.textContent='This card includes a former member. Remove that assignment before changing other assignees.';
       else status.textContent=active.kind==='cloud-preview' ? 'Workspace assignments are read only.' : 'Choose up to eight workspace members.';
-    } catch (error) { console.error('Flowboard assignment members failed to load.',error); status.textContent='Workspace members could not be loaded. Assignment changes are unavailable.'; }
+    } catch (error) { if (token!==generation) return; console.error('Flowboard assignment members failed to load.',error); status.textContent='Workspace members could not be loaded. Assignment changes are unavailable.'; }
   };
   new MutationObserver(()=>render()).observe(dialog,{attributes:true,attributeFilter:['open']});
   window.addEventListener('flowboard:cloud-preview-change',()=>{members=[]; render();});
