@@ -1,0 +1,22 @@
+# Flowboard comprehensive polish progress
+
+Status: implementation in progress on `luna/flowboard-comprehensive-polish`.
+
+Production and Rules boundary: unchanged. No real-account or protected-fixture testing is authorized.
+
+| Step | Title | Status | Checkpoint |
+|---:|---|---|---|
+| 1 | Establish a reproducible baseline | complete | `b208b564236ead57b3dd5b33b70686445ae92e67` |
+| 2 | Recover safe engineering headroom | in_progress | |
+| 3 | Fix core state and persistence reliability | not_started | |
+| 4 | Harden cloud state transitions and feedback | not_started | |
+| 5 | Optimize desktop workspace layout and navigation | not_started | |
+| 6 | Apply a coherent visual system | not_started | |
+| 7 | Refine the card editor and action dialogs | not_started | |
+| 8 | Polish discovery, onboarding, and secondary workflows | not_started | |
+| 9 | Qualify desktop accessibility and mouse/keyboard workflows | not_started | |
+| 10 | Stress-test performance and browser resilience | not_started | |
+| 11 | Package and independently qualify the release candidate | not_started | |
+| 12 | Authorized release and real-user acceptance | awaiting_release_authorization | |
+
+Each completed step must record exact commands, results, evidence paths, budget measurements, commit SHA, and worktree state before changing the next step to `in_progress`.
