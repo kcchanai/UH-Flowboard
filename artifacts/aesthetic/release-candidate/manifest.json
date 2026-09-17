@@ -1,0 +1,55 @@
+{
+  "candidateSourceSha": "27ae35a075f129497aae8de1c09ade0a905e280a",
+  "branch": "luna/aesthetic-personalization",
+  "baselineMainSha": "7bc5ff5230ebe1d36c2ca5debd11703e596979f4",
+  "originMainAtPackaging": "7bc5ff5230ebe1d36c2ca5debd11703e596979f4",
+  "localRulesSha256": "52f6e01cdac3276aa4ca7334efb2b735d1ddcca5f3d30095ac69cd58eb9bd0e3",
+  "rulesPublication": "not_published",
+  "productionStatus": "not_deployed",
+  "budgets": {
+    "rawSourceBytes": 239382,
+    "rawSourceCapBytes": 240000,
+    "rawSourceHeadroomBytes": 618,
+    "warningBytes": 210000,
+    "initialShellGzipBytes": 24426,
+    "initialShellGzipCapBytes": 25000,
+    "firstPartyLazyGzipBytes": 49391,
+    "firstPartyLazyGzipCapBytes": 55000,
+    "documentGzipBytes": 5587,
+    "vendorGzipBytes": 139736
+  },
+  "validation": {
+    "unitTests": 31,
+    "rulesTests": 24,
+    "browserTests": 48,
+    "emulatorBrowserTests": 1,
+    "lighthouseAccessibilityScore": 1,
+    "lighthouseFailedScoredAudits": 0,
+    "contrastStates": 32,
+    "contrastMinimums": {
+      "canvasText": 6.2242,
+      "controlText": 4.7671,
+      "focus": 3.6518,
+      "cardText": 10.5258
+    },
+    "benchmark1000CardSamples": 3,
+    "benchmarkMedianRenderMs": 561.8,
+    "benchmarkMaxRenderMs": 562.2,
+    "benchmarkMedianNavigationMs": 582,
+    "benchmarkMaxNavigationMs": 584,
+    "benchmarkMedianFilterMs": 49.6,
+    "benchmarkMaxFilterMs": 49.9,
+    "benchmarkConsoleErrors": 0,
+    "benchmarkPageErrors": 0,
+    "publicEmDashCount": 0
+  },
+  "safety": {
+    "productionDataMutated": false,
+    "protectedWorkspaceAccessed": false,
+    "realAccountUsed": false,
+    "pagesDeploymentPerformed": false,
+    "rulesPublished": false,
+    "remotePushPerformed": false
+  },
+  "humanGate": "Review the candidate, authorize any Rules publication separately, then perform the redacted real-account acceptance matrix before release."
+}
