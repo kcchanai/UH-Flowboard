@@ -7,8 +7,8 @@ Production and Rules boundary: unchanged. No real-account or protected-fixture t
 | Step | Title | Status | Checkpoint |
 |---:|---|---|---|
 | 1 | Establish a reproducible baseline | complete | `b208b564236ead57b3dd5b33b70686445ae92e67` |
-| 2 | Recover safe engineering headroom | in_progress | |
-| 3 | Fix core state and persistence reliability | not_started | |
+| 2 | Recover safe engineering headroom | complete | pending commit |
+| 3 | Fix core state and persistence reliability | in_progress | |
 | 4 | Harden cloud state transitions and feedback | not_started | |
 | 5 | Optimize desktop workspace layout and navigation | not_started | |
 | 6 | Apply a coherent visual system | not_started | |

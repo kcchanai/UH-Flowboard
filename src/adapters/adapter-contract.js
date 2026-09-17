@@ -1,4 +1,3 @@
-/** Shared method list for configured and unavailable cloud adapters. */
 
 export const REMOTE_METHODS = Object.freeze([
   'getSession', 'onAuthStateChange', 'signInWithGoogle', 'signOut', 'verifyWorkspaceAccess',
@@ -16,7 +15,7 @@ export class CloudNotConfiguredError extends Error {
   }
 }
 
-/** Reject cloud operations clearly when Firebase is unavailable. */
+
 export function createUnavailableCloudAdapter() {
   const unavailable = async () => { throw new CloudNotConfiguredError(); };
   return Object.freeze(Object.fromEntries(REMOTE_METHODS.map(method => [method, unavailable])));

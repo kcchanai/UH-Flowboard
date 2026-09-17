@@ -1,3 +1,6 @@
+const $ = selector => document.querySelector(selector);
+const on = (target, type, handler) => target.addEventListener(type, handler);
+const el = tag => document.createElement(tag);
 const countWorkspace = workspace => {
   const boards = workspace.boards || [];
   const lists = boards.reduce((sum, board) => sum + (board.lists?.length || 0), 0);
@@ -9,7 +12,7 @@ const safeStamp = () => new Date().toISOString().replace(/[:.]/g, '-');
 
 function downloadJson(workspace) {
   const blob = new Blob([JSON.stringify(workspace, null, 2)], {type:'application/json'});
-  const url = URL.createObjectURL(blob), link = document.createElement('a');
+  const url = URL.createObjectURL(blob), link = el('a');
   link.href = url; link.download = `flowboard-before-cloud-${safeStamp()}.json`;
   document.body.append(link); link.click(); link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -25,24 +28,24 @@ function messageFor(error) {
 }
 
 export function initializeCloudWorkspaceUI({localAdapter, cloudAdapter}) {
-  const accountDialog = document.querySelector('#account-dialog');
-  const open = document.querySelector('#open-cloud-migration');
-  const dialog = document.querySelector('#cloud-migration-dialog');
-  const close = document.querySelector('#close-cloud-migration');
-  const name = document.querySelector('#cloud-workspace-name');
-  const summary = document.querySelector('#cloud-migration-summary');
-  const status = document.querySelector('#cloud-migration-status');
-  const backup = document.querySelector('#download-migration-backup');
-  const create = document.querySelector('#create-cloud-workspace');
-  const workspaceButton = document.querySelector('#open-cloud-workspaces');
-  const workspacesDialog = document.querySelector('#cloud-workspaces-dialog');
-  const closeWorkspaces = document.querySelector('#close-cloud-workspaces');
-  const workspacesList = document.querySelector('#cloud-workspaces-list');
-  const workspacesStatus = document.querySelector('#cloud-workspaces-status');
-  const returnLocal = document.querySelector('#return-to-local-workspace');
-  const migrateCloud = document.querySelector('#migrate-cloud-workspace');
-  const exportCloud = document.querySelector('#export-cloud-workspace');
-  const announcer = document.querySelector('#announcer');
+  const accountDialog = $('#account-dialog');
+  const open = $('#open-cloud-migration');
+  const dialog = $('#cloud-migration-dialog');
+  const close = $('#close-cloud-migration');
+  const name = $('#cloud-workspace-name');
+  const summary = $('#cloud-migration-summary');
+  const status = $('#cloud-migration-status');
+  const backup = $('#download-migration-backup');
+  const create = $('#create-cloud-workspace');
+  const workspaceButton = $('#open-cloud-workspaces');
+  const workspacesDialog = $('#cloud-workspaces-dialog');
+  const closeWorkspaces = $('#close-cloud-workspaces');
+  const workspacesList = $('#cloud-workspaces-list');
+  const workspacesStatus = $('#cloud-workspaces-status');
+  const returnLocal = $('#return-to-local-workspace');
+  const migrateCloud = $('#migrate-cloud-workspace');
+  const exportCloud = $('#export-cloud-workspace');
+  const announcer = $('#announcer');
   let session = null, workspace = null, backupDownloaded = false, completed = false, selectedCloudEntry = null;
 
   const announce = text => { status.textContent = text; announcer.textContent = ''; requestAnimationFrame(() => { announcer.textContent = text; }); };
@@ -52,32 +55,32 @@ export function initializeCloudWorkspaceUI({localAdapter, cloudAdapter}) {
     summary.replaceChildren(...[
       ['Boards', counts.boards], ['Lists', counts.lists], ['Cards', counts.cards], ['JSON size', formatBytes(counts.bytes)]
     ].flatMap(([label, value]) => {
-      const term = document.createElement('dt'), detail = document.createElement('dd');
+      const term = el('dt'), detail = el('dd');
       term.textContent = label; detail.textContent = String(value); return [term, detail];
     }));
     backupDownloaded = false; completed = false; create.disabled = true; create.textContent = '2. Create cloud workspace';
     backup.disabled = false; announce('Download a local backup before creating the cloud copy.');
   };
 
-  open.addEventListener('click', () => {
+  on(open,'click', () => {
     if(!session)return;
     prepare(); accountDialog.close(); dialog.showModal(); name.focus(); name.select();
   });
-  close.addEventListener('click', () => dialog.close());
-  dialog.addEventListener('cancel', event => { event.preventDefault(); dialog.close(); });
-  dialog.addEventListener('close', () => open.focus());
-  backup.addEventListener('click', () => {
+  on(close,'click', () => dialog.close());
+  on(dialog,'cancel', event => { event.preventDefault(); dialog.close(); });
+  on(dialog,'close', () => open.focus());
+  on(backup,'click', () => {
     localAdapter.backupWorkspace(workspace); downloadJson(workspace); backupDownloaded = true;
     create.disabled = false; announce('Backup downloaded. Review the summary, then create the separate cloud workspace.');
   });
-  create.addEventListener('click', async () => {
+  on(create,'click', async () => {
     if (!session || !backupDownloaded || completed) return;
     create.disabled = true; backup.disabled = true; name.disabled = true; announce('Creating and verifying the Firebase workspace…');
     try {
       const result = await cloudAdapter.uploadLocalWorkspace({name:name.value, workspace});
       completed = true; create.textContent = 'Cloud copy created';
       announce(`Cloud workspace “${result.name}” created and verified with ${result.boardCount} board${result.boardCount === 1 ? '' : 's'}. This browser is still using the local original.`);
-      const cloudStatus = document.querySelector('#cloud-status');
+      const cloudStatus = $('#cloud-status');
       cloudStatus.textContent = 'Cloud copy · local';
       cloudStatus.title = 'Cloud workspace created and verified. The browser-local original remains active.';
       cloudStatus.setAttribute('aria-label', cloudStatus.title);
@@ -87,7 +90,7 @@ export function initializeCloudWorkspaceUI({localAdapter, cloudAdapter}) {
     }
   });
 
-  workspaceButton.addEventListener('click', async () => {
+  on(workspaceButton,'click', async () => {
     if(!session)return;
     if (accountDialog.open) accountDialog.close(); workspacesDialog.showModal(); workspacesList.replaceChildren();
     workspacesStatus.textContent = 'Loading cloud workspaces…';
@@ -104,14 +107,14 @@ export function initializeCloudWorkspaceUI({localAdapter, cloudAdapter}) {
       }
       workspacesStatus.textContent = 'Choose a verified workspace to open. Owners and editors can explicitly enter cloud edit mode.';
       entries.forEach(entry=>{
-        const row=document.createElement('div'),button=document.createElement('button'),summary=document.createElement('div');
+        const row=el('div'),button=el('button'),summary=el('div');
         row.className='workspace-entry';Object.assign(button,{type:'button',className:'button button-quiet',textContent:'Open'});summary.className='workspace-board';
-        const title=document.createElement('strong'),detail=document.createElement('span');
+        const title=el('strong'),detail=el('span');
         title.textContent=entry.name||'Untitled cloud workspace';button.setAttribute('aria-label',`Open ${title.textContent}`);
         const archived=entry.status==='archived',editable=!archived&&['owner','editor'].includes(entry.role)&&entry.migration?.state==='verified';
         detail.textContent=archived?'Cloud workspace · archived · retained':editable?`Cloud workspace · ${entry.role} · editable`:'Cloud workspace · read-only preview';
         button.hidden=archived;summary.append(title,detail);
-        button.addEventListener('click',async()=>{
+        on(button,'click',async()=>{
           button.disabled = true; workspacesStatus.textContent = editable ? 'Opening editable cloud workspace…' : 'Opening read-only cloud preview…';
           try {
             const cloudWorkspace = await cloudAdapter.fetchWorkspace(entry.id);
@@ -139,14 +142,14 @@ export function initializeCloudWorkspaceUI({localAdapter, cloudAdapter}) {
       workspacesStatus.textContent = 'Cloud workspaces could not be loaded. Your local workspace is unchanged.';
     }
   });
-  closeWorkspaces.addEventListener('click', () => workspacesDialog.close());
-  workspacesDialog.addEventListener('cancel', event => { event.preventDefault(); workspacesDialog.close(); });
-  workspacesDialog.addEventListener('close', () => workspaceButton.focus());
-  returnLocal.addEventListener('click', () => {
+  on(closeWorkspaces,'click', () => workspacesDialog.close());
+  on(workspacesDialog,'cancel', event => { event.preventDefault(); workspacesDialog.close(); });
+  on(workspacesDialog,'close', () => workspaceButton.focus());
+  on(returnLocal,'click', () => {
     globalThis.FlowboardApp.returnToLocal(); selectedCloudEntry = null; window.dispatchEvent(new CustomEvent('flowboard:cloud-selection')); returnLocal.hidden = true; exportCloud.hidden = true;
     workspacesStatus.textContent = 'Returned to the browser-local workspace.';
   });
-  migrateCloud.addEventListener('click', async () => {
+  on(migrateCloud,'click', async () => {
     if (!selectedCloudEntry || selectedCloudEntry.ownerUid !== session?.uid) return;
     migrateCloud.disabled = true; workspacesStatus.textContent = 'Migrating and verifying granular cloud documents. Legacy snapshots are preserved.';
     try {
@@ -159,7 +162,7 @@ export function initializeCloudWorkspaceUI({localAdapter, cloudAdapter}) {
     } catch (error) { console.error('Flowboard granular migration failed.', error); workspacesStatus.textContent = 'Granular migration could not be verified. Legacy cloud snapshots remain available.'; }
     finally { migrateCloud.disabled = false; }
   });
-  exportCloud.addEventListener('click', () => {
+  on(exportCloud,'click', () => {
     try { globalThis.FlowboardApp.exportCloudPreview(); workspacesStatus.textContent = 'Cloud preview JSON export downloaded.'; }
     catch (error) { workspacesStatus.textContent = 'Open a cloud preview before exporting it.'; }
   });
