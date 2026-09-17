@@ -1,3 +1,6 @@
+import {renderPersonBadge} from './person-badges.js';
+export {personInitials, safePhotoURL, renderPersonBadge} from './person-badges.js';
+
 const initials = session => (session?.displayName || session?.email || 'Account')
   .trim().split(/\s+/).map(part => part[0]).join('').slice(0, 2).toUpperCase() || 'A';
 
@@ -21,6 +24,7 @@ export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
   const workspaces = document.querySelector('#open-cloud-workspaces');
   const name = document.querySelector('#account-name');
   const email = document.querySelector('#account-email');
+  const profileMark = document.querySelector('#account-profile-mark');
   const status = document.querySelector('#account-status');
   const cloudStatus = document.querySelector('#cloud-status');
   const announcer = document.querySelector('#announcer');
@@ -33,6 +37,7 @@ export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
   };
   const render = session => {
     currentSession = session;
+    renderPersonBadge(profileMark, session || {displayName:'Google'}, {photoPreference:document.documentElement.dataset.appearancePhotos !== 'initials', decorative:true});
     const signedIn = Boolean(session);
     button.textContent = signedIn ? initials(session) : 'Sign in';
     button.classList.toggle('signed-out', !signedIn);
@@ -68,6 +73,7 @@ export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
     finally { signOut.disabled = false; }
   });
 
+  window.addEventListener('flowboard:appearance-change', () => render(currentSession));
   render(null);
   return adapter.onAuthStateChange(render);
 }

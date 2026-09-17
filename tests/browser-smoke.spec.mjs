@@ -9,6 +9,7 @@ const builtMembersAsset = () => `${basePath}assets/${readdirSync('dist/assets').
 const builtActivityAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('activity-ui-') && file.endsWith('.js'))}`;
 const builtAssignmentAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('assignment-ui-') && file.endsWith('.js'))}`;
 const builtCommentsAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('comments-ui-') && file.endsWith('.js'))}`;
+const builtAuthAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('auth-ui-') && file.endsWith('.js'))}`;
 const openReady = async page => { await page.goto(basePath); await page.waitForFunction(() => globalThis.FlowboardApp && globalThis.FlowboardState); await page.waitForFunction(() => /Google sign-in available|Signed in · local workspace|Local-only workspace/.test(document.querySelector('#cloud-status')?.textContent || '')); };
 
 test('critical local-first card workflow persists after reload', async ({page}) => {
@@ -949,4 +950,19 @@ test('appearance save failure keeps draft open and workspace unchanged', async (
   const after = await page.evaluate(() => ({workspace:localStorage.getItem('flowboard-workspace'),appearance:localStorage.getItem('flowboard-appearance')}));
   expect(after.workspace).toBe(before);
   expect(after.appearance).toBeNull();
+});
+
+test('person badges validate photos and preserve initials-only fallback', async ({page}) => {
+  await openReady(page);
+  const evidence = await page.evaluate(async url => {
+    const {personInitials, safePhotoURL, renderPersonBadge} = await import(url);
+    const host = document.createElement('div'); document.body.append(host);
+    renderPersonBadge(host, {displayName:'Avery Lee', photoURL:'https://lh3.googleusercontent.com/a/synthetic=s96-c'}, {photoPreference:false});
+    const initialsOnly = {text:host.textContent, hasImage:Boolean(host.querySelector('img')), safe:Boolean(safePhotoURL('https://lh3.googleusercontent.com/a/synthetic=s96-c')), unsafe:safePhotoURL('https://evil.example.test/avatar.png'), initials:personInitials({displayName:'Avery Lee'})};
+    renderPersonBadge(host, {displayName:'Avery Lee', photoURL:'https://lh3.googleusercontent.com/a/synthetic=s96-c'}, {photoPreference:true});
+    const image=host.querySelector('img'); image?.dispatchEvent(new Event('error')); const broken={text:host.textContent,hasImage:Boolean(host.querySelector('img'))};
+    host.remove();
+    return {...initialsOnly,broken};
+  }, builtAuthAsset());
+  expect(evidence).toEqual({text:'AL',hasImage:false,safe:true,unsafe:'',initials:'AL',broken:{text:'AL',hasImage:false}});
 });
