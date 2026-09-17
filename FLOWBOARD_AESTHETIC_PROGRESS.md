@@ -8,9 +8,9 @@ Safety boundary: local implementation and synthetic Emulator validation only. No
 | Step | Scope | Status | Evidence | Commit |
 | --- | --- | --- | --- | --- |
 | 1 | Pin baseline and acceptance contract | complete | `artifacts/aesthetic/step-01/` | `233943244867334682b848721daaa2d051a0631d` |
-| 2 | Resolve source-budget capacity | complete | `artifacts/aesthetic/step-02/results.md` | pending commit |
-| 3 | Establish reusable visual token system | in_progress | | |
-| 4 | Implement curated canvas library | not_started | | |
+| 2 | Resolve source-budget capacity | complete | `artifacts/aesthetic/step-02/results.md` | `8f99494a06b4c32b480b3b88712a839918cf4e52` |
+| 3 | Establish reusable visual token system | complete | `artifacts/aesthetic/step-03/` | pending commit |
+| 4 | Implement curated canvas library | in_progress | | |
 | 5 | Add personal appearance selection and persistence | not_started | | |
 | 6 | Create resilient person badges and own-account photos | not_started | | |
 | 7 | Implement workspace-scoped photo sharing under strict Rules | not_started | | |

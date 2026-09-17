@@ -849,3 +849,17 @@ test('forced colors and reduced motion retain borders, focus, and bounded motion
   expect(evidence.transitionSeconds).toBeLessThanOrEqual(0.001);
   expect(evidence.focusVisible).toBe(true);
 });
+
+test('canvas tokens preserve board controls across light and dark modes', async ({page}) => {
+  await openReady(page);
+  for (const theme of ['light', 'dark']) {
+    await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
+    const evidence = await page.evaluate(() => {
+      const root = getComputedStyle(document.documentElement), header = getComputedStyle(document.querySelector('.board-header')), title = getComputedStyle(document.querySelector('.board-title')), addList = getComputedStyle(document.querySelector('.add-list'));
+      return {canvasInk:root.getPropertyValue('--canvas-ink').trim(), headerColor:header.color, titleColor:title.color, addListBackground:addList.backgroundColor};
+    });
+    expect(evidence.canvasInk).not.toBe('');
+    expect(evidence.headerColor).toBe(evidence.titleColor);
+    expect(evidence.addListBackground).not.toBe('rgba(0, 0, 0, 0)');
+  }
+});
