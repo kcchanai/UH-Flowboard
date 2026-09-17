@@ -10,6 +10,7 @@ const builtActivityAsset = () => `${basePath}assets/${readdirSync('dist/assets')
 const builtAssignmentAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('assignment-ui-') && file.endsWith('.js'))}`;
 const builtCommentsAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('comments-ui-') && file.endsWith('.js'))}`;
 const builtAuthAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('auth-ui-') && file.endsWith('.js'))}`;
+const builtRosterAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('cloud-roster-ui-') && file.endsWith('.js'))}`;
 const openReady = async page => { await page.goto(basePath); await page.waitForFunction(() => globalThis.FlowboardApp && globalThis.FlowboardState); await page.waitForFunction(() => /Google sign-in available|Signed in · local workspace|Local-only workspace/.test(document.querySelector('#cloud-status')?.textContent || '')); };
 
 test('critical local-first card workflow persists after reload', async ({page}) => {
@@ -988,4 +989,22 @@ test('member profile controls share and stop the current account photo', async (
   await page.getByRole('button',{name:'Stop sharing',exact:true}).click();
   await expect.poll(() => page.evaluate(() => globalThis.profileWrites.length)).toBe(2);
   expect(await page.evaluate(() => globalThis.profileWrites[1].options.photoURL)).toBe('');
+});
+
+test('cloud roster maps assignment UIDs to three badges and overflow', async ({page}) => {
+  await openReady(page);
+  await page.evaluate(async asset => {
+    document.body.innerHTML = '<div id="board"><div class="assignees" data-assignee-uids="a,b,c,d"></div></div>';
+    globalThis.FlowboardApp = {getMode:() => ({kind:'cloud',id:'roster-fixture',role:'editor'})};
+    const adapter={listMembers:async()=>[
+      {uid:'a',displayName:'Avery Lee',emailLower:'avery@example.test',photoURL:''},
+      {uid:'b',displayName:'Sam Rivera',emailLower:'sam@example.test',photoURL:''},
+      {uid:'c',displayName:'Mina Chen',emailLower:'mina@example.test',photoURL:''},
+      {uid:'d',displayName:'Jordan Patel',emailLower:'jordan@example.test',photoURL:''}
+    ]};
+    const {initializeCloudRosterUI}=await import(asset); initializeCloudRosterUI(adapter).setSession({uid:'a'}); window.dispatchEvent(new Event('flowboard:cloud-selection'));
+  }, builtRosterAsset());
+  await expect(page.locator('.assignees .person-badge')).toHaveCount(3);
+  await expect(page.locator('.assignee-overflow')).toHaveText('+1');
+  await expect(page.locator('.assignees')).toHaveAttribute('aria-label','Assigned to Avery Lee, Sam Rivera, Mina Chen, Jordan Patel');
 });
