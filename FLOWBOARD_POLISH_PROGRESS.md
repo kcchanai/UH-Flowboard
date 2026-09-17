@@ -11,8 +11,8 @@ Production and Rules boundary: unchanged. No real-account or protected-fixture t
 | 3 | Fix core state and persistence reliability | complete | pending commit |
 | 4 | Harden cloud state transitions and feedback | complete | pending commit |
 | 5 | Optimize desktop workspace layout and navigation | complete | pending commit |
-| 6 | Apply a coherent visual system | in_progress | |
-| 7 | Refine the card editor and action dialogs | not_started | |
+| 6 | Apply a coherent visual system | complete | pending commit |
+| 7 | Refine the card editor and action dialogs | in_progress | |
 | 8 | Polish discovery, onboarding, and secondary workflows | not_started | |
 | 9 | Qualify desktop accessibility and mouse/keyboard workflows | not_started | |
 | 10 | Stress-test performance and browser resilience | not_started | |
