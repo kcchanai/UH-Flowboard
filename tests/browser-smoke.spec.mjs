@@ -256,6 +256,7 @@ test('account panel is a first-level workspace and profile hub without session f
 test('Workspace status opens cloud chooser separately from Boards', async ({page}) => {
   await openReady(page);
   await page.evaluate(async asset => {
+    await new Promise(resolve => setTimeout(resolve, 50));
     globalThis.FlowboardApp = {getMode:() => ({kind:'local'}), returnToLocal:()=>{}, exportCloudPreview:()=>{}};
     const cloudAdapter={listWorkspaces:async()=>[]};
     const {initializeCloudWorkspaceUI}=await import(asset);
