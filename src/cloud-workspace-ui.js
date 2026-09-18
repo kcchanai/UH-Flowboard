@@ -38,6 +38,7 @@ export function initializeCloudWorkspaceUI({localAdapter, cloudAdapter}) {
   const backup = $('#download-migration-backup');
   const create = $('#create-cloud-workspace');
   const workspaceButton = $('#open-cloud-workspaces');
+  const ws = $('#cloud-status');
   const workspacesDialog = $('#cloud-workspaces-dialog');
   const closeWorkspaces = $('#close-cloud-workspaces');
   const workspacesList = $('#cloud-workspaces-list');
@@ -46,7 +47,7 @@ export function initializeCloudWorkspaceUI({localAdapter, cloudAdapter}) {
   const migrateCloud = $('#migrate-cloud-workspace');
   const exportCloud = $('#export-cloud-workspace');
   const announcer = $('#announcer');
-  let session = null, workspace = null, backupDownloaded = false, completed = false, selectedCloudEntry = null;
+  let session = null, workspace = null, backupDownloaded = false, completed = false, selectedCloudEntry = null, wo = workspaceButton, so = false;
 
   const announce = text => { status.textContent = text; announcer.textContent = ''; requestAnimationFrame(() => { announcer.textContent = text; }); };
   const prepare = () => {
@@ -91,6 +92,8 @@ export function initializeCloudWorkspaceUI({localAdapter, cloudAdapter}) {
   });
 
   on(workspaceButton,'click', async () => {
+    if(!so) wo=workspaceButton;
+    so=false;
     if(!session)return;
     if (accountDialog.open) accountDialog.close(); workspacesDialog.showModal(); workspacesList.replaceChildren();
     workspacesStatus.textContent = 'Loading cloud workspaces…';
@@ -142,9 +145,10 @@ export function initializeCloudWorkspaceUI({localAdapter, cloudAdapter}) {
       workspacesStatus.textContent = 'Cloud workspaces could not be loaded. Your local workspace is unchanged.';
     }
   });
+  if(ws) on(ws,'click', () => { if(session){wo=ws;so=true;workspaceButton.click();} });
   on(closeWorkspaces,'click', () => workspacesDialog.close());
   on(workspacesDialog,'cancel', event => { event.preventDefault(); workspacesDialog.close(); });
-  on(workspacesDialog,'close', () => workspaceButton.focus());
+  on(workspacesDialog,'close', () => wo?.focus());
   on(returnLocal,'click', () => {
     globalThis.FlowboardApp.returnToLocal(); selectedCloudEntry = null; window.dispatchEvent(new CustomEvent('flowboard:cloud-selection')); returnLocal.hidden = true; exportCloud.hidden = true;
     workspacesStatus.textContent = 'Returned to the browser-local workspace.';
@@ -179,6 +183,7 @@ export function initializeCloudWorkspaceUI({localAdapter, cloudAdapter}) {
       session = next;
       if (!session && dialog.open) dialog.close();
       open.hidden = !session;
+      if(ws){ws.disabled=!session;ws.setAttribute('aria-label',`${ws.textContent}. ${session?'Open':'Sign in to open'} workspace chooser`);}
     }
   };
 }

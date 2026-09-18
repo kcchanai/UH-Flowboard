@@ -36,6 +36,14 @@ test('getting started explains local starter content and safe cloud boundaries',
   await expect(guide).toContainText('export, recover');
   await expect(guide).toContainText('cloud workspaces');
   await expect(guide).toContainText('retained');
+  await expect(guide).toContainText('Search cards above');
+  await expect(guide).toContainText('Read-only previews');
+  await expect(guide).toContainText('browser-local');
+  await page.getByRole('button', {name:'Board actions'}).click();
+  await expect(page.getByRole('menuitem').first()).toHaveText('Board data: Export this board (JSON)');
+  await expect(page.getByRole('menuitem').filter({hasText:'Workspace data:'})).toHaveCount(2);
+  await expect(page.getByRole('menuitem').filter({hasText:'Recovery:'})).toHaveCount(3);
+  await page.keyboard.press('Escape');
   await page.screenshot({path:'artifacts/mvp-v2/step-10/getting-started.png', fullPage:true});
   await page.screenshot({path:'artifacts/mvp-v2/step-11/start-here.png', fullPage:true});
 });
@@ -48,8 +56,8 @@ test('malformed recovery and import inputs leave local storage unchanged', async
     return current;
   });
   await page.getByRole('button', {name:'Board actions'}).click();
-  await page.getByRole('menuitem', {name:'Local recovery'}).click();
-  const recovery = page.getByRole('dialog', {name:'Local recovery'});
+  await page.getByRole('menuitem', {name:/Local recovery/}).click();
+  const recovery = page.getByRole('dialog', {name:/Local recovery/});
   await expect(recovery).toContainText('Snapshot 1');
   await recovery.getByRole('button', {name:'Restore snapshot 1'}).click();
   await expect(page.locator('#toast')).toContainText('not valid and was not restored');
@@ -137,8 +145,8 @@ test('local Recovery lists, exports, and safely restores a snapshot', async ({pa
   await firstList.getByRole('button', {name: 'Add card'}).click();
   await page.getByRole('button', {name: 'Board actions'}).click();
   const menu = page.getByRole('menu');
-  await menu.getByRole('menuitem', {name: 'Local recovery'}).click();
-  const dialog = page.getByRole('dialog', {name: 'Local recovery'});
+  await menu.getByRole('menuitem', {name: /Local recovery/}).click();
+  const dialog = page.getByRole('dialog', {name: /Local recovery/});
   await expect(dialog).toContainText('Snapshot 1');
   const downloadPromise = page.waitForEvent('download');
   await dialog.getByRole('button', {name: 'Export snapshot 1'}).click();
@@ -192,13 +200,153 @@ test('Google account dialog preserves an explicit local-only boundary', async ({
     return;
   }
   await account.click();
-  const dialog = page.getByRole('dialog', {name: 'Google sign-in'});
+  const dialog = page.getByRole('dialog', {name:/Sign in|Account/});
   await expect(dialog).toBeVisible();
   await expect(dialog).toContainText("Signing in does not upload, merge, replace, or delete this browser's workspace.");
   await expect(dialog.getByRole('button', {name: 'Continue with Google'})).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(dialog).toBeHidden();
   await expect(account).toBeFocused();
+});
+
+test('account panel is a first-level workspace and profile hub without session fanout', async ({page}) => {
+  await openReady(page);
+  await page.route('https://lh3.googleusercontent.com/**', route => route.fulfill({status:200, contentType:'image/svg+xml', body:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2 2"><path d="M0 0h2v2H0z" fill="rebeccapurple"/></svg>'}));
+  const before = await page.evaluate(() => { document.querySelector('#account-button').hidden = false; return localStorage.getItem('flowboard-workspace'); });
+  await page.evaluate(async ({authAsset, membersAsset}) => {
+    globalThis.FlowboardApp = {getMode:() => ({kind:'cloud', id:'synthetic-workspace', name:'Synthetic workspace', role:'owner', syncStatus:'Synced'})};
+    const member = {uid:'synthetic-owner', displayName:'Synthetic owner', role:'owner', emailLower:'owner@example.test', photoURL:''};
+    let propagations = 0;
+    const adapter = {
+      onAuthStateChange: callback => { globalThis.syntheticAuth = callback; return () => {}; },
+      signInWithGoogle:async() => null, signOut:async() => {}, listMembers:async() => [member], listInvites:async() => [],
+      updateOwnMemberProfile:async() => {}, changeMemberRole:async() => {}, removeMember:async() => {}, leaveWorkspace:async() => {},
+      transferOwnership:async() => {}, revokeInvite:async() => {}, createInvite:async() => ({url:'https://example.test/invite'})
+    };
+    const {initializeMembersUI} = await import(membersAsset);
+    const members = initializeMembersUI(adapter);
+    const {initializeAuthUI} = await import(authAsset);
+    initializeAuthUI(adapter, {onSessionChange: session => { propagations += 1; members.setSession(session); }});
+    await globalThis.syntheticAuth({uid:'synthetic-owner', displayName:'Synthetic owner', email:'owner@example.test', photoURL:'https://lh3.googleusercontent.com/a/synthetic=s96-c'});
+    globalThis.syntheticPropagationCount = () => propagations;
+  }, {authAsset:builtAuthAsset(), membersAsset:builtMembersAsset()});
+  await expect(page.locator('#workspace-profile-section')).not.toHaveAttribute('hidden', '');
+  await page.locator('#account-button').click();
+  const account = page.getByRole('dialog', {name:'Account'});
+  await expect(account).toBeVisible();
+  await expect(account.locator('#account-workspace-name')).toHaveText('Synthetic workspace');
+  await expect(account.locator('#account-workspace-detail')).toContainText('Cloud workspace · owner · Synced');
+  await expect(account.getByRole('button', {name:'Share Google profile photo'})).toBeVisible();
+  await expect(page.locator('#account-button')).toHaveAttribute('aria-label', 'Account: Synthetic owner');
+  await expect(page.locator('#account-button img')).toHaveCount(1);
+  const count = await page.evaluate(() => globalThis.syntheticPropagationCount());
+  await page.getByRole('button', {name:'Close account'}).click();
+  await page.locator('#account-button').click();
+  await expect.poll(() => page.evaluate(() => globalThis.syntheticPropagationCount())).toBe(count);
+  await page.locator('#account-open-appearance').click();
+  await expect(page.getByRole('dialog',{name:'Personalize Flowboard'})).toBeVisible();
+  await page.getByRole('button',{name:'Close appearance'}).click();
+  await expect(page.locator('#account-button')).toBeFocused();
+  expect(await page.evaluate(() => localStorage.getItem('flowboard-workspace'))).toBe(before);
+});
+
+test('Workspace status opens cloud chooser separately from Boards', async ({page}) => {
+  await openReady(page);
+  await page.evaluate(async asset => {
+    globalThis.FlowboardApp = {getMode:() => ({kind:'local'}), returnToLocal:()=>{}, exportCloudPreview:()=>{}};
+    const cloudAdapter={listWorkspaces:async()=>[]};
+    const {initializeCloudWorkspaceUI}=await import(asset);
+    initializeCloudWorkspaceUI({localAdapter:{},cloudAdapter}).setSession({uid:'owner'});
+  }, builtCloudWorkspaceAsset());
+  await expect(page.locator('#boards-button')).toHaveText('Boards');
+  await expect(page.locator('#cloud-status')).toBeEnabled();
+  await expect(page.locator('#cloud-status')).toHaveAccessibleName(/Open workspace chooser/);
+  await page.locator('#cloud-status').click();
+  await expect(page.getByRole('dialog', {name:'Cloud workspaces'})).toBeVisible();
+  await page.getByRole('button', {name:'Close cloud workspaces'}).click();
+  await expect(page.locator('#cloud-status')).toBeFocused();
+});
+
+test('cloud status feedback stays distinct and preserves local data scope', async ({page}) => {
+  await openReady(page);
+  const before = await page.evaluate(() => localStorage.getItem('flowboard-workspace'));
+  await page.evaluate(() => FlowboardApp.openCloudWorkspace(FlowboardState.makeWorkspace(), {id:'status-fixture',name:'Status fixture',role:'editor'}));
+  await page.locator('#cloud-status').evaluate(node => { node.disabled = false; });
+  for (const status of ['Connecting','Saving','Synced','Offline','Conflict','Error']) {
+    await page.evaluate(value => FlowboardApp.setCloudSyncStatus(value, `${value} status`), status);
+    await expect(page.locator('#cloud-status')).toHaveText(`Cloud workspace · editor · ${status}`);
+    await expect(page.locator('#cloud-status')).toHaveAttribute('title', `${status} status`);
+  }
+  await page.getByRole('button',{name:'Open appearance settings'}).click();
+  await page.getByRole('button',{name:'Close appearance'}).click();
+  await expect(page.locator('#cloud-status')).toHaveText('Cloud workspace · editor · Error');
+  await page.evaluate(() => FlowboardApp.returnToLocal());
+  await expect(page.locator('#collaboration-summary')).toHaveText('Browser-local workspace · editable');
+  expect(await page.evaluate(expected => localStorage.getItem('flowboard-workspace') === expected, before)).toBe(true);
+});
+
+test('short desktop dialogs keep close actions reachable and return focus', async ({page}) => {
+  await page.setViewportSize({width:960,height:720});
+  await openReady(page);
+  await page.getByRole('button',{name:'Open appearance settings'}).click();
+  const appearance=page.getByRole('dialog',{name:'Personalize Flowboard'});
+  const appearanceMetrics=await appearance.evaluate(dialog=>{const box=dialog.getBoundingClientRect(),close=dialog.querySelector('.dialog-close').getBoundingClientRect();return {top:box.top,bottom:box.bottom,closeBottom:close.bottom,height:innerHeight};});
+  expect(appearanceMetrics.top).toBeGreaterThanOrEqual(0);
+  expect(appearanceMetrics.bottom).toBeLessThanOrEqual(appearanceMetrics.height);
+  expect(appearanceMetrics.closeBottom).toBeLessThanOrEqual(appearanceMetrics.height);
+  await appearance.getByRole('button',{name:'Close appearance'}).click();
+  await expect(page.getByRole('button',{name:'Open appearance settings'})).toBeFocused();
+  await page.getByRole('button',{name:'Boards'}).click();
+  const boards=page.getByRole('dialog',{name:'Your boards'});
+  const boardMetrics=await boards.evaluate(dialog=>{const box=dialog.getBoundingClientRect(),close=dialog.querySelector('.dialog-close').getBoundingClientRect();return {top:box.top,bottom:box.bottom,closeBottom:close.bottom,height:innerHeight};});
+  expect(boardMetrics.top).toBeGreaterThanOrEqual(0);
+  expect(boardMetrics.bottom).toBeLessThanOrEqual(boardMetrics.height);
+  expect(boardMetrics.closeBottom).toBeLessThanOrEqual(boardMetrics.height);
+  await boards.getByRole('button',{name:'Close boards'}).click();
+  await expect(page.getByRole('button',{name:'Boards'})).toBeFocused();
+});
+
+test('rich dialogs keep close actions reachable across office and compatibility widths', async ({page}) => {
+  await openReady(page);
+  await page.locator('#account-button').evaluate(button => { button.hidden = false; });
+  await page.evaluate(async ({cloudAsset,authAsset}) => {
+    globalThis.FlowboardApp = {getMode:() => ({kind:'local'}), returnToLocal:()=>{}, exportCloudPreview:()=>{}};
+    const {initializeCloudWorkspaceUI}=await import(cloudAsset);
+    initializeCloudWorkspaceUI({localAdapter:{},cloudAdapter:{listWorkspaces:async()=>[]}}).setSession({uid:'owner'});
+    const {initializeAuthUI}=await import(authAsset);
+    initializeAuthUI({onAuthStateChange:()=>()=>{},signInWithGoogle:async()=>{},signOut:async()=>{} });
+  }, {cloudAsset:builtCloudWorkspaceAsset(),authAsset:builtAuthAsset()});
+  const sizes = [{width:1280,height:720},{width:1440,height:900},{width:1920,height:1080},{width:960,height:720},{width:390,height:720},{width:320,height:720}];
+  const check = async (dialog, close) => {
+    await expect(dialog).toBeVisible();
+    const metrics=await dialog.evaluate(node=>{const box=node.getBoundingClientRect(),button=node.querySelector('.dialog-close').getBoundingClientRect();return {top:box.top,bottom:box.bottom,right:box.right,closeBottom:button.bottom,closeRight:button.right,width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth};});
+    expect(metrics.top).toBeGreaterThanOrEqual(0);
+    expect(metrics.bottom).toBeLessThanOrEqual(metrics.height);
+    expect(metrics.right).toBeLessThanOrEqual(metrics.width);
+    expect(metrics.closeBottom).toBeLessThanOrEqual(metrics.height);
+    expect(metrics.closeRight).toBeLessThanOrEqual(metrics.width);
+    expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.width);
+    await close.click();
+  };
+  for (const size of sizes) {
+    await page.setViewportSize(size);
+    const accountButton=page.locator('#account-button');
+    await accountButton.click();
+    await check(page.getByRole('dialog',{name:/Sign in|Account/}),page.getByRole('button',{name:'Close account'}));
+    await expect(accountButton).toBeFocused();
+    const appearanceButton=page.getByRole('button',{name:'Open appearance settings'});
+    await appearanceButton.click();
+    await check(page.getByRole('dialog',{name:'Personalize Flowboard'}),page.getByRole('button',{name:'Close appearance'}));
+    await expect(appearanceButton).toBeFocused();
+    const boardsButton=page.getByRole('button',{name:'Boards'});
+    await boardsButton.click();
+    await check(page.getByRole('dialog',{name:'Your boards'}),page.getByRole('button',{name:'Close boards'}));
+    await expect(boardsButton).toBeFocused();
+    const workspaceButton=page.locator('#cloud-status');
+    await workspaceButton.click();
+    await check(page.getByRole('dialog',{name:'Cloud workspaces'}),page.getByRole('button',{name:'Close cloud workspaces'}));
+    await expect(workspaceButton).toBeFocused();
+  }
 });
 
 test('owner workspace lifecycle dialog renames, archives, restores, and returns focus', async ({page}) => {
@@ -900,7 +1048,7 @@ test('appearance preview is lazy, draft-only, and cancel preserves workspace byt
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole('radio')).toHaveCount(15);
   await expect(page.locator('#appearance-palettes input[type="radio"]')).toHaveCount(8);
-  await expect(page.locator('#appearance-scope')).toContainText('does not change shared boards');
+  await expect(page.locator('#appearance-scope')).toContainText('changes only your view');
   await page.getByRole('radio', {name:/Ocean Slate/}).check();
   await page.getByRole('radio', {name:'Dark', exact:true}).check();
   await page.getByRole('radio', {name:'Solid color', exact:true}).check();
@@ -908,6 +1056,7 @@ test('appearance preview is lazy, draft-only, and cancel preserves workspace byt
   await expect.poll(() => page.evaluate(() => ({canvas:document.documentElement.dataset.canvas,finish:document.documentElement.dataset.canvasFinish,theme:document.documentElement.dataset.theme}))).toEqual({canvas:'ocean-slate',finish:'solid',theme:'dark'});
   await page.getByRole('button', {name:'Cancel', exact:true}).click();
   await expect(dialog).toBeHidden();
+  await expect(page.getByRole('button', {name:'Open appearance settings'})).toBeFocused();
   const after = await page.evaluate(() => ({workspace:localStorage.getItem('flowboard-workspace'),appearance:localStorage.getItem('flowboard-appearance'),canvas:document.documentElement.dataset.canvas,finish:document.documentElement.dataset.canvasFinish}));
   expect(after.workspace).toBe(before);
   expect(after.appearance).toBeNull();
@@ -991,20 +1140,43 @@ test('member profile controls share and stop the current account photo', async (
   expect(await page.evaluate(() => globalThis.profileWrites[1].options.photoURL)).toBe('');
 });
 
-test('cloud roster maps assignment UIDs to three badges and overflow', async ({page}) => {
+test('profile sharing reports readback failure without claiming success', async ({page}) => {
+  await openReady(page);
+  await page.evaluate(async asset => {
+    document.body.innerHTML = `<button id="open-workspace-members">Manage members</button><dialog id="workspace-members-dialog" aria-labelledby="workspace-members-heading"><h2 id="workspace-members-heading">Members and invitations</h2><button id="close-workspace-members">Close</button><p id="workspace-members-status"></p><section id="workspace-profile-section"><h3>Your photo</h3><p id="workspace-profile-status"></p><div><button id="share-profile-photo">Share Google profile photo</button><button id="refresh-profile-photo">Refresh shared photo</button><button id="stop-profile-photo">Stop sharing photo</button><button id="retry-profile-photo">Retry</button></div></section><form id="create-invite-form" hidden><input id="invite-email"><select id="invite-role"><option value="editor">Editor</option></select><button type="submit">Create invitation</button></form><p id="invite-link-status"></p><div id="workspace-members-list"></div><section id="workspace-invites-section" hidden><div id="workspace-invites-list"></div></section><form id="transfer-ownership-form" hidden><select id="ownership-successor"></select><select id="former-owner-role"><option value="editor">Editor</option></select><button type="submit">Transfer ownership</button></form></dialog>`;
+    globalThis.FlowboardApp = {getMode:() => ({kind:'cloud',id:'readback-fixture',name:'Readback workspace',role:'owner'})};
+    globalThis.profileWrites=[];
+    const member={uid:'owner',displayName:'Owner',role:'owner',emailLower:'owner@example.test',photoURL:''};
+    const adapter={listMembers:async()=>[member],listInvites:async()=>[],updateOwnMemberProfile:async(workspaceId,options)=>{globalThis.profileWrites.push({workspaceId,options});},changeMemberRole:async()=>{},removeMember:async()=>{},leaveWorkspace:async()=>{},transferOwnership:async()=>{},revokeInvite:async()=>{},createInvite:async()=>({})};
+    const {initializeMembersUI}=await import(asset); initializeMembersUI(adapter).setSession({uid:'owner',displayName:'Owner',email:'owner@example.test',photoURL:'https://lh3.googleusercontent.com/a/synthetic=s96-c'});
+  }, builtMembersAsset());
+  await page.getByRole('button',{name:'Manage members'}).click();
+  await page.getByRole('button',{name:'Share Google profile photo'}).click();
+  await expect.poll(() => page.evaluate(() => globalThis.profileWrites.length)).toBe(1);
+  await expect(page.locator('#workspace-profile-status')).toContainText('could not be verified');
+  await expect(page.getByRole('button',{name:'Retry'})).toBeVisible();
+  await expect(page.locator('#workspace-profile-status')).not.toContainText('Profile photo shared with');
+});
+
+test('cloud roster maps assignment UIDs to three badges, overflow, and profile refresh', async ({page}) => {
   await openReady(page);
   await page.evaluate(async asset => {
     document.body.innerHTML = '<div id="board"><div class="assignees" data-assignee-uids="a,b,c,d"></div></div>';
     globalThis.FlowboardApp = {getMode:() => ({kind:'cloud',id:'roster-fixture',role:'editor'})};
-    const adapter={listMembers:async()=>[
-      {uid:'a',displayName:'Avery Lee',emailLower:'avery@example.test',photoURL:''},
+    globalThis.rosterReads=0; globalThis.rosterPhoto='';
+    const adapter={listMembers:async()=>{globalThis.rosterReads+=1;return [
+      {uid:'a',displayName:'Avery Lee',emailLower:'avery@example.test',photoURL:globalThis.rosterPhoto},
       {uid:'b',displayName:'Sam Rivera',emailLower:'sam@example.test',photoURL:''},
       {uid:'c',displayName:'Mina Chen',emailLower:'mina@example.test',photoURL:''},
       {uid:'d',displayName:'Jordan Patel',emailLower:'jordan@example.test',photoURL:''}
-    ]};
+    ];}};
     const {initializeCloudRosterUI}=await import(asset); initializeCloudRosterUI(adapter).setSession({uid:'a'}); window.dispatchEvent(new Event('flowboard:cloud-selection'));
   }, builtRosterAsset());
   await expect(page.locator('.assignees .person-badge')).toHaveCount(3);
   await expect(page.locator('.assignee-overflow')).toHaveText('+1');
   await expect(page.locator('.assignees')).toHaveAttribute('aria-label','Assigned to Avery Lee, Sam Rivera, Mina Chen, Jordan Patel');
+  const reads=await page.evaluate(() => globalThis.rosterReads);
+  await page.evaluate(() => { globalThis.rosterPhoto='https://lh3.googleusercontent.com/a/synthetic=s96-c'; window.dispatchEvent(new Event('flowboard:profile-change')); });
+  await expect.poll(() => page.evaluate(() => globalThis.rosterReads)).toBeGreaterThan(reads);
+  await expect(page.locator('.assignees img')).toHaveCount(1);
 });

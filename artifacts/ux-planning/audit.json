@@ -1,0 +1,113 @@
+{
+  "scope": "Isolated anonymous production UI; no sign-in or cloud workspace opened. Appearance changes affect this disposable context only.",
+  "initial": {
+    "title": "Flowboard - project planning",
+    "toolbar": "Flowboard\nMy workspace\nGoogle sign-in available\nSign in",
+    "controls": [
+      {
+        "id": "boards-button",
+        "text": "My workspace",
+        "label": null
+      },
+      {
+        "id": "clear-search",
+        "text": "",
+        "label": "Clear search"
+      },
+      {
+        "id": "theme-toggle",
+        "text": "",
+        "label": "Open appearance settings"
+      },
+      {
+        "id": "account-button",
+        "text": "Sign in",
+        "label": "Sign in with Google"
+      }
+    ],
+    "headings": [
+      "Are you sure?",
+      "Edit card",
+      "Remove comment?",
+      "Archived cards",
+      "Local recovery",
+      "Your boards",
+      "Google sign-in",
+      "Create a cloud workspace",
+      "Cloud workspace previews",
+      "Workspace activity",
+      "Members and invitations",
+      "Join a cloud workspace",
+      "Import Flowboard data"
+    ]
+  },
+  "account": "FIREBASE ACCOUNT\n\nGoogle sign-in\nG\nNot signed in\nYour local workspace remains available without an account.\n\nLocal data stays local. Signing in does not upload, merge, replace, or delete this browser's workspace. Cloud workspace migration will always require a separate review and confirmation.\n\nContinue with Google",
+  "appearance": "APPEARANCE\n\nPersonalize Flowboard\n\nAppearance applies to this browser. It does not change shared boards.\n\nTheme\nSystem\nLight\nDark\nCanvas\nClassic Flow\nFamiliar blue and indigo\nOcean Slate\nCalm office default\nLagoon\nBlue and deep teal\nSage Studio\nSoft sage and cool mint\nWarm Sand\nWarm ivory and pale clay\nLavender Mist\nPale lilac and periwinkle\nDusk Plum\nMuted plum and dusky blue\nGraphite\nNeutral slate, minimal distraction\nFinish\nGradient\nSolid color\nAssignee images\nShow profile photos when available\nUse initials\n\nReset to defaults\nCancel\nSave appearance",
+  "radios": [
+    {
+      "name": "appearance-mode",
+      "value": "system"
+    },
+    {
+      "name": "appearance-mode",
+      "value": "light"
+    },
+    {
+      "name": "appearance-mode",
+      "value": "dark"
+    },
+    {
+      "name": "appearance-canvas",
+      "value": "classic-flow"
+    },
+    {
+      "name": "appearance-canvas",
+      "value": "ocean-slate"
+    },
+    {
+      "name": "appearance-canvas",
+      "value": "lagoon"
+    },
+    {
+      "name": "appearance-canvas",
+      "value": "sage-studio"
+    },
+    {
+      "name": "appearance-canvas",
+      "value": "warm-sand"
+    },
+    {
+      "name": "appearance-canvas",
+      "value": "lavender-mist"
+    },
+    {
+      "name": "appearance-canvas",
+      "value": "dusk-plum"
+    },
+    {
+      "name": "appearance-canvas",
+      "value": "graphite"
+    },
+    {
+      "name": "appearance-finish",
+      "value": "gradient"
+    },
+    {
+      "name": "appearance-finish",
+      "value": "solid"
+    },
+    {
+      "name": "appearance-photos",
+      "value": "photos"
+    },
+    {
+      "name": "appearance-photos",
+      "value": "initials"
+    }
+  ],
+  "consoleErrors": [],
+  "pageErrors": [],
+  "rawBytes": 239380,
+  "cap": 240000,
+  "headroom": 620
+}

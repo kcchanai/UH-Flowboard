@@ -53,7 +53,7 @@ export function createLocalWorkspaceAdapter({
           const parsed = parse(saved);
           if (!validWorkspace(parsed)) throw new Error('Unsupported workspace schema');
           const workspace = normalizeWorkspace(parsed);
-          save(workspace);
+          if (parsed.schemaVersion !== workspace.schemaVersion) save(workspace);
           return {workspace, migrated:parsed.schemaVersion !== workspace.schemaVersion, source:'current'};
         }
         const legacy = storage.getItem(legacyKey);

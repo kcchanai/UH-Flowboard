@@ -31,6 +31,6 @@ export function initializeAssignmentUI(adapter) {
     } catch (error) { if (token!==generation) return; console.error('Flowboard assignment members failed to load.',error); status.textContent='Workspace members could not be loaded. Assignment changes are unavailable.'; }
   };
   new MutationObserver(()=>render()).observe(dialog,{attributes:true,attributeFilter:['open']});
-  window.addEventListener('flowboard:cloud-preview-change',()=>{members=[]; render();});
+  ['flowboard:cloud-preview-change','flowboard:profile-change'].forEach(name=>window.addEventListener(name,()=>{members=[];render();}));
   return {setSession(next){session=next; if(!session) members=[]; render();}};
 }
