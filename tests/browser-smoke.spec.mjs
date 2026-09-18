@@ -36,7 +36,7 @@ test('getting started explains local starter content and safe cloud boundaries',
   await expect(guide).toContainText('export, recover');
   await expect(guide).toContainText('cloud workspaces');
   await expect(guide).toContainText('retained');
-  await expect(guide).toContainText('Search cards above');
+  await expect(guide).toContainText('Search this board above');
   await expect(guide).toContainText('Read-only previews');
   await expect(guide).toContainText('browser-local');
   await page.getByRole('button', {name:'Board actions'}).click();
@@ -907,10 +907,12 @@ test('desktop board structure keeps navigation separate and controls reachable',
     const layout = await page.evaluate(() => {
       const main = document.querySelector('#main-content'), header = document.querySelector('.board-header'), board = document.querySelector('#board'), menu = document.querySelector('#board-menu'), search = document.querySelector('#search'), firstList = document.querySelector('.list');
       const box = element => { const value = element?.getBoundingClientRect(); return value ? {left:value.left, right:value.right, top:value.top, bottom:value.bottom, width:value.width, height:value.height} : null; };
-      return {boardIsMainChild:board?.parentElement === main, boardNestedInHeader:header?.contains(board), pageFits:document.documentElement.scrollWidth <= document.documentElement.clientWidth, boardOverflow:getComputedStyle(board).overflowX, boardScrollable:board.scrollWidth > board.clientWidth, menu:box(menu), search:box(search), firstList:box(firstList)};
+      return {boardIsMainChild:board?.parentElement === main, boardNestedInHeader:header?.contains(board), searchInBoardHeader:header?.contains(search), searchInTopbar:Boolean(document.querySelector('.topbar #search')), pageFits:document.documentElement.scrollWidth <= document.documentElement.clientWidth, boardOverflow:getComputedStyle(board).overflowX, boardScrollable:board.scrollWidth > board.clientWidth, menu:box(menu), search:box(search), firstList:box(firstList)};
     });
     expect(layout.boardIsMainChild, `board structure at ${width}px`).toBe(true);
     expect(layout.boardNestedInHeader, `board nesting at ${width}px`).toBe(false);
+    expect(layout.searchInBoardHeader, `search scope at ${width}px`).toBe(true);
+    expect(layout.searchInTopbar, `global search duplication at ${width}px`).toBe(false);
     expect(layout.pageFits, `page overflow at ${width}px`).toBe(true);
     expect(layout.boardOverflow).toBe('auto');
     if (width <= 1440) expect(layout.boardScrollable, `board scroll at ${width}px`).toBe(true);
