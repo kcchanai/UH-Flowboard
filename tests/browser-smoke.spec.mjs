@@ -235,8 +235,11 @@ test('account panel is a first-level workspace and profile hub without session f
   await page.getByRole('button', {name:'Close account'}).click();
   await page.locator('#account-button').click();
   await expect.poll(() => page.evaluate(() => globalThis.syntheticPropagationCount())).toBe(count);
+  await page.locator('#account-open-appearance').click();
+  await expect(page.getByRole('dialog',{name:'Personalize Flowboard'})).toBeVisible();
+  await page.getByRole('button',{name:'Close appearance'}).click();
+  await expect(page.locator('#account-button')).toBeFocused();
   expect(await page.evaluate(() => localStorage.getItem('flowboard-workspace'))).toBe(before);
-  await page.getByRole('button', {name:'Close account'}).click();
 });
 
 test('Workspace status opens cloud chooser separately from Boards', async ({page}) => {
@@ -253,6 +256,71 @@ test('Workspace status opens cloud chooser separately from Boards', async ({page
   await page.locator('#cloud-status').click();
   await expect(page.getByRole('dialog', {name:'Cloud workspaces'})).toBeVisible();
   await page.getByRole('button', {name:'Close cloud workspaces'}).click();
+  await expect(page.locator('#cloud-status')).toBeFocused();
+});
+
+test('short desktop dialogs keep close actions reachable and return focus', async ({page}) => {
+  await page.setViewportSize({width:960,height:720});
+  await openReady(page);
+  await page.getByRole('button',{name:'Open appearance settings'}).click();
+  const appearance=page.getByRole('dialog',{name:'Personalize Flowboard'});
+  const appearanceMetrics=await appearance.evaluate(dialog=>{const box=dialog.getBoundingClientRect(),close=dialog.querySelector('.dialog-close').getBoundingClientRect();return {top:box.top,bottom:box.bottom,closeBottom:close.bottom,height:innerHeight};});
+  expect(appearanceMetrics.top).toBeGreaterThanOrEqual(0);
+  expect(appearanceMetrics.bottom).toBeLessThanOrEqual(appearanceMetrics.height);
+  expect(appearanceMetrics.closeBottom).toBeLessThanOrEqual(appearanceMetrics.height);
+  await appearance.getByRole('button',{name:'Close appearance'}).click();
+  await expect(page.getByRole('button',{name:'Open appearance settings'})).toBeFocused();
+  await page.getByRole('button',{name:'Boards'}).click();
+  const boards=page.getByRole('dialog',{name:'Your boards'});
+  const boardMetrics=await boards.evaluate(dialog=>{const box=dialog.getBoundingClientRect(),close=dialog.querySelector('.dialog-close').getBoundingClientRect();return {top:box.top,bottom:box.bottom,closeBottom:close.bottom,height:innerHeight};});
+  expect(boardMetrics.top).toBeGreaterThanOrEqual(0);
+  expect(boardMetrics.bottom).toBeLessThanOrEqual(boardMetrics.height);
+  expect(boardMetrics.closeBottom).toBeLessThanOrEqual(boardMetrics.height);
+  await boards.getByRole('button',{name:'Close boards'}).click();
+  await expect(page.getByRole('button',{name:'Boards'})).toBeFocused();
+});
+
+test('rich dialogs keep close actions reachable across office and compatibility widths', async ({page}) => {
+  await openReady(page);
+  await page.locator('#account-button').evaluate(button => { button.hidden = false; });
+  await page.evaluate(async ({cloudAsset,authAsset}) => {
+    globalThis.FlowboardApp = {getMode:() => ({kind:'local'}), returnToLocal:()=>{}, exportCloudPreview:()=>{}};
+    const {initializeCloudWorkspaceUI}=await import(cloudAsset);
+    initializeCloudWorkspaceUI({localAdapter:{},cloudAdapter:{listWorkspaces:async()=>[]}}).setSession({uid:'owner'});
+    const {initializeAuthUI}=await import(authAsset);
+    initializeAuthUI({onAuthStateChange:()=>()=>{},signInWithGoogle:async()=>{},signOut:async()=>{} });
+  }, {cloudAsset:builtCloudWorkspaceAsset(),authAsset:builtAuthAsset()});
+  const sizes = [{width:1280,height:720},{width:1440,height:900},{width:1920,height:1080},{width:960,height:720},{width:390,height:720},{width:320,height:720}];
+  const check = async (dialog, close) => {
+    await expect(dialog).toBeVisible();
+    const metrics=await dialog.evaluate(node=>{const box=node.getBoundingClientRect(),button=node.querySelector('.dialog-close').getBoundingClientRect();return {top:box.top,bottom:box.bottom,right:box.right,closeBottom:button.bottom,closeRight:button.right,width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth};});
+    expect(metrics.top).toBeGreaterThanOrEqual(0);
+    expect(metrics.bottom).toBeLessThanOrEqual(metrics.height);
+    expect(metrics.right).toBeLessThanOrEqual(metrics.width);
+    expect(metrics.closeBottom).toBeLessThanOrEqual(metrics.height);
+    expect(metrics.closeRight).toBeLessThanOrEqual(metrics.width);
+    expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.width);
+    await close.click();
+  };
+  for (const size of sizes) {
+    await page.setViewportSize(size);
+    const accountButton=page.locator('#account-button');
+    await accountButton.click();
+    await check(page.getByRole('dialog',{name:/Sign in|Account/}),page.getByRole('button',{name:'Close account'}));
+    await expect(accountButton).toBeFocused();
+    const appearanceButton=page.getByRole('button',{name:'Open appearance settings'});
+    await appearanceButton.click();
+    await check(page.getByRole('dialog',{name:'Personalize Flowboard'}),page.getByRole('button',{name:'Close appearance'}));
+    await expect(appearanceButton).toBeFocused();
+    const boardsButton=page.getByRole('button',{name:'Boards'});
+    await boardsButton.click();
+    await check(page.getByRole('dialog',{name:'Your boards'}),page.getByRole('button',{name:'Close boards'}));
+    await expect(boardsButton).toBeFocused();
+    const workspaceButton=page.locator('#cloud-status');
+    await workspaceButton.click();
+    await check(page.getByRole('dialog',{name:'Cloud workspaces'}),page.getByRole('button',{name:'Close cloud workspaces'}));
+    await expect(workspaceButton).toBeFocused();
+  }
 });
 
 test('owner workspace lifecycle dialog renames, archives, restores, and returns focus', async ({page}) => {
@@ -962,6 +1030,7 @@ test('appearance preview is lazy, draft-only, and cancel preserves workspace byt
   await expect.poll(() => page.evaluate(() => ({canvas:document.documentElement.dataset.canvas,finish:document.documentElement.dataset.canvasFinish,theme:document.documentElement.dataset.theme}))).toEqual({canvas:'ocean-slate',finish:'solid',theme:'dark'});
   await page.getByRole('button', {name:'Cancel', exact:true}).click();
   await expect(dialog).toBeHidden();
+  await expect(page.getByRole('button', {name:'Open appearance settings'})).toBeFocused();
   const after = await page.evaluate(() => ({workspace:localStorage.getItem('flowboard-workspace'),appearance:localStorage.getItem('flowboard-appearance'),canvas:document.documentElement.dataset.canvas,finish:document.documentElement.dataset.canvasFinish}));
   expect(after.workspace).toBe(before);
   expect(after.appearance).toBeNull();

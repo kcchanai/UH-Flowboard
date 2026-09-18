@@ -20,7 +20,7 @@
 | 4 of 10 | complete | `artifacts/ux-discoverability/step-04/results.md` plus sharing-controller checkpoint | Account now owns explicit Share/Update/Stop behavior with generation guards, targeted readback verification, retry/error states, and no duplicate Members profile surface. |
 | 5 of 10 | complete | `artifacts/ux-discoverability/step-05/results.md` plus roster-refresh checkpoint | Verified profile changes now refresh active board badges and open assignment choices through coalesced, generation-guarded, board-scoped reads. |
 | 6 of 10 | complete | `artifacts/ux-discoverability/step-06/results.md` plus navigation checkpoint | Boards, Workspace, Cloud workspaces, Appearance, and profile-sharing scope now have explicit, consistent entry points and copy. |
-| 7 of 10 | in_progress | uncommitted | Dialog reachability, scrolling, focus, and keyboard safety. |
+| 7 of 10 | complete | `artifacts/ux-discoverability/step-07/results.md` plus dialog reachability checkpoint | Rich dialogs now scroll within short viewports; Account, Appearance, Boards, and Workspace chooser focus returns and close controls pass the six-viewport matrix. |
 | 8 of 10 | pending | - | Workflow feedback and mode-aware guidance. |
 | 9 of 10 | pending | - | Complete qualification. |
 | 10 of 10 | pending | - | Local release candidate package and stop. |

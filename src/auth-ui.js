@@ -102,7 +102,7 @@ export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
   });
   appearance?.addEventListener('click', () => {
     dialog.close();
-    import('./appearance-ui.js').then(({openAppearance}) => openAppearance()).catch(error => { console.error('Flowboard appearance settings failed.', error); announce('Appearance settings could not be loaded.'); });
+    import('./appearance-ui.js').then(({openAppearance}) => openAppearance(appearance)).catch(error => { console.error('Flowboard appearance settings failed.', error); announce('Appearance settings could not be loaded.'); });
   });
   ['flowboard:appearance-change','flowboard:cloud-preview-change','flowboard:cloud-selection'].forEach(eventName => window.addEventListener(eventName, () => render(currentSession, false)));
   render(null, false);

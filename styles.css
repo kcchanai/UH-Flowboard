@@ -57,7 +57,8 @@ main { min-height:calc(100vh - 64px);padding:clamp(20px,3vw,32px) clamp(14px,3vw
 @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important;} }
 
 
-.card-dialog { width:min(740px,calc(100vw - 24px));max-height:calc(100vh - 24px);overflow:auto;overscroll-behavior:contain;}
+.card-dialog { width:min(740px,calc(100vw - 24px));}
+.card-dialog,.dialog > .archive-dialog-card { max-height:calc(100vh - 24px);overflow:auto;overscroll-behavior:contain;}
 .card-dialog-card,.archive-dialog-card { padding:22px;}
 .card-dialog-header { position:sticky;top:-1px;z-index:2;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid var(--line);background:var(--surface-strong);}
 .card-dialog-header h2 { margin:2px 0 0;font-size:22px;letter-spacing:-.4px;}.eyebrow { margin:0;color:var(--muted);font-size:12px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;}
