@@ -1,3 +1,4 @@
+await import('./members-style.js');
 const styleId='cloud-workspace-style';
 if(!document.querySelector(`#${styleId}`)){
   const style=document.createElement('style');

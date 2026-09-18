@@ -1,0 +1,303 @@
+{
+  "scope": "synthetic UI only, fake adapters, no network backend",
+  "errors": {
+    "console": 0,
+    "page": 0
+  },
+  "results": [
+    {
+      "name": "synthetic-account-1440",
+      "dialogWidth": 650,
+      "clientWidth": 648,
+      "scrollWidth": 648,
+      "inner": [
+        {
+          "class": "archive-dialog-card",
+          "width": 648,
+          "client": 648,
+          "scroll": 648
+        },
+        {
+          "class": "dialog-actions",
+          "width": 604,
+          "client": 604,
+          "scroll": 604
+        },
+        {
+          "class": "dialog-actions",
+          "width": 604,
+          "client": 604,
+          "scroll": 604
+        }
+      ],
+      "identityWidths": []
+    },
+    {
+      "name": "synthetic-workspaces-1440",
+      "dialogWidth": 760,
+      "clientWidth": 758,
+      "scrollWidth": 758,
+      "inner": [
+        {
+          "class": "archive-dialog-card",
+          "width": 758,
+          "client": 758,
+          "scroll": 758
+        },
+        {
+          "class": "workspace-board cloud-workspace-card",
+          "width": 466.359375,
+          "client": 464,
+          "scroll": 464
+        },
+        {
+          "class": "workspace-board cloud-workspace-card",
+          "width": 466.359375,
+          "client": 464,
+          "scroll": 464
+        },
+        {
+          "class": "dialog-actions",
+          "width": 710,
+          "client": 710,
+          "scroll": 710
+        }
+      ],
+      "identityWidths": [
+        436.359375,
+        436.359375
+      ]
+    },
+    {
+      "name": "synthetic-members-1440",
+      "dialogWidth": 840,
+      "clientWidth": 838,
+      "scrollWidth": 838,
+      "inner": [
+        {
+          "class": "archive-dialog-card",
+          "width": 838,
+          "client": 838,
+          "scroll": 838
+        },
+        {
+          "class": "new-board-form",
+          "width": 790,
+          "client": 790,
+          "scroll": 790
+        },
+        {
+          "class": "workspace-board member-card",
+          "width": 790,
+          "client": 788,
+          "scroll": 788
+        },
+        {
+          "class": "workspace-board member-card",
+          "width": 790,
+          "client": 788,
+          "scroll": 788
+        },
+        {
+          "class": "workspace-board member-card",
+          "width": 790,
+          "client": 788,
+          "scroll": 788
+        },
+        {
+          "class": "new-board-form",
+          "width": 790,
+          "client": 786,
+          "scroll": 786
+        },
+        {
+          "class": "workspace-board invite-card",
+          "width": 790,
+          "client": 788,
+          "scroll": 788
+        },
+        {
+          "class": "workspace-board invite-card",
+          "width": 790,
+          "client": 788,
+          "scroll": 788
+        },
+        {
+          "class": "workspace-board invite-card",
+          "width": 790,
+          "client": 788,
+          "scroll": 788
+        },
+        {
+          "class": "workspace-board invite-card",
+          "width": 790,
+          "client": 788,
+          "scroll": 788
+        },
+        {
+          "class": "workspace-board invite-card",
+          "width": 790,
+          "client": 788,
+          "scroll": 788
+        }
+      ],
+      "identityWidths": [
+        740,
+        549.21875,
+        549.21875,
+        744,
+        582.78125,
+        744,
+        744,
+        744
+      ]
+    },
+    {
+      "name": "synthetic-account-390",
+      "dialogWidth": 358,
+      "clientWidth": 356,
+      "scrollWidth": 356,
+      "inner": [
+        {
+          "class": "archive-dialog-card",
+          "width": 356,
+          "client": 356,
+          "scroll": 356
+        },
+        {
+          "class": "dialog-actions",
+          "width": 322,
+          "client": 322,
+          "scroll": 322
+        },
+        {
+          "class": "dialog-actions",
+          "width": 322,
+          "client": 322,
+          "scroll": 322
+        }
+      ],
+      "identityWidths": []
+    },
+    {
+      "name": "synthetic-workspaces-390",
+      "dialogWidth": 358,
+      "clientWidth": 356,
+      "scrollWidth": 356,
+      "inner": [
+        {
+          "class": "archive-dialog-card",
+          "width": 356,
+          "client": 356,
+          "scroll": 356
+        },
+        {
+          "class": "workspace-board cloud-workspace-card",
+          "width": 322,
+          "client": 320,
+          "scroll": 320
+        },
+        {
+          "class": "workspace-board cloud-workspace-card",
+          "width": 322,
+          "client": 320,
+          "scroll": 320
+        },
+        {
+          "class": "dialog-actions",
+          "width": 322,
+          "client": 322,
+          "scroll": 322
+        }
+      ],
+      "identityWidths": [
+        292,
+        292
+      ]
+    },
+    {
+      "name": "synthetic-members-390",
+      "dialogWidth": 358,
+      "clientWidth": 356,
+      "scrollWidth": 356,
+      "inner": [
+        {
+          "class": "archive-dialog-card",
+          "width": 356,
+          "client": 356,
+          "scroll": 356
+        },
+        {
+          "class": "new-board-form",
+          "width": 322,
+          "client": 322,
+          "scroll": 322
+        },
+        {
+          "class": "workspace-board member-card",
+          "width": 322,
+          "client": 320,
+          "scroll": 320
+        },
+        {
+          "class": "workspace-board member-card",
+          "width": 322,
+          "client": 320,
+          "scroll": 320
+        },
+        {
+          "class": "workspace-board member-card",
+          "width": 322,
+          "client": 320,
+          "scroll": 320
+        },
+        {
+          "class": "new-board-form",
+          "width": 322,
+          "client": 318,
+          "scroll": 318
+        },
+        {
+          "class": "workspace-board invite-card",
+          "width": 322,
+          "client": 320,
+          "scroll": 320
+        },
+        {
+          "class": "workspace-board invite-card",
+          "width": 322,
+          "client": 320,
+          "scroll": 320
+        },
+        {
+          "class": "workspace-board invite-card",
+          "width": 322,
+          "client": 320,
+          "scroll": 320
+        },
+        {
+          "class": "workspace-board invite-card",
+          "width": 322,
+          "client": 320,
+          "scroll": 320
+        },
+        {
+          "class": "workspace-board invite-card",
+          "width": 322,
+          "client": 320,
+          "scroll": 320
+        }
+      ],
+      "identityWidths": [
+        282,
+        170,
+        170,
+        284,
+        196.359375,
+        284,
+        284,
+        284
+      ]
+    }
+  ]
+}

@@ -565,6 +565,7 @@ test('owner can retry an interrupted migration and the workspace list refreshes 
   await expect(archivedRow.getByRole('button',{name:/Open|Rename|Archive/})).toHaveCount(0);
   await expect(archivedRow.getByRole('button',{name:'Restore'})).toBeVisible();
   const [summaryBox,restoreBox]=await Promise.all([archivedRow.locator('.workspace-board').boundingBox(),archivedRow.getByRole('button',{name:'Restore'}).boundingBox()]);
+
   expect(restoreBox.y).toBeGreaterThanOrEqual(summaryBox.y+summaryBox.height-1);
   await archivedRow.getByRole('button',{name:'Restore'}).click();
   await expect(archivedRow).toContainText('Cloud workspace · owner · editable');
