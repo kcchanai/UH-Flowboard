@@ -1,0 +1,65 @@
+{
+  "name": "flowboard-visual-cleanup",
+  "status": "verified-local-release-candidate",
+  "branch": "luna/visual-cleanup",
+  "implementationSourceCommit": "c7f21fab9a5bac553d42bc610c250fabee3a4535",
+  "qualificationEvidenceCommit": "10cf6e155bb5557a6d9cabb48f9fa3b89c153cfb",
+  "baseProductionCommit": "a9d2ff46add71aa246da468ff2e343cce47dd276",
+  "rulesBlob": "5d7e06e02bb679db2b1a31605cf81deb3f9a9e9a",
+  "steps": {
+    "total": 10,
+    "completed": 10,
+    "localOnly": true
+  },
+  "checks": {
+    "unit": "37/37",
+    "rulesEmulator": "24/24",
+    "emulatorBrowser": "1/1",
+    "browserUnconfigured": "59/59",
+    "browserConfiguredSynthetic": "59/59",
+    "lighthouseAccessibility": "score 1; zero failed audits",
+    "productionAssetIsolation": "31/31",
+    "visualMatrixCaptures": 11,
+    "visualMatrixConsoleErrors": 0,
+    "visualMatrixPageErrors": 0,
+    "visualMatrixPageOverflowCaptures": 0,
+    "syntheticSurfaceCaptures": 6,
+    "syntheticSurfaceOverflowCaptures": 0
+  },
+  "budgets": {
+    "rawSourceBytes": {"used": 272807, "limit": 300000},
+    "initialShellGzipUnconfigured": {"used": 26100, "limit": 26250},
+    "initialShellGzipConfiguredSynthetic": {"used": 26166, "limit": 26250},
+    "firstPartyLazyGzip": {"used": 57940, "limit": 58000},
+    "documentGzip": 6004,
+    "indexHtmlBytes": {"used": 26777, "limit": 27250}
+  },
+  "performance": {
+    "fixture": {"lists": 20, "cards": 1000},
+    "samples": 3,
+    "initialRenderMsMedian": 563.8,
+    "initialRenderMsMaximum": 566.8,
+    "navigationMsMedian": 582,
+    "navigationMsMaximum": 589,
+    "filterMsMedian": 48.6,
+    "filterMsMaximum": 54.6,
+    "consoleErrors": 0,
+    "pageErrors": 0
+  },
+  "productionBoundary": {
+    "push": false,
+    "pullRequest": false,
+    "merge": false,
+    "pagesDeployment": false,
+    "rulesPublication": false,
+    "realAccountTesting": false,
+    "protectedWorkspaceAccess": false,
+    "lifecycleFixtureMutation": false
+  },
+  "evidence": {
+    "plan": "FLOWBOARD_VISUAL_CLEANUP_PLAN.md",
+    "progress": "FLOWBOARD_VISUAL_CLEANUP_PROGRESS.md",
+    "remainingSurfaceInventory": "artifacts/visual-cleanup/step-08/SURFACE_INVENTORY.md",
+    "screenshotIndex": "artifacts/visual-cleanup/release-candidate/SCREENSHOT_INDEX.md"
+  }
+}

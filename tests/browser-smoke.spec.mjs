@@ -256,6 +256,7 @@ test('account panel is a first-level workspace and profile hub without session f
 test('Workspace status opens cloud chooser separately from Boards', async ({page}) => {
   await openReady(page);
   await page.evaluate(async asset => {
+    await new Promise(resolve => setTimeout(resolve, 50));
     globalThis.FlowboardApp = {getMode:() => ({kind:'local'}), returnToLocal:()=>{}, exportCloudPreview:()=>{}};
     const cloudAdapter={listWorkspaces:async()=>[]};
     const {initializeCloudWorkspaceUI}=await import(asset);
@@ -565,6 +566,7 @@ test('owner can retry an interrupted migration and the workspace list refreshes 
   await expect(archivedRow.getByRole('button',{name:/Open|Rename|Archive/})).toHaveCount(0);
   await expect(archivedRow.getByRole('button',{name:'Restore'})).toBeVisible();
   const [summaryBox,restoreBox]=await Promise.all([archivedRow.locator('.workspace-board').boundingBox(),archivedRow.getByRole('button',{name:'Restore'}).boundingBox()]);
+
   expect(restoreBox.y).toBeGreaterThanOrEqual(summaryBox.y+summaryBox.height-1);
   await archivedRow.getByRole('button',{name:'Restore'}).click();
   await expect(archivedRow).toContainText('Cloud workspace · owner · editable');
@@ -950,6 +952,25 @@ test('desktop board structure keeps navigation separate and controls reachable',
     expect(layout.menu.width).toBeGreaterThan(0);
     expect(layout.search.width).toBeGreaterThan(0);
     expect(layout.firstList.right).toBeGreaterThan(layout.firstList.left);
+  }
+});
+
+test('board header actions align and Start here disclosure stays bounded', async ({page}) => {
+  await openReady(page);
+  for (const width of [1440, 960, 390, 320]) {
+    await page.setViewportSize({width, height:720});
+    const layout = await page.evaluate(() => {
+      const actions = document.querySelector('.board-actions').getBoundingClientRect();
+      const guide = document.querySelector('details.collaboration-notice').getBoundingClientRect();
+      return {pageFits:document.documentElement.scrollWidth <= document.documentElement.clientWidth, actions:{top:actions.top,bottom:actions.bottom,center:actions.top + actions.height / 2}, guide:{top:guide.top,bottom:guide.bottom,center:guide.top + guide.height / 2}};
+    });
+    expect(layout.pageFits, `header page overflow at ${width}px`).toBe(true);
+    if (width >= 960) expect(Math.abs(layout.actions.center - layout.guide.center), `header centerline at ${width}px`).toBeLessThanOrEqual(1);
+    else expect(layout.guide.top, `stacked disclosure at ${width}px`).toBeGreaterThanOrEqual(layout.actions.bottom - 1);
+    await page.locator('details.collaboration-notice summary').click();
+    await expect(page.locator('#start-here-copy')).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    await page.locator('details.collaboration-notice summary').click();
   }
 });
 
