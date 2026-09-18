@@ -1,0 +1,137 @@
+{
+  "scope": "anonymous local UI only; no sign-in, cloud workspace, production fixture, raw storage, or credentials",
+  "results": [
+    {
+      "name": "board-1280x720",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "documentWidth": 1280,
+      "errors": {
+        "console": 0,
+        "page": 0
+      }
+    },
+    {
+      "name": "board-1440x900",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "errors": {
+        "console": 0,
+        "page": 0
+      }
+    },
+    {
+      "name": "list-1440x900",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "errors": {
+        "console": 0,
+        "page": 0
+      }
+    },
+    {
+      "name": "card-1440x900",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "errors": {
+        "console": 0,
+        "page": 0
+      }
+    },
+    {
+      "name": "quick-add-1440x900",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "errors": {
+        "console": 0,
+        "page": 0
+      }
+    },
+    {
+      "name": "appearance-1440x900",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "errors": {
+        "console": 0,
+        "page": 0
+      }
+    },
+    {
+      "name": "dark-1440x900",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "documentWidth": 1440,
+      "errors": {
+        "console": 0,
+        "page": 0
+      }
+    },
+    {
+      "name": "board-1920x1080",
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "documentWidth": 1920,
+      "errors": {
+        "console": 0,
+        "page": 0
+      }
+    },
+    {
+      "name": "board-960x720",
+      "viewport": {
+        "width": 960,
+        "height": 720
+      },
+      "documentWidth": 960,
+      "errors": {
+        "console": 0,
+        "page": 0
+      }
+    },
+    {
+      "name": "board-390x844",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "documentWidth": 390,
+      "errors": {
+        "console": 0,
+        "page": 0
+      }
+    },
+    {
+      "name": "board-320x720",
+      "viewport": {
+        "width": 320,
+        "height": 720
+      },
+      "documentWidth": 320,
+      "errors": {
+        "console": 0,
+        "page": 0
+      }
+    }
+  ]
+}

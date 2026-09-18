@@ -16,8 +16,8 @@ Production boundary: local-only implementation and qualification. No push, PR, m
 - [x] Step 6 of 10 - Members, invitations, and ownership controls verified
 - [x] Step 7 of 10 - Board, List, and card editing surfaces verified
 - [x] Step 8 of 10 - remaining dialogs, menus, and feedback states verified
-- [ ] Step 9 of 10 - in progress
-- [ ] Step 10 of 10
+- [x] Step 9 of 10 - comprehensive visual and accessibility matrix verified
+- [ ] Step 10 of 10 - in progress
 
 ## Evidence
 
