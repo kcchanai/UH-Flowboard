@@ -633,8 +633,10 @@ test('card edits stay isolated until Save and preserve drafts after a failed sav
   const originalTitle = await page.locator('#card-title-input').inputValue();
   const originalLabels = await dialog.locator('#label-editor .label-row').count();
   await page.locator('#add-label').click();
-  await expect(dialog.locator('#label-editor .label-row')).toHaveCount(originalLabels + 1);
-  await page.locator('#close-card-dialog').click();
+    await expect(dialog.locator('#label-editor .label-row')).toHaveCount(originalLabels + 1);
+    await page.locator('#card-title-input').fill(`${originalTitle} draft`);
+    await expect(page.locator('#card-draft-status')).toHaveText('Unsaved changes');
+    await page.locator('#cancel-card-dialog').click();
   await expect(page.locator('#confirm-dialog')).toContainText('Discard unsaved changes?');
   await page.locator('#confirm-dialog').getByRole('button', {name:'Cancel'}).click();
   await expect(dialog).toBeVisible();
