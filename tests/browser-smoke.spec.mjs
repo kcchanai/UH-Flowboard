@@ -710,16 +710,42 @@ test('card capture is IME-safe and returns focus for continued entry', async ({p
   await firstList.getByRole('button', {name: /add a card/i}).click();
   const input = firstList.getByLabel('New card title');
   await input.fill('Line one');
-  await input.press('Shift+Enter');
+  await input.press('Enter');
   await input.type('Line two');
   await expect(input).toHaveValue('Line one\nLine two');
   const before = await page.locator('.card-open').count();
   await input.fill('Composed card');
   await input.evaluate(element => element.dispatchEvent(new KeyboardEvent('keydown', {key:'Enter', bubbles:true, cancelable:true, isComposing:true})));
   await expect(page.locator('.card-open')).toHaveCount(before);
-  await input.press('Enter');
+  await input.press('Control+Enter');
   await expect(page.locator('.card-open').filter({hasText:'Composed card'})).toBeVisible();
   await expect(firstList.getByRole('button', {name: /add a card/i})).toBeFocused();
+});
+
+test('quick add chooses a destination and can open existing card details', async ({page}) => {
+  await openReady(page);
+  await page.locator('#quick-add-card').click();
+  const dialog = page.locator('#quick-add-dialog');
+  await expect(dialog).toBeVisible();
+  await dialog.locator('#quick-add-title').fill('Quick capture card');
+  const destination = await dialog.locator('#quick-add-list').evaluate(select => select.options[1]?.value);
+  await dialog.locator('#quick-add-list').selectOption(destination);
+  await dialog.locator('#quick-add-open').check();
+  await dialog.getByRole('button', {name:'Add card', exact:true}).click();
+  await expect(page.locator('#card-dialog')).toBeVisible();
+  await expect(page.locator('#card-title-input')).toHaveValue('Quick capture card');
+  await page.keyboard.press('Escape');
+  await expect(page.locator(`[data-list-id="${destination}"] .card-open`).filter({hasText:'Quick capture card'})).toBeVisible();
+});
+
+test('slash shortcut focuses board search outside text controls', async ({page}) => {
+  await openReady(page);
+  await page.locator('#board').focus();
+  await page.keyboard.press('/');
+  await expect(page.locator('#search')).toBeFocused();
+  await page.locator('#search').fill('keep typing');
+  await page.keyboard.press('/');
+  await expect(page.locator('#search')).toHaveValue('keep typing/');
 });
 
 test('Move card dialog handles empty lists and returns focus with position', async ({page}) => {
