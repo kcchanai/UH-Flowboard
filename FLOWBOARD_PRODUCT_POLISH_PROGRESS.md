@@ -17,8 +17,8 @@ Production: unchanged and out of scope until separately authorized.
 | 6 of 10 | complete | `artifacts/product-polish/step-06/` | Lazy List view with parity, sorting, pagination and failure recovery |
 | 7 of 10 | complete | `artifacts/product-polish/step-07/` | Safe quick capture and keyboard shortcuts |
 | 8 of 10 | complete | `artifacts/product-polish/step-08/` | Card detail hierarchy, drafts, Save/Cancel and feedback |
-| 9 of 10 | in_progress | `artifacts/product-polish/step-09/` | Full final-source qualification matrix |
-| 10 of 10 | pending | `artifacts/product-polish/release-candidate/` | Local candidate package and stop before remote operations |
+| 9 of 10 | complete | `artifacts/product-polish/step-09/` | Full final-source qualification matrix |
+| 10 of 10 | in_progress | `artifacts/product-polish/release-candidate/` | Local candidate package and stop before remote operations |
 
 ## Reporting contract
 
