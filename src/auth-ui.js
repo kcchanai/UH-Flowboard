@@ -15,6 +15,7 @@ const currentMode = () => globalThis.FlowboardApp?.getMode?.() || {kind:'local'}
 const remoteMode = mode => ['cloud','cloud-preview'].includes(mode.kind);
 
 export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
+  const styleReady = import('./auth-ui-style.js');
   const button = document.querySelector('#account-button');
   const dialog = document.querySelector('#account-dialog');
   const close = document.querySelector('#close-account-dialog');
@@ -83,7 +84,7 @@ export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
     if (notify) onSessionChange(session);
   };
 
-  button.addEventListener('click', () => { render(currentSession, false); dialog.showModal(); close.focus(); });
+  button.addEventListener('click', async () => { await styleReady; render(currentSession, false); dialog.showModal(); close.focus(); });
   close.addEventListener('click', () => dialog.close());
   dialog.addEventListener('cancel', event => { event.preventDefault(); dialog.close(); });
   dialog.addEventListener('close', () => button.focus());

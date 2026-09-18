@@ -11,8 +11,8 @@ Production boundary: local-only implementation and qualification. No push, PR, m
 - [x] Step 1 of 10 - baseline pinned, defects reproduced, and all baseline gates passed
 - [x] Step 2 of 10 - shared visual and dialog foundations verified
 - [x] Step 3 of 10 - board header and toolbar alignment verified
-- [ ] Step 4 of 10 - in progress
-- [ ] Step 5 of 10
+- [x] Step 4 of 10 - Account and profile presentation verified
+- [ ] Step 5 of 10 - in progress
 - [ ] Step 6 of 10
 - [ ] Step 7 of 10
 - [ ] Step 8 of 10
