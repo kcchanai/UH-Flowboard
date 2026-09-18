@@ -1029,6 +1029,24 @@ test('member profile controls share and stop the current account photo', async (
   expect(await page.evaluate(() => globalThis.profileWrites[1].options.photoURL)).toBe('');
 });
 
+test('profile sharing reports readback failure without claiming success', async ({page}) => {
+  await openReady(page);
+  await page.evaluate(async asset => {
+    document.body.innerHTML = `<button id="open-workspace-members">Manage members</button><dialog id="workspace-members-dialog" aria-labelledby="workspace-members-heading"><h2 id="workspace-members-heading">Members and invitations</h2><button id="close-workspace-members">Close</button><p id="workspace-members-status"></p><section id="workspace-profile-section"><h3>Your photo</h3><p id="workspace-profile-status"></p><div><button id="share-profile-photo">Share Google profile photo</button><button id="refresh-profile-photo">Refresh shared photo</button><button id="stop-profile-photo">Stop sharing photo</button><button id="retry-profile-photo">Retry</button></div></section><form id="create-invite-form" hidden><input id="invite-email"><select id="invite-role"><option value="editor">Editor</option></select><button type="submit">Create invitation</button></form><p id="invite-link-status"></p><div id="workspace-members-list"></div><section id="workspace-invites-section" hidden><div id="workspace-invites-list"></div></section><form id="transfer-ownership-form" hidden><select id="ownership-successor"></select><select id="former-owner-role"><option value="editor">Editor</option></select><button type="submit">Transfer ownership</button></form></dialog>`;
+    globalThis.FlowboardApp = {getMode:() => ({kind:'cloud',id:'readback-fixture',name:'Readback workspace',role:'owner'})};
+    globalThis.profileWrites=[];
+    const member={uid:'owner',displayName:'Owner',role:'owner',emailLower:'owner@example.test',photoURL:''};
+    const adapter={listMembers:async()=>[member],listInvites:async()=>[],updateOwnMemberProfile:async(workspaceId,options)=>{globalThis.profileWrites.push({workspaceId,options});},changeMemberRole:async()=>{},removeMember:async()=>{},leaveWorkspace:async()=>{},transferOwnership:async()=>{},revokeInvite:async()=>{},createInvite:async()=>({})};
+    const {initializeMembersUI}=await import(asset); initializeMembersUI(adapter).setSession({uid:'owner',displayName:'Owner',email:'owner@example.test',photoURL:'https://lh3.googleusercontent.com/a/synthetic=s96-c'});
+  }, builtMembersAsset());
+  await page.getByRole('button',{name:'Manage members'}).click();
+  await page.getByRole('button',{name:'Share Google profile photo'}).click();
+  await expect.poll(() => page.evaluate(() => globalThis.profileWrites.length)).toBe(1);
+  await expect(page.locator('#workspace-profile-status')).toContainText('could not be verified');
+  await expect(page.getByRole('button',{name:'Retry'})).toBeVisible();
+  await expect(page.locator('#workspace-profile-status')).not.toContainText('Profile photo shared with');
+});
+
 test('cloud roster maps assignment UIDs to three badges and overflow', async ({page}) => {
   await openReady(page);
   await page.evaluate(async asset => {
