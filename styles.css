@@ -136,3 +136,7 @@ main { min-height:calc(100vh - 64px);padding:clamp(20px,3vw,32px) clamp(14px,3vw
   .dialog { max-width:calc(100vw - 20px); }
   .dialog-actions { justify-content:flex-end; }
 }
+
+/* Board header alignment and disclosure foundations. */
+.board-header { align-items:center;row-gap:10px; }
+.board-header > .collaboration-notice { min-height:38px;margin:0!important;padding:8px 12px!important;line-height:20px; }

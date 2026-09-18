@@ -953,6 +953,25 @@ test('desktop board structure keeps navigation separate and controls reachable',
   }
 });
 
+test('board header actions align and Start here disclosure stays bounded', async ({page}) => {
+  await openReady(page);
+  for (const width of [1440, 960, 390, 320]) {
+    await page.setViewportSize({width, height:720});
+    const layout = await page.evaluate(() => {
+      const actions = document.querySelector('.board-actions').getBoundingClientRect();
+      const guide = document.querySelector('details.collaboration-notice').getBoundingClientRect();
+      return {pageFits:document.documentElement.scrollWidth <= document.documentElement.clientWidth, actions:{top:actions.top,bottom:actions.bottom,center:actions.top + actions.height / 2}, guide:{top:guide.top,bottom:guide.bottom,center:guide.top + guide.height / 2}};
+    });
+    expect(layout.pageFits, `header page overflow at ${width}px`).toBe(true);
+    if (width >= 960) expect(Math.abs(layout.actions.center - layout.guide.center), `header centerline at ${width}px`).toBeLessThanOrEqual(1);
+    else expect(layout.guide.top, `stacked disclosure at ${width}px`).toBeGreaterThanOrEqual(layout.actions.bottom - 1);
+    await page.locator('details.collaboration-notice summary').click();
+    await expect(page.locator('#start-here-copy')).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    await page.locator('details.collaboration-notice summary').click();
+  }
+});
+
 test('density toggle is browser-local and preserves workspace bytes', async ({page}) => {
   await openReady(page);
   const before = await page.evaluate(() => localStorage.getItem('flowboard-workspace'));
