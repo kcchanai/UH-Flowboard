@@ -15,7 +15,7 @@
 | Step | Status | Checkpoint | Summary |
 |---|---|---|---|
 | 1 of 10 | complete | `48690bc9024c947250488428bffc86f70b8974a2` baseline plus Step 1 artifact commit | Baseline pinned on a new isolated branch; source, build, Rules, browser, and isolation checks passed. |
-| 2 of 10 | in_progress | uncommitted | Quantify safe source recovery and reserve implementation headroom. |
+| 2 of 10 | in_progress (blocked) | uncommitted | Budget gate reached; quantified cap proposal recorded in `artifacts/ux-discoverability/step-02/budget-proposal.md`. Awaiting Aaron's decision before any source-budget transition or feature edits. |
 | 3 of 10 | pending | - | First-level Account hub. |
 | 4 of 10 | pending | - | Workspace-scoped sharing controller. |
 | 5 of 10 | pending | - | Immediate roster refresh. |
