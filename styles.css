@@ -85,7 +85,7 @@ main { min-height:calc(100vh - 64px);padding:clamp(20px,3vw,32px) clamp(14px,3vw
 .card { list-style:none;}
 .card-open { display:block;width:100%;min-height:44px;padding:0 20px 0 0;color:inherit;background:transparent;text-align:left;}
 .card-open:focus-visible { outline:0;}
-.card:focus-within { box-shadow:0 0 0 3px var(--focus),var(--shadow-sm);}
+.card:focus-within { box-shadow:0 0 0 3px var(--focus),var(--shadow-sm);} :root[data-density="compact"] .card { padding:10px;margin-bottom:7px;} :root[data-density="compact"] .cards { padding-top:7px;} :root[data-density="compact"] .list { padding:9px;}
 .menu-panel [role="menuitem"]:focus-visible { outline-offset:-2px;}
 .filter-panel[hidden], .menu-panel[hidden] { display:none;}
 @media (forced-colors:active) {

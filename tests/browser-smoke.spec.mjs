@@ -40,9 +40,12 @@ test('getting started explains local starter content and safe cloud boundaries',
   await expect(guide).toContainText('Read-only previews');
   await expect(guide).toContainText('browser-local');
   await page.getByRole('button', {name:'Board actions'}).click();
-  await expect(page.getByRole('menuitem').first()).toHaveText('Board data: Export this board (JSON)');
-  await expect(page.getByRole('menuitem').filter({hasText:'Workspace data:'})).toHaveCount(2);
-  await expect(page.getByRole('menuitem').filter({hasText:'Recovery:'})).toHaveCount(3);
+  await expect(page.getByRole('menuitem', {name:'Board data: Export this board (JSON)'})).toBeVisible();
+    await expect(page.getByRole('menuitem').filter({hasText:'Workspace data:'})).toHaveCount(2);
+    await expect(page.getByRole('menuitem').filter({hasText:'Recovery:'})).toHaveCount(3);
+    const initialLists = await page.locator('.list').count();
+    await page.getByRole('menuitem', {name:'Add a list'}).click();
+    await expect(page.locator('.list')).toHaveCount(initialLists + 1);
   await page.keyboard.press('Escape');
   await page.screenshot({path:'artifacts/mvp-v2/step-10/getting-started.png', fullPage:true});
   await page.screenshot({path:'artifacts/mvp-v2/step-11/start-here.png', fullPage:true});
@@ -920,6 +923,21 @@ test('desktop board structure keeps navigation separate and controls reachable',
     expect(layout.search.width).toBeGreaterThan(0);
     expect(layout.firstList.right).toBeGreaterThan(layout.firstList.left);
   }
+});
+
+test('density toggle is browser-local and preserves workspace bytes', async ({page}) => {
+  await openReady(page);
+  const before = await page.evaluate(() => localStorage.getItem('flowboard-workspace'));
+  const toggle = page.locator('#density-toggle');
+  await toggle.click();
+  await expect(toggle).toHaveText('Compact');
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.density)).toBe('compact');
+  const compact = await page.evaluate(() => ({workspace:localStorage.getItem('flowboard-workspace'),preference:JSON.parse(localStorage.getItem('flowboard-ui-preferences'))}));
+  expect(compact.workspace).toBe(before);
+  expect(compact.preference.density).toBe('compact');
+  await toggle.click();
+  await expect(toggle).toHaveText('Comfortable');
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.density)).toBe('comfortable');
 });
 
 test('responsive widths confine horizontal scrolling to the board lane', async ({page}) => {

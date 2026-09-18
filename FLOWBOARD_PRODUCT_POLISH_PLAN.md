@@ -1,6 +1,6 @@
 # Flowboard product polish and daily-work experience
 
-**Status: implementation in progress on `luna/product-polish`; Step 3 is complete and Step 4 is in progress.**
+**Status: implementation in progress on `luna/product-polish`; Step 4 is complete and Step 5 is in progress.**
 
 Prepared for Aaron on 2026-09-18. Intended implementer: `gpt-5.6-luna`, after Aaron switches models and explicitly asks to implement this plan. A model switch alone is not implementation authorization.
 
@@ -109,13 +109,13 @@ A genuine List view plus safer interaction improvements cannot responsibly be pr
 
 ### Approved implementation envelope
 
-Aaron pre-approved budget increases in the implementation instruction. Step 2 measured the transition and adopted the raw cap below. This approval does not authorize a future gzip-limit increase, a second raw-cap increase or scope outside this plan.
+Aaron pre-approved budget increases in the implementation instruction. Step 2 measured the transition and adopted the raw cap below. Step 4 then adopted a narrow 25,500-byte initial-shell gzip cap after measuring a 25,145-byte shell; the lazy cap remains 55,000. Future budget changes still require measured evidence and a new explicit scope decision.
 
 **Approved raw cap: 300,000 bytes**, leaving 51,245 bytes of measured Step 2 headroom and an estimated maintenance envelope above the current implementation. Final release must retain at least 10,000 raw bytes under this cap. Keep the 210,000 maintainability warning visible.
 
-First attempt to retain shell 25,000 and lazy 55,000 via honest lazy loading and consolidation. If measured prototypes cannot fit, Step 2 may propose **shell 27,500 and lazy 65,000 gzip bytes**, supported by transfer/render measurements. Those are proposal ceilings, NOT preapproved limits or reasons to inflate output. Do not reclassify normal shell code as document/vendor to escape the budget. Document and vendor transfer remain measured separately.
+The approved Step 4 envelope is shell 25,500 and lazy 55,000 gzip bytes. Future measured prototypes may propose another transition, but no limit is raised merely to avoid consolidation; document and vendor transfer remain measured separately.
 
-Step 2 recorded the exact measured delta: 245,459 to 248,755 raw bytes, with initial shell gzip moving from 24,719 to 24,882 and lazy gzip unchanged at 51,429. Future cap changes require a new explicit scope decision and measured evidence.
+Step 2 recorded the exact measured delta: 245,459 to 248,755 raw bytes, with initial shell gzip moving from 24,719 to 24,882 and lazy gzip unchanged at 51,429. Step 4 recorded the later shell transition at 25,145 / 25,500 and lazy at 51,904 / 55,000. Future cap changes require a new explicit scope decision and measured evidence.
 
 If no increase is approved, offer a reduced presentation-only release: token cleanup, toolbar grouping and detail hierarchy using measured recovered space. Defer List view and additional filters rather than calling the full ten-step plan complete. Any scope change needs an explicit decision.
 
