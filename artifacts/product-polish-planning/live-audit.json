@@ -1,0 +1,15 @@
+{
+  "url": "https://kcchanai.github.io/UH-Flowboard/",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "cards": 10,
+  "theme": "light",
+  "cardDialog": "CARD DETAILS\n\nResearch competitor landing pages\nTitle\nDescription\nLabels\nAdd label\nGreen\nPurple\nOrange\nRed\nDue date\nDue time (optional)\nCompletion\nMark complete\nAssignees\nChecklist\nAdd item\n\nNo checklist items yet.\n\nActivity\nCard created\nSep 18, 1:57 AM\nArchive\nDelete\nMove\nDuplicate\nSave changes",
+  "darkTheme": "dark",
+  "errors": {
+    "console": 0,
+    "page": 0
+  }
+}
