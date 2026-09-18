@@ -8,5 +8,5 @@ export function renderPersonBadge(container, person = {}, {photoPreference = tru
   container.classList.add('person-badge'); container.removeAttribute('role'); container.removeAttribute('aria-label');
   const source = photoPreference ? safePhotoURL(person.photoURL) : '';
   if (!source) return fallback();
-  const image = document.createElement('img'); image.src = source; image.alt = decorative ? '' : name; image.referrerPolicy = 'no-referrer'; image.decoding = 'async'; image.loading = 'lazy'; image.addEventListener('error', fallback, {once:true}); container.append(image); if (decorative) container.setAttribute('aria-hidden', 'true'); else container.setAttribute('aria-label', name);
+  container.replaceChildren(); const image = document.createElement('img'); image.src = source; image.alt = decorative ? '' : name; image.referrerPolicy = 'no-referrer'; image.decoding = 'async'; image.loading = 'lazy'; image.addEventListener('error', fallback, {once:true}); container.append(image); if (decorative) container.setAttribute('aria-hidden', 'true'); else container.setAttribute('aria-label', name);
 }

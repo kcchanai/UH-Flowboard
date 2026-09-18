@@ -192,13 +192,51 @@ test('Google account dialog preserves an explicit local-only boundary', async ({
     return;
   }
   await account.click();
-  const dialog = page.getByRole('dialog', {name: 'Google sign-in'});
+  const dialog = page.getByRole('dialog', {name:/Sign in|Account/});
   await expect(dialog).toBeVisible();
   await expect(dialog).toContainText("Signing in does not upload, merge, replace, or delete this browser's workspace.");
   await expect(dialog.getByRole('button', {name: 'Continue with Google'})).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(dialog).toBeHidden();
   await expect(account).toBeFocused();
+});
+
+test('account panel is a first-level workspace and profile hub without session fanout', async ({page}) => {
+  await openReady(page);
+  await page.route('https://lh3.googleusercontent.com/**', route => route.fulfill({status:200, contentType:'image/svg+xml', body:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2 2"><path d="M0 0h2v2H0z" fill="rebeccapurple"/></svg>'}));
+  const before = await page.evaluate(() => { document.querySelector('#account-button').hidden = false; return localStorage.getItem('flowboard-workspace'); });
+  await page.evaluate(async ({authAsset, membersAsset}) => {
+    globalThis.FlowboardApp = {getMode:() => ({kind:'cloud', id:'synthetic-workspace', name:'Synthetic workspace', role:'owner', syncStatus:'Synced'})};
+    const member = {uid:'synthetic-owner', displayName:'Synthetic owner', role:'owner', emailLower:'owner@example.test', photoURL:''};
+    let propagations = 0;
+    const adapter = {
+      onAuthStateChange: callback => { globalThis.syntheticAuth = callback; return () => {}; },
+      signInWithGoogle:async() => null, signOut:async() => {}, listMembers:async() => [member], listInvites:async() => [],
+      updateOwnMemberProfile:async() => {}, changeMemberRole:async() => {}, removeMember:async() => {}, leaveWorkspace:async() => {},
+      transferOwnership:async() => {}, revokeInvite:async() => {}, createInvite:async() => ({url:'https://example.test/invite'})
+    };
+    const {initializeMembersUI} = await import(membersAsset);
+    const members = initializeMembersUI(adapter);
+    const {initializeAuthUI} = await import(authAsset);
+    initializeAuthUI(adapter, {onSessionChange: session => { propagations += 1; members.setSession(session); }});
+    await globalThis.syntheticAuth({uid:'synthetic-owner', displayName:'Synthetic owner', email:'owner@example.test', photoURL:'https://lh3.googleusercontent.com/a/synthetic=s96-c'});
+    globalThis.syntheticPropagationCount = () => propagations;
+  }, {authAsset:builtAuthAsset(), membersAsset:builtMembersAsset()});
+  await expect(page.locator('#workspace-profile-section')).not.toHaveAttribute('hidden', '');
+  await page.locator('#account-button').click();
+  const account = page.getByRole('dialog', {name:'Account'});
+  await expect(account).toBeVisible();
+  await expect(account.locator('#account-workspace-name')).toHaveText('Synthetic workspace');
+  await expect(account.locator('#account-workspace-detail')).toContainText('Cloud workspace · owner · Synced');
+  await expect(account.getByRole('button', {name:'Share Google profile photo'})).toBeVisible();
+  await expect(page.locator('#account-button')).toHaveAttribute('aria-label', 'Account: Synthetic owner');
+  await expect(page.locator('#account-button img')).toHaveCount(1);
+  const count = await page.evaluate(() => globalThis.syntheticPropagationCount());
+  await page.getByRole('button', {name:'Close account'}).click();
+  await page.locator('#account-button').click();
+  await expect.poll(() => page.evaluate(() => globalThis.syntheticPropagationCount())).toBe(count);
+  expect(await page.evaluate(() => localStorage.getItem('flowboard-workspace'))).toBe(before);
+  await page.getByRole('button', {name:'Close account'}).click();
 });
 
 test('owner workspace lifecycle dialog renames, archives, restores, and returns focus', async ({page}) => {
