@@ -6,7 +6,7 @@ Step 9 qualifies the complete UX pass in unconfigured local mode, CI-like config
 
 ## Final qualification results
 
-- `npm.cmd run validate`: passed during the final qualification cycle for unit, syntax, static, build, budget, and production asset checks.
+- The repository's `npm.cmd run validate` sequence passed during the qualification cycle. After the final accessibility-name correction, its constituent unit, syntax/static, build/budget, and asset-isolation commands were rerun individually and passed again.
 - Final unconfigured source/build gates:
   - `npm.cmd run build`: passed, 47 modules transformed.
   - Reachable source: **245,459 / 247,500 bytes**.
