@@ -36,6 +36,14 @@ test('getting started explains local starter content and safe cloud boundaries',
   await expect(guide).toContainText('export, recover');
   await expect(guide).toContainText('cloud workspaces');
   await expect(guide).toContainText('retained');
+  await expect(guide).toContainText('Search cards above');
+  await expect(guide).toContainText('Read-only previews');
+  await expect(guide).toContainText('browser-local');
+  await page.getByRole('button', {name:'Board actions'}).click();
+  await expect(page.getByRole('menuitem').first()).toHaveText('Board data: Export this board (JSON)');
+  await expect(page.getByRole('menuitem').filter({hasText:'Workspace data:'})).toHaveCount(2);
+  await expect(page.getByRole('menuitem').filter({hasText:'Recovery:'})).toHaveCount(3);
+  await page.keyboard.press('Escape');
   await page.screenshot({path:'artifacts/mvp-v2/step-10/getting-started.png', fullPage:true});
   await page.screenshot({path:'artifacts/mvp-v2/step-11/start-here.png', fullPage:true});
 });
@@ -48,8 +56,8 @@ test('malformed recovery and import inputs leave local storage unchanged', async
     return current;
   });
   await page.getByRole('button', {name:'Board actions'}).click();
-  await page.getByRole('menuitem', {name:'Local recovery'}).click();
-  const recovery = page.getByRole('dialog', {name:'Local recovery'});
+  await page.getByRole('menuitem', {name:/Local recovery/}).click();
+  const recovery = page.getByRole('dialog', {name:/Local recovery/});
   await expect(recovery).toContainText('Snapshot 1');
   await recovery.getByRole('button', {name:'Restore snapshot 1'}).click();
   await expect(page.locator('#toast')).toContainText('not valid and was not restored');
@@ -137,8 +145,8 @@ test('local Recovery lists, exports, and safely restores a snapshot', async ({pa
   await firstList.getByRole('button', {name: 'Add card'}).click();
   await page.getByRole('button', {name: 'Board actions'}).click();
   const menu = page.getByRole('menu');
-  await menu.getByRole('menuitem', {name: 'Local recovery'}).click();
-  const dialog = page.getByRole('dialog', {name: 'Local recovery'});
+  await menu.getByRole('menuitem', {name: /Local recovery/}).click();
+  const dialog = page.getByRole('dialog', {name: /Local recovery/});
   await expect(dialog).toContainText('Snapshot 1');
   const downloadPromise = page.waitForEvent('download');
   await dialog.getByRole('button', {name: 'Export snapshot 1'}).click();
@@ -257,6 +265,23 @@ test('Workspace status opens cloud chooser separately from Boards', async ({page
   await expect(page.getByRole('dialog', {name:'Cloud workspaces'})).toBeVisible();
   await page.getByRole('button', {name:'Close cloud workspaces'}).click();
   await expect(page.locator('#cloud-status')).toBeFocused();
+});
+
+test('cloud status feedback stays distinct and preserves local data scope', async ({page}) => {
+  await openReady(page);
+  const before = await page.evaluate(() => localStorage.getItem('flowboard-workspace'));
+  await page.evaluate(() => FlowboardApp.openCloudWorkspace(FlowboardState.makeWorkspace(), {id:'status-fixture',name:'Status fixture',role:'editor'}));
+  for (const status of ['Connecting','Saving','Synced','Offline','Conflict','Error']) {
+    await page.evaluate(value => FlowboardApp.setCloudSyncStatus(value, `${value} status`), status);
+    await expect(page.locator('#cloud-status')).toHaveText(`Cloud workspace · editor · ${status}`);
+    await expect(page.locator('#cloud-status')).toHaveAttribute('title', `${status} status`);
+  }
+  await page.getByRole('button',{name:'Open appearance settings'}).click();
+  await page.getByRole('button',{name:'Close appearance'}).click();
+  await expect(page.locator('#cloud-status')).toHaveText('Cloud workspace · editor · Error');
+  await page.evaluate(() => FlowboardApp.returnToLocal());
+  await expect(page.locator('#collaboration-summary')).toHaveText('Browser-local workspace · editable');
+  expect(await page.evaluate(expected => localStorage.getItem('flowboard-workspace') === expected, before)).toBe(true);
 });
 
 test('short desktop dialogs keep close actions reachable and return focus', async ({page}) => {
