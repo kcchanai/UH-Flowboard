@@ -1,0 +1,67 @@
+{
+  "candidate": "flowboard-product-polish-local",
+  "status": "verified-local-release-candidate",
+  "branch": "luna/product-polish",
+  "commit": "c7bc8eddddd5e5a0c1f3b738aa3da91fe259f1d6",
+  "baseCommit": "bba3647131d1dac0c05f8e21893e11a82c3a0034",
+  "rules": {
+    "sourceChanged": false,
+    "gitBlobSha1": "5d7e06e02bb679db2b1a31605cf81deb3f9a9e9a"
+  },
+  "qualification": {
+    "unit": "37/37",
+    "rulesEmulator": "24/24",
+    "emulatorBrowser": "1/1",
+    "browserSmokeUnconfigured": "58/58",
+    "browserSmokeSyntheticConfigured": "58/58",
+    "lighthouseAccessibility": "score 1; zero failed audits",
+    "productionAssetIsolation": "28/28",
+    "publicSourceEmDashScan": "0 files",
+    "gitDiffCheck": "passed"
+  },
+  "budgets": {
+    "rawSourceBytes": {"used": 265366, "limit": 300000},
+    "initialShellGzipBytes": {"used": 25942, "limit": 26000},
+    "firstPartyLazyGzipBytes": {"used": 55798, "limit": 58000},
+    "indexSourceBytes": {"used": 27051, "limit": 27250},
+    "documentGzipBytes": {"used": 5997}
+  },
+  "performance": {
+    "fixtureCards": 1000,
+    "samples": 3,
+    "renderMedianMs": 594.5,
+    "renderMaxMs": 685.7,
+    "navigationMedianMs": 627,
+    "navigationMaxMs": 720,
+    "filterMedianMs": 64.4,
+    "filterMaxMs": 71.7,
+    "consoleOrPageErrors": 0
+  },
+  "visualMatrix": {
+    "viewports": ["1280x720", "1440x900", "1920x1080", "960x720", "390x844", "320x720"],
+    "listEvidence": "1440x900",
+    "cardEvidence": ["960x720", "1280x720", "1440x900", "1920x1080"],
+    "darkMode": true,
+    "consoleOrPageErrors": 0
+  },
+  "production": {
+    "changed": false,
+    "push": false,
+    "pullRequest": false,
+    "merge": false,
+    "pagesDeployment": false,
+    "rulesPublication": false,
+    "realAccountTesting": false
+  },
+  "evidence": [
+    "artifacts/product-polish/step-01/",
+    "artifacts/product-polish/step-02/",
+    "artifacts/product-polish/step-03/",
+    "artifacts/product-polish/step-04/",
+    "artifacts/product-polish/step-05/",
+    "artifacts/product-polish/step-06/",
+    "artifacts/product-polish/step-07/",
+    "artifacts/product-polish/step-08/",
+    "artifacts/product-polish/step-09/"
+  ]
+}
