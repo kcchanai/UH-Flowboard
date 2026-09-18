@@ -23,5 +23,8 @@ export async function bootstrapFlowboard({cloudConfigured, cloudStatus, cloudIni
     document.querySelector('#cloud-status').textContent = 'Firebase unavailable';
   } else {
     document.querySelector('#account-button').hidden = true;
+    const workspaceStatus = document.querySelector('#cloud-status');
+    workspaceStatus.disabled = true;
+    workspaceStatus.setAttribute('aria-label', 'Cloud workspaces unavailable');
   }
 }

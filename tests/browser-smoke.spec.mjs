@@ -239,6 +239,22 @@ test('account panel is a first-level workspace and profile hub without session f
   await page.getByRole('button', {name:'Close account'}).click();
 });
 
+test('Workspace status opens cloud chooser separately from Boards', async ({page}) => {
+  await openReady(page);
+  await page.evaluate(async asset => {
+    globalThis.FlowboardApp = {getMode:() => ({kind:'local'}), returnToLocal:()=>{}, exportCloudPreview:()=>{}};
+    const cloudAdapter={listWorkspaces:async()=>[]};
+    const {initializeCloudWorkspaceUI}=await import(asset);
+    initializeCloudWorkspaceUI({localAdapter:{},cloudAdapter}).setSession({uid:'owner'});
+  }, builtCloudWorkspaceAsset());
+  await expect(page.locator('#boards-button')).toHaveText('Boards');
+  await expect(page.locator('#cloud-status')).toBeEnabled();
+  await expect(page.locator('#cloud-status')).toHaveAccessibleName('Open workspace chooser');
+  await page.locator('#cloud-status').click();
+  await expect(page.getByRole('dialog', {name:'Cloud workspaces'})).toBeVisible();
+  await page.getByRole('button', {name:'Close cloud workspaces'}).click();
+});
+
 test('owner workspace lifecycle dialog renames, archives, restores, and returns focus', async ({page}) => {
   await openReady(page);
   await page.evaluate(async asset => {
@@ -938,7 +954,7 @@ test('appearance preview is lazy, draft-only, and cancel preserves workspace byt
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole('radio')).toHaveCount(15);
   await expect(page.locator('#appearance-palettes input[type="radio"]')).toHaveCount(8);
-  await expect(page.locator('#appearance-scope')).toContainText('does not change shared boards');
+  await expect(page.locator('#appearance-scope')).toContainText('changes only your view');
   await page.getByRole('radio', {name:/Ocean Slate/}).check();
   await page.getByRole('radio', {name:'Dark', exact:true}).check();
   await page.getByRole('radio', {name:'Solid color', exact:true}).check();
