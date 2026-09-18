@@ -23,7 +23,7 @@
 | 7 of 10 | complete | `artifacts/ux-discoverability/step-07/results.md` plus dialog reachability checkpoint | Rich dialogs now scroll within short viewports; Account, Appearance, Boards, and Workspace chooser focus returns and close controls pass the six-viewport matrix. |
 | 8 of 10 | complete | `artifacts/ux-discoverability/step-08/results.md` plus feedback checkpoint | Start here and Board actions now explain local, cloud, preview, data, and recovery scope; sync states remain distinct and local storage stays byte-identical through cloud return. |
 | 9 of 10 | complete | `artifacts/ux-discoverability/step-09/results.md` plus final qualification checkpoint | Unconfigured and synthetic-configured browser suites, Rules and Emulator flows, Lighthouse, storage isolation, budgets, and 1,000-card performance samples all pass. |
-| 10 of 10 | in_progress | uncommitted | Package the verified local release candidate and stop before any remote or production operation. |
+| 10 of 10 | complete | `artifacts/ux-discoverability/release-candidate/README.md` and `MANIFEST.json` plus packaging checkpoint | The locally verified UX release candidate is packaged with reproducible evidence, rollback guidance, known limitations, and an explicit stop before remote or production operations. |
 
 ## Step 1 baseline evidence
 
