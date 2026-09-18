@@ -1,7 +1,7 @@
 import {renderPersonBadge} from './person-badges.js';
 
 export function initializeCloudRosterUI(adapter) {
-  let session = null, members = new Map(), generation = 0, scheduled = false, board = document.querySelector('#board');
+  let session = null, members = new Map(), generation = 0, scheduled = false, pending = null, queued = false, board = document.querySelector('#board');
   const mode = () => globalThis.FlowboardApp?.getMode?.() || {kind:'local'};
   const paint = () => {
     scheduled = false;
@@ -18,15 +18,22 @@ export function initializeCloudRosterUI(adapter) {
   };
   const schedulePaint = () => { if (scheduled) return; scheduled=true; queueMicrotask(paint); };
   const refresh = async () => {
-    const active=mode(), token=++generation;
-    if (!session || !['cloud','cloud-preview'].includes(active.kind) || !active.id) { members=new Map(); schedulePaint(); return; }
-    try { const list=await adapter.listMembers(active.id); if (token !== generation) return; members=new Map(list.map(member => [member.uid, member])); generation++; paint(); }
-    catch { if (token === generation) { members=new Map(); schedulePaint(); } }
+    if (pending) { queued=true; return pending; }
+    pending=(async()=>{
+      const active=mode(), token=++generation;
+      if (!session || !['cloud','cloud-preview'].includes(active.kind) || !active.id) { members=new Map(); schedulePaint(); return; }
+      try { const list=await adapter.listMembers(active.id); if (token !== generation) return; members=new Map(list.map(member => [member.uid, member])); generation++; paint(); }
+      catch { if (token === generation) { members=new Map(); schedulePaint(); } }
+    })();
+    try { return await pending; }
+    finally { pending=null; if (queued) { queued=false; void refresh(); } }
   };
   const observer=board ? new MutationObserver(schedulePaint) : null;
   observer?.observe(board,{childList:true,subtree:true});
   window.addEventListener('flowboard:cloud-selection', refresh);
   window.addEventListener('flowboard:cloud-preview-change', refresh);
+  window.addEventListener('flowboard:profile-change', refresh);
   window.addEventListener('flowboard:appearance-change', schedulePaint);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refresh(); });
   return Object.freeze({setSession(next){session=next; refresh();}});
 }

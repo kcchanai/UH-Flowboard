@@ -1047,20 +1047,25 @@ test('profile sharing reports readback failure without claiming success', async 
   await expect(page.locator('#workspace-profile-status')).not.toContainText('Profile photo shared with');
 });
 
-test('cloud roster maps assignment UIDs to three badges and overflow', async ({page}) => {
+test('cloud roster maps assignment UIDs to three badges, overflow, and profile refresh', async ({page}) => {
   await openReady(page);
   await page.evaluate(async asset => {
     document.body.innerHTML = '<div id="board"><div class="assignees" data-assignee-uids="a,b,c,d"></div></div>';
     globalThis.FlowboardApp = {getMode:() => ({kind:'cloud',id:'roster-fixture',role:'editor'})};
-    const adapter={listMembers:async()=>[
-      {uid:'a',displayName:'Avery Lee',emailLower:'avery@example.test',photoURL:''},
+    globalThis.rosterReads=0; globalThis.rosterPhoto='';
+    const adapter={listMembers:async()=>{globalThis.rosterReads+=1;return [
+      {uid:'a',displayName:'Avery Lee',emailLower:'avery@example.test',photoURL:globalThis.rosterPhoto},
       {uid:'b',displayName:'Sam Rivera',emailLower:'sam@example.test',photoURL:''},
       {uid:'c',displayName:'Mina Chen',emailLower:'mina@example.test',photoURL:''},
       {uid:'d',displayName:'Jordan Patel',emailLower:'jordan@example.test',photoURL:''}
-    ]};
+    ];}};
     const {initializeCloudRosterUI}=await import(asset); initializeCloudRosterUI(adapter).setSession({uid:'a'}); window.dispatchEvent(new Event('flowboard:cloud-selection'));
   }, builtRosterAsset());
   await expect(page.locator('.assignees .person-badge')).toHaveCount(3);
   await expect(page.locator('.assignee-overflow')).toHaveText('+1');
   await expect(page.locator('.assignees')).toHaveAttribute('aria-label','Assigned to Avery Lee, Sam Rivera, Mina Chen, Jordan Patel');
+  const reads=await page.evaluate(() => globalThis.rosterReads);
+  await page.evaluate(() => { globalThis.rosterPhoto='https://lh3.googleusercontent.com/a/synthetic=s96-c'; window.dispatchEvent(new Event('flowboard:profile-change')); });
+  await expect.poll(() => page.evaluate(() => globalThis.rosterReads)).toBeGreaterThan(reads);
+  await expect(page.locator('.assignees img')).toHaveCount(1);
 });

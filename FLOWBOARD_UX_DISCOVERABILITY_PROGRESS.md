@@ -18,8 +18,8 @@
 | 2 of 10 | complete | `03238fe` budget proposal plus cap-transition checkpoint | Aaron approved the raw source cap at 247,500 bytes; warning and gzip limits remain unchanged, and fresh check/build/measure passed. |
 | 3 of 10 | complete | `artifacts/ux-discoverability/step-03/results.md` plus Account-hub implementation checkpoint | Account is now a first-level personal/workspace hub; toolbar and photo rendering are clearer, and repeated Account/Appearance renders do not fan out session controllers. |
 | 4 of 10 | complete | `artifacts/ux-discoverability/step-04/results.md` plus sharing-controller checkpoint | Account now owns explicit Share/Update/Stop behavior with generation guards, targeted readback verification, retry/error states, and no duplicate Members profile surface. |
-| 5 of 10 | in_progress | uncommitted | Immediate same-tab roster refresh after verified profile changes. |
-| 6 of 10 | pending | - | Navigation and Appearance discovery. |
+| 5 of 10 | complete | `artifacts/ux-discoverability/step-05/results.md` plus roster-refresh checkpoint | Verified profile changes now refresh active board badges and open assignment choices through coalesced, generation-guarded, board-scoped reads. |
+| 6 of 10 | in_progress | uncommitted | Navigation and Appearance discovery. |
 | 7 of 10 | pending | - | Dialog reachability and keyboard safety. |
 | 8 of 10 | pending | - | Workflow feedback and mode-aware guidance. |
 | 9 of 10 | pending | - | Complete qualification. |
