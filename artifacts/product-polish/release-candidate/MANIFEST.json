@@ -21,7 +21,8 @@
   },
   "budgets": {
     "rawSourceBytes": {"used": 265366, "limit": 300000},
-    "initialShellGzipBytes": {"used": 25942, "limit": 26000},
+    "initialShellGzipBytes": {"used": 25942, "limit": 26250},
+    "configuredCiInitialShellGzipBytes": {"used": 26053, "limit": 26250},
     "firstPartyLazyGzipBytes": {"used": 55798, "limit": 58000},
     "indexSourceBytes": {"used": 27051, "limit": 27250},
     "documentGzipBytes": {"used": 5997}

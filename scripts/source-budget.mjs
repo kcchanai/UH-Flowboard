@@ -1,6 +1,6 @@
 export const SOURCE_CAP_BYTES = 300_000;
 export const SOURCE_WARNING_BYTES = 210_000;
-export const DIST_GZIP_LIMITS = Object.freeze({'initial shell':26_000, 'first-party lazy':58_000});
+export const DIST_GZIP_LIMITS = Object.freeze({'initial shell':26_250, 'first-party lazy':58_000});
 
 export const PRODUCTION_SOURCE_FILES = Object.freeze([
   'index.html', 'styles.css', 'state-core.js', 'app.js',

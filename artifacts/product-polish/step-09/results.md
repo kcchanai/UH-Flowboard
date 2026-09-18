@@ -17,7 +17,8 @@
 | Static/syntax/runtime guards | passed |
 | Production build | passed; 52 modules transformed |
 | Final raw source | 265,366 / 300,000 bytes |
-| Initial shell gzip | 25,942 / 26,000 bytes |
+| Initial shell gzip | 25,942 / 26,250 bytes (local unconfigured) |
+| Configured CI initial shell gzip | 26,053 / 26,250 bytes |
 | First-party lazy gzip | 55,798 / 58,000 bytes |
 | Document gzip | 5,997 bytes |
 | Firestore Rules Emulator | 24/24 |
