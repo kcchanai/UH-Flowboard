@@ -37,7 +37,7 @@ The partial right-edge board element remains an intentional horizontal-board iss
 - First-party lazy gzip: **51,429 / 55,000 bytes**.
 - Document gzip: **5,803 bytes**.
 - Step 2 to Step 3 raw delta: +41 bytes; shell gzip delta: -1 byte; lazy gzip unchanged.
-- Firestore Rules remain unchanged at SHA-1 `fc008e6a08becc87dd4079a9c2b977731e5d7256`.
+- Firestore Rules remain unchanged at SHA-1 `5d7e06e02bb679db2b1a31605cf81deb3f9a9e9a`.
 
 ## Safety and cleanup
 

@@ -28,7 +28,7 @@
 - Step 3 to Step 4 raw delta: +2,306 bytes.
 - Step 3 to Step 4 initial shell gzip delta: +264 bytes.
 - Step 3 to Step 4 lazy gzip delta: +475 bytes, from the new density lazy chunk and existing lazy graph.
-- Rules source remains unchanged at SHA-1 `fc008e6a08becc87dd4079a9c2b977731e5d7256`.
+- Rules source remains unchanged at SHA-1 `5d7e06e02bb679db2b1a31605cf81deb3f9a9e9a`.
 
 ## Budget transition
 

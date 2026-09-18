@@ -20,7 +20,7 @@
 - Production asset isolation: **27/27 passed**, including the List-view lazy chunk.
 - Static/syntax/build/measure/diff checks passed.
 - Browser proof covers lazy chunk absence before selection, 105-card parity, 100-row pagination, title sorting, card-dialog focus return, Board/List return, and view preference persistence.
-- Rules source remains unchanged at SHA-1 `fc008e6a08becc87dd4079a9c2b977731e5d7256`; no new cloud listeners or Rules behavior were introduced.
+- Rules source remains unchanged at SHA-1 `5d7e06e02bb679db2b1a31605cf81deb3f9a9e9a`; no new cloud listeners or Rules behavior were introduced.
 
 ## Measurements
 

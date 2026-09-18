@@ -35,7 +35,7 @@ The initial shell moved 231 bytes above the Step 4 25,145 measurement. The appro
 - Lighthouse accessibility: **score 1; zero failed audits**.
 - Production asset isolation: **26/26 passed**.
 - Static/syntax/build/measure/diff checks passed.
-- Rules source remains unchanged at SHA-1 `fc008e6a08becc87dd4079a9c2b977731e5d7256`.
+- Rules source remains unchanged at SHA-1 `5d7e06e02bb679db2b1a31605cf81deb3f9a9e9a`.
 - Browser proof covers combined filters, clear-all, no-match states, local/cloud identity separation, responsive quick controls, touch targets and unchanged raw workspace strings for non-mutating preference/filter actions.
 
 ## Safety and cleanup

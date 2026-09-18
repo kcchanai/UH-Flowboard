@@ -4,7 +4,7 @@
 
 - Branch: `luna/product-polish`
 - Starting `origin/main` and local HEAD: `bba3647131d1dac0c05f8e21893e11a82c3a0034`
-- Firestore Rules SHA-1: `fc008e6a08becc87dd4079a9c2b977731e5d7256`
+- Firestore Rules SHA-1: `5d7e06e02bb679db2b1a31605cf81deb3f9a9e9a`
 - Production: unchanged. No push, PR, merge, deployment, Rules publication or real-account testing.
 - Protected workspace and disposable lifecycle fixture: untouched.
 

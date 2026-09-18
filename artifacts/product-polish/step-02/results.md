@@ -49,7 +49,7 @@ The initial shell is now within 118 gzip bytes of its unchanged cap. Future shel
 - Tracked Emulator-browser workflow: **1/1 passed**.
 - Production asset isolation: **25/25 passed**.
 - `git diff --check`: passed after generated validation residue cleanup.
-- Rules identity remains the Step 1 SHA-1 `fc008e6a08becc87dd4079a9c2b977731e5d7256`.
+- Rules identity remains the Step 1 SHA-1 `5d7e06e02bb679db2b1a31605cf81deb3f9a9e9a`.
 
 ## Reproduction commands
 
