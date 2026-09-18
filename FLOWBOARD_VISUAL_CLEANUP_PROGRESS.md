@@ -15,8 +15,8 @@ Production boundary: local-only implementation and qualification. No push, PR, m
 - [x] Step 5 of 10 - cloud chooser geometry and footer grouping verified
 - [x] Step 6 of 10 - Members, invitations, and ownership controls verified
 - [x] Step 7 of 10 - Board, List, and card editing surfaces verified
-- [ ] Step 8 of 10 - in progress
-- [ ] Step 9 of 10
+- [x] Step 8 of 10 - remaining dialogs, menus, and feedback states verified
+- [ ] Step 9 of 10 - in progress
 - [ ] Step 10 of 10
 
 ## Evidence
