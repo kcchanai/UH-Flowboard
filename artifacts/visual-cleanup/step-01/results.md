@@ -1,6 +1,6 @@
 # Step 1 of 10 baseline evidence
 
-Status: **blocked pending approved repository-local Lighthouse tool install**
+Status: **complete**
 
 ## Baseline identity
 
@@ -18,7 +18,7 @@ Status: **blocked pending approved repository-local Lighthouse tool install**
 - `PLAYWRIGHT_EXECUTABLE_PATH='C:/Program Files (x86)/Google/Chrome/Application/chrome.exe' npm.cmd run test:emulator-browser` - passed. Tracked Emulator-browser workflow **1/1**.
 - Built preview on owned strict port 4260 - served the `/UH-Flowboard/` base path successfully.
 - `PLAYWRIGHT_BASE_URL='http://127.0.0.1:4260' PLAYWRIGHT_EXECUTABLE_PATH='C:/Program Files (x86)/Google/Chrome/Application/chrome.exe' npx.cmd --no-install playwright test tests/browser-smoke.spec.mjs` - passed **58/58**.
-- `npx.cmd --no-install lighthouse ...` - blocked because Lighthouse is not installed locally and npx refused to install without explicit approval.
+- `npx.cmd --no-install lighthouse http://127.0.0.1:4260/UH-Flowboard/ ... --output-path=lighthouse-report.json` followed by `node scripts/assert-lighthouse.mjs` - passed. Lighthouse accessibility **score 1 with zero failed audits**. Lighthouse 12.8.2 was installed only in the repository with explicit approval, then removed; no production dependency or package manifest change remains.
 
 ## Visual reproduction source
 
@@ -29,6 +29,8 @@ Planning audits already captured the four supplied examples and a wider live/syn
 - Account spacing and toolbar centerline defects from measured DOM geometry.
 - Live anonymous board/List/card/Account/Appearance/quick-add/dark surfaces with zero console/page errors in the final planning audit.
 
-## Gate
+## Boundary
 
-Step 1 cannot be marked complete until a fresh accessibility baseline is run against the built preview. No application code has been changed. No production sign-in, cloud workspace, Rules publication, push, PR, merge, deployment, or real-account testing occurred.
+- No application source code was changed in Step 1.
+- No production sign-in, cloud workspace access, Rules publication, push, PR, merge, Pages deployment, or real-account testing occurred.
+- The Step 1 baseline is complete and Step 2 may begin.

@@ -8,8 +8,8 @@ Production boundary: local-only implementation and qualification. No push, PR, m
 
 ## Step status
 
-- [ ] Step 1 of 10 - blocked: fresh Lighthouse baseline requires approved repository-local ephemeral tool install
-- [ ] Step 2 of 10
+- [x] Step 1 of 10 - baseline pinned, defects reproduced, and all baseline gates passed
+- [ ] Step 2 of 10 - in progress
 - [ ] Step 3 of 10
 - [ ] Step 4 of 10
 - [ ] Step 5 of 10
