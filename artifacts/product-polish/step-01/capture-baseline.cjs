@@ -1,0 +1,7 @@
+const {chromium}=require('playwright');
+const fs=require('node:fs');
+const path=require('node:path');
+const out=path.resolve('artifacts/product-polish/step-01/screens');fs.mkdirSync(out,{recursive:true});
+const executablePath='C:/Program Files (x86)/Google/Chrome/Application/chrome.exe';
+const sizes=[['1280x720',1280,720],['1440x900',1440,900],['1920x1080',1920,1080],['960x720',960,720],['390x844',390,844],['320x720',320,720]];
+(async()=>{const browser=await chromium.launch({headless:true,executablePath});try{for(const [name,width,height] of sizes){const context=await browser.newContext({viewport:{width,height}});const page=await context.newPage();const errors=[];page.on('console',m=>{if(m.type()==='error')errors.push('console')});page.on('pageerror',()=>errors.push('page'));await page.goto('http://127.0.0.1:4240/UH-Flowboard/',{waitUntil:'networkidle'});await page.locator('.card-open').first().waitFor();await page.screenshot({path:path.join(out,`board-${name}.png`),fullPage:true});if(width>=960){await page.locator('.card-open').first().click();await page.locator('#card-dialog').waitFor({state:'visible'});await page.screenshot({path:path.join(out,`card-${name}.png`),fullPage:true});}console.log(JSON.stringify({name,width,height,errors:errors.length,documentWidth:await page.evaluate(()=>document.documentElement.scrollWidth),boardWidth:await page.locator('#board').evaluate(e=>e.scrollWidth)}));await context.close();}}finally{await browser.close()}})().catch(error=>{console.error(error.message);process.exit(1)});

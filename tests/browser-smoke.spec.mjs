@@ -36,13 +36,16 @@ test('getting started explains local starter content and safe cloud boundaries',
   await expect(guide).toContainText('export, recover');
   await expect(guide).toContainText('cloud workspaces');
   await expect(guide).toContainText('retained');
-  await expect(guide).toContainText('Search cards above');
+  await expect(guide).toContainText('Search this board above');
   await expect(guide).toContainText('Read-only previews');
   await expect(guide).toContainText('browser-local');
   await page.getByRole('button', {name:'Board actions'}).click();
-  await expect(page.getByRole('menuitem').first()).toHaveText('Board data: Export this board (JSON)');
-  await expect(page.getByRole('menuitem').filter({hasText:'Workspace data:'})).toHaveCount(2);
-  await expect(page.getByRole('menuitem').filter({hasText:'Recovery:'})).toHaveCount(3);
+  await expect(page.getByRole('menuitem', {name:'Board data: Export this board (JSON)'})).toBeVisible();
+    await expect(page.getByRole('menuitem').filter({hasText:'Workspace data:'})).toHaveCount(2);
+    await expect(page.getByRole('menuitem').filter({hasText:'Recovery:'})).toHaveCount(3);
+    const initialLists = await page.locator('.list').count();
+    await page.getByRole('menuitem', {name:'Add a list'}).click();
+    await expect(page.locator('.list')).toHaveCount(initialLists + 1);
   await page.keyboard.press('Escape');
   await page.screenshot({path:'artifacts/mvp-v2/step-10/getting-started.png', fullPage:true});
   await page.screenshot({path:'artifacts/mvp-v2/step-11/start-here.png', fullPage:true});
@@ -630,8 +633,10 @@ test('card edits stay isolated until Save and preserve drafts after a failed sav
   const originalTitle = await page.locator('#card-title-input').inputValue();
   const originalLabels = await dialog.locator('#label-editor .label-row').count();
   await page.locator('#add-label').click();
-  await expect(dialog.locator('#label-editor .label-row')).toHaveCount(originalLabels + 1);
-  await page.locator('#close-card-dialog').click();
+    await expect(dialog.locator('#label-editor .label-row')).toHaveCount(originalLabels + 1);
+    await page.locator('#card-title-input').fill(`${originalTitle} draft`);
+    await expect(page.locator('#card-draft-status')).toHaveText('Unsaved changes');
+    await page.locator('#cancel-card-dialog').click();
   await expect(page.locator('#confirm-dialog')).toContainText('Discard unsaved changes?');
   await page.locator('#confirm-dialog').getByRole('button', {name:'Cancel'}).click();
   await expect(dialog).toBeVisible();
@@ -707,16 +712,42 @@ test('card capture is IME-safe and returns focus for continued entry', async ({p
   await firstList.getByRole('button', {name: /add a card/i}).click();
   const input = firstList.getByLabel('New card title');
   await input.fill('Line one');
-  await input.press('Shift+Enter');
+  await input.press('Enter');
   await input.type('Line two');
   await expect(input).toHaveValue('Line one\nLine two');
   const before = await page.locator('.card-open').count();
   await input.fill('Composed card');
   await input.evaluate(element => element.dispatchEvent(new KeyboardEvent('keydown', {key:'Enter', bubbles:true, cancelable:true, isComposing:true})));
   await expect(page.locator('.card-open')).toHaveCount(before);
-  await input.press('Enter');
+  await input.press('Control+Enter');
   await expect(page.locator('.card-open').filter({hasText:'Composed card'})).toBeVisible();
   await expect(firstList.getByRole('button', {name: /add a card/i})).toBeFocused();
+});
+
+test('quick add chooses a destination and can open existing card details', async ({page}) => {
+  await openReady(page);
+  await page.locator('#quick-add-card').click();
+  const dialog = page.locator('#quick-add-dialog');
+  await expect(dialog).toBeVisible();
+  await dialog.locator('#quick-add-title').fill('Quick capture card');
+  const destination = await dialog.locator('#quick-add-list').evaluate(select => select.options[1]?.value);
+  await dialog.locator('#quick-add-list').selectOption(destination);
+  await dialog.locator('#quick-add-open').check();
+  await dialog.getByRole('button', {name:'Add card', exact:true}).click();
+  await expect(page.locator('#card-dialog')).toBeVisible();
+  await expect(page.locator('#card-title-input')).toHaveValue('Quick capture card');
+  await page.keyboard.press('Escape');
+  await expect(page.locator(`[data-list-id="${destination}"] .card-open`).filter({hasText:'Quick capture card'})).toBeVisible();
+});
+
+test('slash shortcut focuses board search outside text controls', async ({page}) => {
+  await openReady(page);
+  await page.locator('#board').focus();
+  await page.keyboard.press('/');
+  await expect(page.locator('#search')).toBeFocused();
+  await page.locator('#search').fill('keep typing');
+  await page.keyboard.press('/');
+  await expect(page.locator('#search')).toHaveValue('keep typing/');
 });
 
 test('Move card dialog handles empty lists and returns focus with position', async ({page}) => {
@@ -907,10 +938,12 @@ test('desktop board structure keeps navigation separate and controls reachable',
     const layout = await page.evaluate(() => {
       const main = document.querySelector('#main-content'), header = document.querySelector('.board-header'), board = document.querySelector('#board'), menu = document.querySelector('#board-menu'), search = document.querySelector('#search'), firstList = document.querySelector('.list');
       const box = element => { const value = element?.getBoundingClientRect(); return value ? {left:value.left, right:value.right, top:value.top, bottom:value.bottom, width:value.width, height:value.height} : null; };
-      return {boardIsMainChild:board?.parentElement === main, boardNestedInHeader:header?.contains(board), pageFits:document.documentElement.scrollWidth <= document.documentElement.clientWidth, boardOverflow:getComputedStyle(board).overflowX, boardScrollable:board.scrollWidth > board.clientWidth, menu:box(menu), search:box(search), firstList:box(firstList)};
+      return {boardIsMainChild:board?.parentElement === main, boardNestedInHeader:header?.contains(board), searchInBoardHeader:header?.contains(search), searchInTopbar:Boolean(document.querySelector('.topbar #search')), pageFits:document.documentElement.scrollWidth <= document.documentElement.clientWidth, boardOverflow:getComputedStyle(board).overflowX, boardScrollable:board.scrollWidth > board.clientWidth, menu:box(menu), search:box(search), firstList:box(firstList)};
     });
     expect(layout.boardIsMainChild, `board structure at ${width}px`).toBe(true);
     expect(layout.boardNestedInHeader, `board nesting at ${width}px`).toBe(false);
+    expect(layout.searchInBoardHeader, `search scope at ${width}px`).toBe(true);
+    expect(layout.searchInTopbar, `global search duplication at ${width}px`).toBe(false);
     expect(layout.pageFits, `page overflow at ${width}px`).toBe(true);
     expect(layout.boardOverflow).toBe('auto');
     if (width <= 1440) expect(layout.boardScrollable, `board scroll at ${width}px`).toBe(true);
@@ -918,6 +951,52 @@ test('desktop board structure keeps navigation separate and controls reachable',
     expect(layout.search.width).toBeGreaterThan(0);
     expect(layout.firstList.right).toBeGreaterThan(layout.firstList.left);
   }
+});
+
+test('density toggle is browser-local and preserves workspace bytes', async ({page}) => {
+  await openReady(page);
+  const before = await page.evaluate(() => localStorage.getItem('flowboard-workspace'));
+  const toggle = page.locator('#density-toggle');
+  await toggle.click();
+  await expect(toggle).toHaveText('Compact');
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.density)).toBe('compact');
+  const compact = await page.evaluate(() => ({workspace:localStorage.getItem('flowboard-workspace'),preference:JSON.parse(localStorage.getItem('flowboard-ui-preferences'))}));
+  expect(compact.workspace).toBe(before);
+  expect(compact.preference.density).toBe('compact');
+  await toggle.click();
+  await expect(toggle).toHaveText('Comfortable');
+  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.density)).toBe('comfortable');
+});
+
+test('List view lazy-loads with parity, sorting, pagination, and card focus return', async ({page}) => {
+  await openReady(page);
+  const fixture = await page.evaluate(() => {
+    const workspace = FlowboardState.makeWorkspace(), board = workspace.boards[0];
+    board.lists = [FlowboardState.makeList('Review', Array.from({length:105}, (_, index) => FlowboardState.makeCard(`List fixture ${index + 1}`)))];
+    workspace.boards = [board]; workspace.activeBoardId = board.id;
+    localStorage.setItem('flowboard-workspace', JSON.stringify(workspace));
+    return board.lists[0].cards.length;
+  });
+  await page.reload(); await page.waitForFunction(() => globalThis.FlowboardApp && globalThis.FlowboardState);
+  expect(fixture).toBe(105);
+  expect(await page.evaluate(() => performance.getEntriesByType('resource').some(entry => entry.name.includes('list-view-ui')))).toBe(false);
+  await page.locator('#view-toggle').click();
+  await expect(page.locator('#list-view-table')).toBeVisible();
+  await expect(page.locator('#list-view-table tbody tr')).toHaveCount(100);
+  await expect(page.locator('#list-view-summary')).toContainText('100 of 105 cards shown');
+  await expect(page.locator('#list-view-table th').nth(0)).toHaveAttribute('aria-sort', 'none');
+  await page.locator('[data-list-sort="title"]').click();
+  await expect(page.locator('#list-view-table th').nth(0)).toHaveAttribute('aria-sort', 'ascending');
+  await page.getByRole('button', {name:'Show 100 more'}).click();
+  await expect(page.locator('#list-view-table tbody tr')).toHaveCount(105);
+  const rowCard = page.locator('[data-list-card]').first();
+  await rowCard.click();
+  await expect(page.locator('#card-dialog')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(rowCard).toBeFocused();
+  await page.locator('#view-toggle').click();
+  await expect(page.locator('.card-open')).toHaveCount(105);
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('flowboard-ui-preferences')).view)).toBe('board');
 });
 
 test('responsive widths confine horizontal scrolling to the board lane', async ({page}) => {
