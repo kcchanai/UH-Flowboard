@@ -9,8 +9,8 @@ Production boundary: local-only implementation and qualification. No push, PR, m
 ## Step status
 
 - [x] Step 1 of 10 - baseline pinned, defects reproduced, and all baseline gates passed
-- [ ] Step 2 of 10 - in progress
-- [ ] Step 3 of 10
+- [x] Step 2 of 10 - shared visual and dialog foundations verified
+- [ ] Step 3 of 10 - in progress
 - [ ] Step 4 of 10
 - [ ] Step 5 of 10
 - [ ] Step 6 of 10

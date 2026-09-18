@@ -108,3 +108,31 @@ main { min-height:calc(100vh - 64px);padding:clamp(20px,3vw,32px) clamp(14px,3vw
   .board-search input { width:64px;}
 }
 @media (prefers-reduced-motion:reduce) { .skip-link { transition:none;} }
+
+/* Visual cleanup foundations: shared controls, dialogs, and spacing. */
+:where(button,input,select,textarea) { font:inherit; }
+:where(input,select,textarea) { min-width:0; }
+:where(select) { min-height:38px;padding:8px 10px;color:var(--ink);border:1px solid var(--line);border-radius:7px;background:var(--surface-strong); }
+:where(select):focus-visible { border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft); }
+.dialog { max-height:calc(100vh - 24px);overflow:hidden; }
+.dialog > .archive-dialog-card,.dialog > .card-dialog-card,.dialog > .dialog-card,.dialog > form:not(.card-dialog-card) { max-height:calc(100vh - 24px);overflow:auto;overscroll-behavior:contain; }
+@supports (height:100dvh) {
+  .dialog { max-height:calc(100dvh - 24px); }
+  .dialog > .archive-dialog-card,.dialog > .card-dialog-card,.dialog > .dialog-card,.dialog > form:not(.card-dialog-card) { max-height:calc(100dvh - 24px); }
+}
+.dialog-actions { align-items:center;flex-wrap:wrap;row-gap:8px; }
+.dialog-actions > .button { min-height:40px; }
+.dialog-close { width:40px;height:40px; }
+.card-dialog-header > div { min-width:0; }
+.card-dialog-header h2,.card-dialog-header .eyebrow { overflow-wrap:anywhere; }
+.collaboration-notice { margin-bottom:16px!important; }
+.detail-section + .detail-section { margin-top:24px; }
+.new-board-form,.new-board-form > * { min-width:0; }
+.new-board-form .button { align-self:end; }
+@media (pointer:coarse) {
+  .dialog-close { min-width:44px;min-height:44px; }
+}
+@media (max-width:600px) {
+  .dialog { max-width:calc(100vw - 20px); }
+  .dialog-actions { justify-content:flex-end; }
+}
