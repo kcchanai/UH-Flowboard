@@ -107,15 +107,15 @@ If preference persistence fails, retain a usable session view but state `Changed
 
 A genuine List view plus safer interaction improvements cannot responsibly be promised within the remaining source bytes. Do not shorten safety copy or minify author code into unreadable identifiers just to claim compliance.
 
-### Proposed envelope, NOT authorized
+### Approved implementation envelope
 
-A planning allowance of 36,000 net raw bytes is apportioned as follows: foundation/preferences 3,000; visual system 4,000; board/cards 4,000; filters/summary 5,000; List view 9,000; quick capture 4,000; card details 7,000. These are engineering estimates, not measured implementation deltas. Resulting estimate is 281,459 raw bytes.
+Aaron pre-approved budget increases in the implementation instruction. Step 2 measured the transition and adopted the raw cap below. This approval does not authorize a future gzip-limit increase, a second raw-cap increase or scope outside this plan.
 
-**Recommended raw-cap proposal: 300,000 bytes**, leaving an estimated 18,541 bytes of maintenance margin. Final release must retain at least 10,000 raw bytes under any approved new cap. Keep the 210,000 maintainability warning visible.
+**Approved raw cap: 300,000 bytes**, leaving 51,245 bytes of measured Step 2 headroom and an estimated maintenance envelope above the current implementation. Final release must retain at least 10,000 raw bytes under this cap. Keep the 210,000 maintainability warning visible.
 
 First attempt to retain shell 25,000 and lazy 55,000 via honest lazy loading and consolidation. If measured prototypes cannot fit, Step 2 may propose **shell 27,500 and lazy 65,000 gzip bytes**, supported by transfer/render measurements. Those are proposal ceilings, NOT preapproved limits or reasons to inflate output. Do not reclassify normal shell code as document/vendor to escape the budget. Document and vendor transfer remain measured separately.
 
-Step 2 must present exact measured deltas, per-file constraints, reachable new modules, recovered bytes and updated estimates. Aaron must explicitly approve any cap transition before shipping feature work across the old limits. Approval of this plan or the old 247,500-byte cap is not approval of 300,000 or new gzip caps.
+Step 2 recorded the exact measured delta: 245,459 to 248,755 raw bytes, with initial shell gzip moving from 24,719 to 24,882 and lazy gzip unchanged at 51,429. Future cap changes require a new explicit scope decision and measured evidence.
 
 If no increase is approved, offer a reduced presentation-only release: token cleanup, toolbar grouping and detail hierarchy using measured recovered space. Defer List view and additional filters rather than calling the full ten-step plan complete. Any scope change needs an explicit decision.
 

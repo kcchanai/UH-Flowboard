@@ -1,3 +1,4 @@
+import {normalizeUiPreferences, defaultUiPreferences} from '../ui-preferences.js';
 import {createUnavailableCloudAdapter} from './adapter-contract.js';
 
 export function createLocalWorkspaceAdapter({
@@ -7,6 +8,7 @@ export function createLocalWorkspaceAdapter({
   backupKey = 'flowboard-workspace-backups',
   backupLimit = 5,
   appearanceKey = 'flowboard-appearance',
+  uiPreferencesKey = 'flowboard-ui-preferences',
   validWorkspace,
   normalizeWorkspace,
   migrateLegacy,
@@ -30,6 +32,8 @@ export function createLocalWorkspaceAdapter({
   const save = workspace => storage.setItem(storageKey, JSON.stringify(workspace));
   const loadAppearance = () => { try { const value = storage.getItem(appearanceKey); return value ? parse(value) : null; } catch { return null; } };
   const saveAppearance = appearance => { try { storage.setItem(appearanceKey, JSON.stringify(appearance)); return {ok:true}; } catch (error) { return {ok:false,error}; } };
+  const loadUiPreferences = () => { try { const value = storage.getItem(uiPreferencesKey); return value ? normalizeUiPreferences(parse(value)) : defaultUiPreferences(); } catch { return defaultUiPreferences(); } };
+  const saveUiPreferences = preferences => { try { storage.setItem(uiPreferencesKey, JSON.stringify(normalizeUiPreferences(preferences))); return {ok:true}; } catch (error) { return {ok:false,error}; } };
 
   const backupWorkspace = (workspace, createdAt = new Date().toISOString()) => {
     try {
@@ -85,6 +89,8 @@ export function createLocalWorkspaceAdapter({
     listRecoveryBackups: readBackups,
     loadAppearance,
     saveAppearance,
+    loadUiPreferences,
+    saveUiPreferences,
     exportLocalWorkspace(workspace) { return clone(workspace); }
   });
 }

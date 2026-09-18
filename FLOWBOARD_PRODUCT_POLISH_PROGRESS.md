@@ -10,8 +10,8 @@ Production: unchanged and out of scope until separately authorized.
 | Step | Status | Evidence | Acceptance focus |
 |---|---|---|---|
 | 1 of 10 | complete | `artifacts/product-polish/step-01/` | Baseline pin, fixtures, tests, budgets, browser/performance evidence |
-| 2 of 10 | in_progress | `artifacts/product-polish/step-02/` | Approved budget envelope, shared projection, isolated UI preferences |
-| 3 of 10 | pending | `artifacts/product-polish/step-03/` | Visual system and shell across desktop/theme/accessibility matrix |
+| 2 of 10 | complete | `artifacts/product-polish/step-02/` | Approved budget envelope, shared projection, isolated UI preferences |
+| 3 of 10 | in_progress | `artifacts/product-polish/step-03/` | Visual system and shell across desktop/theme/accessibility matrix |
 | 4 of 10 | pending | `artifacts/product-polish/step-04/` | Card/lane hierarchy, density, navigation and move safety |
 | 5 of 10 | pending | `artifacts/product-polish/step-05/` | Quick filters, counts, empty states and local/cloud identity boundaries |
 | 6 of 10 | pending | `artifacts/product-polish/step-06/` | Lazy List view with parity, sorting, pagination and failure recovery |
