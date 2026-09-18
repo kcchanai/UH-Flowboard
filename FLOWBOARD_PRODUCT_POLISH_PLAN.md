@@ -1,6 +1,6 @@
 # Flowboard product polish and daily-work experience
 
-**Status: implementation in progress on `luna/product-polish`; Step 4 is complete and Step 5 is in progress.**
+**Status: implementation in progress on `luna/product-polish`; Step 5 is complete and Step 6 is in progress.**
 
 Prepared for Aaron on 2026-09-18. Intended implementer: `gpt-5.6-luna`, after Aaron switches models and explicitly asks to implement this plan. A model switch alone is not implementation authorization.
 
@@ -113,7 +113,7 @@ Aaron pre-approved budget increases in the implementation instruction. Step 2 me
 
 **Approved raw cap: 300,000 bytes**, leaving 51,245 bytes of measured Step 2 headroom and an estimated maintenance envelope above the current implementation. Final release must retain at least 10,000 raw bytes under this cap. Keep the 210,000 maintainability warning visible.
 
-The approved Step 4 envelope is shell 25,500 and lazy 55,000 gzip bytes. Future measured prototypes may propose another transition, but no limit is raised merely to avoid consolidation; document and vendor transfer remain measured separately.
+The approved Step 5 envelope is shell 26,000, index.html 26,500, and lazy 55,000 gzip/source limits as measured in `artifacts/product-polish/step-05/results.md`. Future measured prototypes may propose another transition, but no limit is raised merely to avoid consolidation; document and vendor transfer remain measured separately.
 
 Step 2 recorded the exact measured delta: 245,459 to 248,755 raw bytes, with initial shell gzip moving from 24,719 to 24,882 and lazy gzip unchanged at 51,429. Step 4 recorded the later shell transition at 25,145 / 25,500 and lazy at 51,904 / 55,000. Future cap changes require a new explicit scope decision and measured evidence.
 

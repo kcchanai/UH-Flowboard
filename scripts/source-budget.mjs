@@ -1,6 +1,6 @@
 export const SOURCE_CAP_BYTES = 300_000;
 export const SOURCE_WARNING_BYTES = 210_000;
-export const DIST_GZIP_LIMITS = Object.freeze({'initial shell':25_500, 'first-party lazy':55_000});
+export const DIST_GZIP_LIMITS = Object.freeze({'initial shell':26_000, 'first-party lazy':55_000});
 
 export const PRODUCTION_SOURCE_FILES = Object.freeze([
   'index.html', 'styles.css', 'state-core.js', 'app.js',
@@ -10,7 +10,7 @@ export const PRODUCTION_SOURCE_FILES = Object.freeze([
 ]);
 
 export const SOURCE_LIMITS = Object.freeze({
-  'index.html': 26_000, 'styles.css': 40_000, 'state-core.js': 20_000, 'app.js': 80_000,
+  'index.html': 26_500, 'styles.css': 40_000, 'state-core.js': 20_000, 'app.js': 80_000,
   'src/main.js': 8_000, 'src/runtime-bootstrap.js': 4_000, 'src/config.js': 4_000, 'src/canvas-palettes.js': 6_000, 'src/ui-preferences.js': 4_000, 'src/board-view-model.js': 8_000, 'src/density-ui.js': 4_000, 'src/appearance-ui.js': 10_000, 'src/person-badges.js': 5_000, 'src/cloud-roster-ui.js': 6_000, 'src/cloud-sync-controller.js': 5_000, 'src/activity-ui.js': 5_000, 'src/assignment-ui.js': 5_000, 'src/comments-ui.js': 9_000,
   'src/auth-ui.js': 8_000, 'src/cloud-workspace-ui.js': 13_000, 'src/workspace-lifecycle-ui.js': 4_500, 'src/invite-ui.js': 8_000, 'src/members-ui.js': 12_000, 'src/adapters/adapter-contract.js': 8_000,
   'src/adapters/local-workspace-adapter.js': 12_000, 'src/adapters/firebase-workspace-adapter.js': 8_000,
