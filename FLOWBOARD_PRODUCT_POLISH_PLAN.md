@@ -1,6 +1,6 @@
 # Flowboard product polish and daily-work experience
 
-**Status: implementation in progress on `luna/product-polish`; Step 5 is complete and Step 6 is in progress.**
+**Status: implementation in progress on `luna/product-polish`; Step 6 is complete and Step 7 is in progress.**
 
 Prepared for Aaron on 2026-09-18. Intended implementer: `gpt-5.6-luna`, after Aaron switches models and explicitly asks to implement this plan. A model switch alone is not implementation authorization.
 

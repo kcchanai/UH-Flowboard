@@ -940,6 +940,37 @@ test('density toggle is browser-local and preserves workspace bytes', async ({pa
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.density)).toBe('comfortable');
 });
 
+test('List view lazy-loads with parity, sorting, pagination, and card focus return', async ({page}) => {
+  await openReady(page);
+  const fixture = await page.evaluate(() => {
+    const workspace = FlowboardState.makeWorkspace(), board = workspace.boards[0];
+    board.lists = [FlowboardState.makeList('Review', Array.from({length:105}, (_, index) => FlowboardState.makeCard(`List fixture ${index + 1}`)))];
+    workspace.boards = [board]; workspace.activeBoardId = board.id;
+    localStorage.setItem('flowboard-workspace', JSON.stringify(workspace));
+    return board.lists[0].cards.length;
+  });
+  await page.reload(); await page.waitForFunction(() => globalThis.FlowboardApp && globalThis.FlowboardState);
+  expect(fixture).toBe(105);
+  expect(await page.evaluate(() => performance.getEntriesByType('resource').some(entry => entry.name.includes('list-view-ui')))).toBe(false);
+  await page.locator('#view-toggle').click();
+  await expect(page.locator('#list-view-table')).toBeVisible();
+  await expect(page.locator('#list-view-table tbody tr')).toHaveCount(100);
+  await expect(page.locator('#list-view-summary')).toContainText('100 of 105 cards shown');
+  await expect(page.locator('#list-view-table th').nth(0)).toHaveAttribute('aria-sort', 'none');
+  await page.locator('[data-list-sort="title"]').click();
+  await expect(page.locator('#list-view-table th').nth(0)).toHaveAttribute('aria-sort', 'ascending');
+  await page.getByRole('button', {name:'Show 100 more'}).click();
+  await expect(page.locator('#list-view-table tbody tr')).toHaveCount(105);
+  const rowCard = page.locator('[data-list-card]').first();
+  await rowCard.click();
+  await expect(page.locator('#card-dialog')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(rowCard).toBeFocused();
+  await page.locator('#view-toggle').click();
+  await expect(page.locator('.card-open')).toHaveCount(105);
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('flowboard-ui-preferences')).view)).toBe('board');
+});
+
 test('responsive widths confine horizontal scrolling to the board lane', async ({page}) => {
   await openReady(page);
   for (const width of [1280, 700, 440, 320]) {
