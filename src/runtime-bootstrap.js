@@ -25,6 +25,6 @@ export async function bootstrapFlowboard({cloudConfigured, cloudStatus, cloudIni
     document.querySelector('#account-button').hidden = true;
     const workspaceStatus = document.querySelector('#cloud-status');
     workspaceStatus.disabled = true;
-    workspaceStatus.setAttribute('aria-label', 'Cloud workspaces unavailable');
+    workspaceStatus.setAttribute('aria-label', 'Local-only workspace. Cloud workspaces unavailable');
   }
 }

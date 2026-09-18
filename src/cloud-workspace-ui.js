@@ -183,7 +183,7 @@ export function initializeCloudWorkspaceUI({localAdapter, cloudAdapter}) {
       session = next;
       if (!session && dialog.open) dialog.close();
       open.hidden = !session;
-      if(ws){ws.disabled = !session; ws.setAttribute('aria-label', session ? 'Open workspace chooser' : 'Sign in to open workspace chooser');}
+      if(ws){ws.disabled=!session;ws.setAttribute('aria-label',`${ws.textContent}. ${session?'Open':'Sign in to open'} workspace chooser`);}
     }
   };
 }

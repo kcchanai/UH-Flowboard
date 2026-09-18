@@ -79,7 +79,7 @@ export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
     migrate.hidden = !signedIn || remoteMode(mode);
     workspaces.hidden = !signedIn;
     renderContext(signedIn);
-    if (!signedIn) cloudStatus.textContent = 'Google sign-in available';
+    if (!signedIn && !remoteMode(mode)) cloudStatus.textContent = 'Google sign-in available';
     if (notify) onSessionChange(session);
   };
 

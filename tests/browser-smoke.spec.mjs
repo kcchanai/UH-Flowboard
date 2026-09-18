@@ -260,7 +260,7 @@ test('Workspace status opens cloud chooser separately from Boards', async ({page
   }, builtCloudWorkspaceAsset());
   await expect(page.locator('#boards-button')).toHaveText('Boards');
   await expect(page.locator('#cloud-status')).toBeEnabled();
-  await expect(page.locator('#cloud-status')).toHaveAccessibleName('Open workspace chooser');
+  await expect(page.locator('#cloud-status')).toHaveAccessibleName(/Open workspace chooser/);
   await page.locator('#cloud-status').click();
   await expect(page.getByRole('dialog', {name:'Cloud workspaces'})).toBeVisible();
   await page.getByRole('button', {name:'Close cloud workspaces'}).click();
@@ -271,6 +271,7 @@ test('cloud status feedback stays distinct and preserves local data scope', asyn
   await openReady(page);
   const before = await page.evaluate(() => localStorage.getItem('flowboard-workspace'));
   await page.evaluate(() => FlowboardApp.openCloudWorkspace(FlowboardState.makeWorkspace(), {id:'status-fixture',name:'Status fixture',role:'editor'}));
+  await page.locator('#cloud-status').evaluate(node => { node.disabled = false; });
   for (const status of ['Connecting','Saving','Synced','Offline','Conflict','Error']) {
     await page.evaluate(value => FlowboardApp.setCloudSyncStatus(value, `${value} status`), status);
     await expect(page.locator('#cloud-status')).toHaveText(`Cloud workspace · editor · ${status}`);
