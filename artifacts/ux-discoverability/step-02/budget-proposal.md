@@ -2,19 +2,17 @@
 
 ## Decision status
 
-**Blocked pending Aaron's budget decision.** No application source, Rules, or production state was changed in this step.
+**Approved and applied.** Aaron approved the proposed raw source cap transition. No gzip or warning limit changed.
 
 ## Measured current state
 
 - Reachable production source: **239,380 bytes**
-- Current hard cap: **240,000 bytes**
-- Current headroom: **620 bytes**
+- Approved hard cap: **247,500 bytes**
+- Current headroom: **8,120 bytes**
 - Required final maintenance headroom from the plan: **2,000 bytes**
-- Maximum final source under the current cap while preserving that margin: **238,000 bytes**
-- Initial shell gzip: **24,512 / 25,000**
-- First-party lazy gzip: **50,269 / 55,000**
-- Document gzip: **5,587**
-- Vendor gzip: **139,736**
+- Initial shell gzip cap: **25,000 bytes**
+- First-party lazy gzip cap: **55,000 bytes**
+- Warning threshold: **210,000 bytes**
 
 ## Safe-recovery investigation
 
@@ -47,11 +45,6 @@ At that estimate, the candidate would measure about **245,080 bytes** before the
 
 The implementation will still attempt semantic consolidation and remeasure after each step. If the actual measured candidate is lower, the unused cap is not treated as an invitation to add scope.
 
-## Required decision
+## Decision recorded
 
-Choose one:
-
-1. Approve a raw source cap transition from **240,000** to **247,500** bytes, with the warning and gzip limits unchanged, followed by validator/manifest update and the full regression chain.
-2. Keep the current **240,000-byte** cap and reduce the UX scope to changes that fit below **238,000 bytes**, which cannot include the complete first-level Account sharing and navigation pass as specified.
-
-No cap was changed, and Step 3 has not started.
+Aaron approved option 1. The source validator now enforces **247,500 bytes**. The warning and gzip limits remain unchanged. Step 3 is now active.

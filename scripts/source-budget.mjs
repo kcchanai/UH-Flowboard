@@ -1,4 +1,4 @@
-export const SOURCE_CAP_BYTES = 240_000;
+export const SOURCE_CAP_BYTES = 247_500;
 export const SOURCE_WARNING_BYTES = 210_000;
 export const DIST_GZIP_LIMITS = Object.freeze({'initial shell':25_000, 'first-party lazy':55_000});
 

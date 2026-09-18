@@ -15,8 +15,8 @@
 | Step | Status | Checkpoint | Summary |
 |---|---|---|---|
 | 1 of 10 | complete | `48690bc9024c947250488428bffc86f70b8974a2` baseline plus Step 1 artifact commit | Baseline pinned on a new isolated branch; source, build, Rules, browser, and isolation checks passed. |
-| 2 of 10 | in_progress (blocked) | uncommitted | Budget gate reached; quantified cap proposal recorded in `artifacts/ux-discoverability/step-02/budget-proposal.md`. Awaiting Aaron's decision before any source-budget transition or feature edits. |
-| 3 of 10 | pending | - | First-level Account hub. |
+| 2 of 10 | complete | `03238fe` budget proposal plus cap-transition checkpoint | Aaron approved the raw source cap at 247,500 bytes; warning and gzip limits remain unchanged, and fresh check/build/measure passed. |
+| 3 of 10 | in_progress | uncommitted | First-level Account hub. |
 | 4 of 10 | pending | - | Workspace-scoped sharing controller. |
 | 5 of 10 | pending | - | Immediate roster refresh. |
 | 6 of 10 | pending | - | Navigation and Appearance discovery. |
