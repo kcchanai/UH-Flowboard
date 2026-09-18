@@ -1,0 +1,303 @@
+{
+  "scope": "synthetic UI only, fake adapters, no network backend",
+  "errors": {
+    "console": 0,
+    "page": 0
+  },
+  "results": [
+    {
+      "name": "synthetic-account-1440",
+      "dialogWidth": 650,
+      "clientWidth": 648,
+      "scrollWidth": 648,
+      "inner": [
+        {
+          "class": "archive-dialog-card",
+          "width": 648,
+          "client": 648,
+          "scroll": 648
+        },
+        {
+          "class": "dialog-actions",
+          "width": 604,
+          "client": 604,
+          "scroll": 604
+        },
+        {
+          "class": "dialog-actions",
+          "width": 604,
+          "client": 604,
+          "scroll": 604
+        }
+      ],
+      "identityWidths": []
+    },
+    {
+      "name": "synthetic-workspaces-1440",
+      "dialogWidth": 760,
+      "clientWidth": 758,
+      "scrollWidth": 758,
+      "inner": [
+        {
+          "class": "archive-dialog-card",
+          "width": 758,
+          "client": 758,
+          "scroll": 758
+        },
+        {
+          "class": "workspace-board cloud-workspace-card",
+          "width": 466.359375,
+          "client": 464,
+          "scroll": 464
+        },
+        {
+          "class": "workspace-board cloud-workspace-card",
+          "width": 466.359375,
+          "client": 464,
+          "scroll": 464
+        },
+        {
+          "class": "dialog-actions",
+          "width": 710,
+          "client": 710,
+          "scroll": 710
+        }
+      ],
+      "identityWidths": [
+        436.359375,
+        436.359375
+      ]
+    },
+    {
+      "name": "synthetic-members-1440",
+      "dialogWidth": 440,
+      "clientWidth": 438,
+      "scrollWidth": 438,
+      "inner": [
+        {
+          "class": "archive-dialog-card",
+          "width": 438,
+          "client": 438,
+          "scroll": 662
+        },
+        {
+          "class": "new-board-form",
+          "width": 394,
+          "client": 394,
+          "scroll": 394
+        },
+        {
+          "class": "workspace-board",
+          "width": 554.5,
+          "client": 553,
+          "scroll": 553
+        },
+        {
+          "class": "workspace-board",
+          "width": 554.5,
+          "client": 553,
+          "scroll": 553
+        },
+        {
+          "class": "workspace-board",
+          "width": 554.5,
+          "client": 553,
+          "scroll": 553
+        },
+        {
+          "class": "new-board-form",
+          "width": 394,
+          "client": 394,
+          "scroll": 394
+        },
+        {
+          "class": "workspace-board",
+          "width": 639.765625,
+          "client": 638,
+          "scroll": 638
+        },
+        {
+          "class": "workspace-board",
+          "width": 639.765625,
+          "client": 638,
+          "scroll": 638
+        },
+        {
+          "class": "workspace-board",
+          "width": 639.765625,
+          "client": 638,
+          "scroll": 638
+        },
+        {
+          "class": "workspace-board",
+          "width": 639.765625,
+          "client": 638,
+          "scroll": 638
+        },
+        {
+          "class": "workspace-board",
+          "width": 639.765625,
+          "client": 638,
+          "scroll": 638
+        }
+      ],
+      "identityWidths": [
+        134.328125,
+        286.1875,
+        267.8125,
+        107.0625,
+        89.21875,
+        107.0625,
+        107.0625,
+        107.0625
+      ]
+    },
+    {
+      "name": "synthetic-account-390",
+      "dialogWidth": 358,
+      "clientWidth": 356,
+      "scrollWidth": 356,
+      "inner": [
+        {
+          "class": "archive-dialog-card",
+          "width": 356,
+          "client": 356,
+          "scroll": 356
+        },
+        {
+          "class": "dialog-actions",
+          "width": 322,
+          "client": 322,
+          "scroll": 322
+        },
+        {
+          "class": "dialog-actions",
+          "width": 322,
+          "client": 322,
+          "scroll": 322
+        }
+      ],
+      "identityWidths": []
+    },
+    {
+      "name": "synthetic-workspaces-390",
+      "dialogWidth": 358,
+      "clientWidth": 356,
+      "scrollWidth": 356,
+      "inner": [
+        {
+          "class": "archive-dialog-card",
+          "width": 356,
+          "client": 356,
+          "scroll": 356
+        },
+        {
+          "class": "workspace-board cloud-workspace-card",
+          "width": 322,
+          "client": 320,
+          "scroll": 320
+        },
+        {
+          "class": "workspace-board cloud-workspace-card",
+          "width": 322,
+          "client": 320,
+          "scroll": 320
+        },
+        {
+          "class": "dialog-actions",
+          "width": 322,
+          "client": 322,
+          "scroll": 322
+        }
+      ],
+      "identityWidths": [
+        292,
+        292
+      ]
+    },
+    {
+      "name": "synthetic-members-390",
+      "dialogWidth": 358,
+      "clientWidth": 356,
+      "scrollWidth": 356,
+      "inner": [
+        {
+          "class": "archive-dialog-card",
+          "width": 356,
+          "client": 356,
+          "scroll": 657
+        },
+        {
+          "class": "new-board-form",
+          "width": 322,
+          "client": 322,
+          "scroll": 322
+        },
+        {
+          "class": "workspace-board",
+          "width": 554.5,
+          "client": 553,
+          "scroll": 553
+        },
+        {
+          "class": "workspace-board",
+          "width": 554.5,
+          "client": 553,
+          "scroll": 553
+        },
+        {
+          "class": "workspace-board",
+          "width": 554.5,
+          "client": 553,
+          "scroll": 553
+        },
+        {
+          "class": "new-board-form",
+          "width": 322,
+          "client": 322,
+          "scroll": 322
+        },
+        {
+          "class": "workspace-board",
+          "width": 639.765625,
+          "client": 638,
+          "scroll": 638
+        },
+        {
+          "class": "workspace-board",
+          "width": 639.765625,
+          "client": 638,
+          "scroll": 638
+        },
+        {
+          "class": "workspace-board",
+          "width": 639.765625,
+          "client": 638,
+          "scroll": 638
+        },
+        {
+          "class": "workspace-board",
+          "width": 639.765625,
+          "client": 638,
+          "scroll": 638
+        },
+        {
+          "class": "workspace-board",
+          "width": 639.765625,
+          "client": 638,
+          "scroll": 638
+        }
+      ],
+      "identityWidths": [
+        134.328125,
+        286.1875,
+        267.8125,
+        107.0625,
+        89.21875,
+        107.0625,
+        107.0625,
+        107.0625
+      ]
+    }
+  ]
+}

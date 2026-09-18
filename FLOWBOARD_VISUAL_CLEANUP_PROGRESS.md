@@ -12,8 +12,8 @@ Production boundary: local-only implementation and qualification. No push, PR, m
 - [x] Step 2 of 10 - shared visual and dialog foundations verified
 - [x] Step 3 of 10 - board header and toolbar alignment verified
 - [x] Step 4 of 10 - Account and profile presentation verified
-- [ ] Step 5 of 10 - in progress
-- [ ] Step 6 of 10
+- [x] Step 5 of 10 - cloud chooser geometry and footer grouping verified
+- [ ] Step 6 of 10 - in progress
 - [ ] Step 7 of 10
 - [ ] Step 8 of 10
 - [ ] Step 9 of 10

@@ -28,25 +28,26 @@ function messageFor(error) {
 }
 
 export function initializeCloudWorkspaceUI({localAdapter, cloudAdapter}) {
-  const accountDialog = $('#account-dialog');
-  const open = $('#open-cloud-migration');
-  const dialog = $('#cloud-migration-dialog');
-  const close = $('#close-cloud-migration');
-  const name = $('#cloud-workspace-name');
-  const summary = $('#cloud-migration-summary');
-  const status = $('#cloud-migration-status');
-  const backup = $('#download-migration-backup');
-  const create = $('#create-cloud-workspace');
-  const workspaceButton = $('#open-cloud-workspaces');
-  const ws = $('#cloud-status');
-  const workspacesDialog = $('#cloud-workspaces-dialog');
-  const closeWorkspaces = $('#close-cloud-workspaces');
-  const workspacesList = $('#cloud-workspaces-list');
-  const workspacesStatus = $('#cloud-workspaces-status');
-  const returnLocal = $('#return-to-local-workspace');
-  const migrateCloud = $('#migrate-cloud-workspace');
-  const exportCloud = $('#export-cloud-workspace');
-  const announcer = $('#announcer');
+  const styleReady=import('./cloud-workspace-style.js');
+  const accountDialog=$('#account-dialog');
+  const open=$('#open-cloud-migration');
+  const dialog=$('#cloud-migration-dialog');
+  const close=$('#close-cloud-migration');
+  const name=$('#cloud-workspace-name');
+  const summary=$('#cloud-migration-summary');
+  const status=$('#cloud-migration-status');
+  const backup=$('#download-migration-backup');
+  const create=$('#create-cloud-workspace');
+  const workspaceButton=$('#open-cloud-workspaces');
+  const ws=$('#cloud-status');
+  const workspacesDialog=$('#cloud-workspaces-dialog');
+  const closeWorkspaces=$('#close-cloud-workspaces');
+  const workspacesList=$('#cloud-workspaces-list');
+  const workspacesStatus=$('#cloud-workspaces-status');
+  const returnLocal=$('#return-to-local-workspace');
+  const migrateCloud=$('#migrate-cloud-workspace');
+  const exportCloud=$('#export-cloud-workspace');
+  const announcer=$('#announcer');
   let session = null, workspace = null, backupDownloaded = false, completed = false, selectedCloudEntry = null, wo = workspaceButton, so = false;
 
   const announce = text => { status.textContent = text; announcer.textContent = ''; requestAnimationFrame(() => { announcer.textContent = text; }); };
@@ -91,8 +92,7 @@ export function initializeCloudWorkspaceUI({localAdapter, cloudAdapter}) {
     }
   });
 
-  on(workspaceButton,'click', async () => {
-    if(!so) wo=workspaceButton;
+  on(workspaceButton,'click', async () => { await styleReady; wo=so?wo:workspaceButton;
     so=false;
     if(!session)return;
     if (accountDialog.open) accountDialog.close(); workspacesDialog.showModal(); workspacesList.replaceChildren();
@@ -111,7 +111,7 @@ export function initializeCloudWorkspaceUI({localAdapter, cloudAdapter}) {
       workspacesStatus.textContent = 'Choose a verified workspace to open. Owners and editors can explicitly enter cloud edit mode.';
       entries.forEach(entry=>{
         const row=el('div'),button=el('button'),summary=el('div');
-        row.className='workspace-entry';Object.assign(button,{type:'button',className:'button button-quiet',textContent:'Open'});summary.className='workspace-board';
+        row.className='workspace-entry';Object.assign(button,{type:'button',className:'button button-quiet',textContent:'Open'});summary.className='workspace-board cloud-workspace-card';
         const title=el('strong'),detail=el('span');
         title.textContent=entry.name||'Untitled cloud workspace';button.setAttribute('aria-label',`Open ${title.textContent}`);
         const archived=entry.status==='archived',editable=!archived&&['owner','editor'].includes(entry.role)&&entry.migration?.state==='verified';
