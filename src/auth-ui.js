@@ -21,7 +21,6 @@ export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
   const close = document.querySelector('#close-account-dialog');
   const signIn = document.querySelector('#google-sign-in');
   const signOut = document.querySelector('#account-sign-out');
-  const migrate = document.querySelector('#open-cloud-migration');
   const workspaces = document.querySelector('#open-cloud-workspaces');
   const appearance = document.querySelector('#account-open-appearance');
   const name = document.querySelector('#account-name');
@@ -77,7 +76,6 @@ export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
     email.textContent = signedIn ? session.email : 'Sign in to access synchronized boards.';
     signIn.hidden = signedIn;
     signOut.hidden = !signedIn;
-    migrate.hidden = true;
     workspaces.hidden = !signedIn;
     renderContext(signedIn);
     if (!signedIn && !remoteMode(mode)) cloudStatus.textContent = 'Sign in required';

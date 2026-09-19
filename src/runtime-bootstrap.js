@@ -4,9 +4,7 @@ export async function bootstrapFlowboard({cloudConfigured, cloudStatus, cloudIni
   globalThis.FlowboardRuntime = Object.freeze({cloudStatus, localAdapter, cloudAdapter, canvasPalettes:CANVAS_PALETTES, applyCanvasPalette});
   await import('../app.js');
   if (cloudConfigured && !cloudInitializationError) {
-    const [{initializeAuthUI}, {initializeCloudWorkspaceUI}, {initializeInviteUI}, {initializeMembersUI}, {initializeCloudRosterUI}, {initializeCloudSyncController}, {initializeActivityUI}, {initializeAssignmentUI}, {initializeCommentsUI}] = await Promise.all([
-      import('./auth-ui.js'), import('./cloud-workspace-ui.js'), import('./invite-ui.js'), import('./members-ui.js'), import('./cloud-roster-ui.js'), import('./cloud-sync-controller.js'), import('./activity-ui.js'), import('./assignment-ui.js'), import('./comments-ui.js')
-    ]);
+    const {initializeAuthUI, initializeCloudWorkspaceUI, initializeInviteUI, initializeMembersUI, initializeCloudRosterUI, initializeCloudSyncController, initializeActivityUI, initializeAssignmentUI, initializeCommentsUI} = await import('./cloud-ui.js');
     const cloudUI = initializeCloudWorkspaceUI({localAdapter, cloudAdapter});
     const inviteUI = initializeInviteUI(cloudAdapter);
     const membersUI = initializeMembersUI(cloudAdapter);

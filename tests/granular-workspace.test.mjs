@@ -27,3 +27,13 @@ test('granular migration rejects duplicate IDs rather than creating ambiguous do
   invalid.lists[1].id = 'list-a';
   assert.throws(() => granularizeBoard(invalid, 0), /duplicate list/i);
 });
+
+test('granular migration owns rank, parent, and lifecycle metadata', () => {
+  const input=structuredClone(legacyBoard);
+  input.rank=99;input.lifecycleState='deleting';input.lists[0].rank=99;input.lists[0].lifecycleState='deleting';
+  input.lists[0].cards[0].rank=99;input.lists[0].cards[0].listId='list-b';input.lists[0].cards[0].lifecycleState='deleting';
+  const result=granularizeBoard(input,2);
+  assert.equal(result.board.rank,2);assert.equal(result.board.lifecycleState,'active');
+  assert.equal(result.lists[0].rank,0);assert.equal(result.lists[0].lifecycleState,'active');
+  assert.equal(result.cards[0].rank,0);assert.equal(result.cards[0].listId,'list-a');assert.equal(result.cards[0].lifecycleState,'active');
+});

@@ -7,6 +7,14 @@
         {"fieldPath": "listId", "order": "ASCENDING"},
         {"fieldPath": "lifecycleState", "order": "ASCENDING"}
       ]
+    },
+    {
+      "collectionGroup": "boards",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "lifecycleState", "order": "ASCENDING"},
+        {"fieldPath": "archived", "order": "ASCENDING"}
+      ]
     }
   ],
   "fieldOverrides": []

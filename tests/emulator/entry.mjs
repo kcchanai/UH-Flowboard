@@ -45,9 +45,8 @@ connectFirestoreEmulator(db, '127.0.0.1', 8080);
 const cloudAdapter = createFirebaseWorkspaceAdapter(CONFIG);
 const localAdapter = createLocalWorkspaceAdapter({
   validWorkspace: State.validWorkspace,
-  normalizeWorkspace: State.normalizeWorkspace,
+  normalizeWorkspace: State.normalizeCloudWorkspace,
   migrateLegacy: State.migrateLegacy,
-  makeWorkspace: State.makeWorkspace,
   clone: State.clone
 });
 const users = new Map();
@@ -128,7 +127,7 @@ async function seedFixture() {
   await members.commit();
   const records = writeBatch(db);
   records.set(doc(root, 'boards', FIXTURE.boardId), {
-    id: FIXTURE.boardId, title: 'Emulator board', rank: 0, lifecycleState:'active', revision: 0,
+    id: FIXTURE.boardId, title: 'Emulator board', rank: 0, archived:false, lifecycleState:'active', revision: 0,
     clientMutationId: 'seed-board-mutation-0001', updatedAt: serverTimestamp()
   });
   records.set(doc(root, 'boards', FIXTURE.boardId, 'lists', FIXTURE.listId), {
@@ -204,7 +203,25 @@ const testApi = {
   async signInFreshPersonal(){const user=await signInFreshPersonal();return{uid:user.uid};},
   async signInExistingPersonal(){const user=(await signInWithEmailAndPassword(auth,'personal@flowboard.test','Flowboard-personal-123!')).user;return{uid:user.uid};},
 
-  async personalSummary(){const user=auth.currentUser;if(!user)return{signedIn:false};const profile=await getDoc(doc(db,'users',user.uid)),workspaceId=profile.data()?.personalWorkspaceId;if(!workspaceId)return{signedIn:true,hasPointer:false};const [workspace,membership,boards]=await Promise.all([getDoc(doc(db,'workspaces',workspaceId)),getDoc(doc(db,'workspaces',workspaceId,'members',user.uid)),getDocs(query(collection(db,'workspaces',workspaceId,'boards'),where('lifecycleState','==','active')))]);return{signedIn:true,hasPointer:true,workspaceExists:workspace.exists(),role:membership.data()?.role||'',boardCount:boards.size};}
+  async personalContext(){const user=await signInFreshPersonal(),choice=await cloudAdapter.ensurePersonalWorkspace();return{uid:user.uid,workspaceId:choice.workspaceId};},
+  async personalSummary(){const user=auth.currentUser;if(!user)return{signedIn:false};const profile=await getDoc(doc(db,'users',user.uid)),workspaceId=profile.data()?.personalWorkspaceId;if(!workspaceId)return{signedIn:true,hasPointer:false};const [workspace,membership,boards]=await Promise.all([getDoc(doc(db,'workspaces',workspaceId)),getDoc(doc(db,'workspaces',workspaceId,'members',user.uid)),getDocs(query(collection(db,'workspaces',workspaceId,'boards'),where('lifecycleState','==','active'),where('archived','==',false)))]);return{signedIn:true,hasPointer:true,workspaceExists:workspace.exists(),role:membership.data()?.role||'',boardCount:boards.size};},
+  async seedDirectoryPages(){await signInFreshPersonal();const {workspaceId}=await cloudAdapter.ensurePersonalWorkspace();for(let index=0;index<30;index++){const boardId=`paged-board-${String(index).padStart(2,'0')}`;await setDoc(doc(db,'workspaces',workspaceId,'boards',boardId),{id:boardId,title:`Paged board ${String(index+1).padStart(2,'0')}`,rank:100+index,archived:false,lifecycleState:'active',revision:0,clientMutationId:`paged-create-operation-${String(index).padStart(2,'0')}`});}return{workspaceId};},
+  async importLegacyFixture(){
+    const user=await signInFreshPersonal(),choice=await cloudAdapter.ensurePersonalWorkspace(),workspaceId=choice.workspaceId;let oversized='unexpected-success';try{await cloudAdapter.importLegacyWorkspace({workspaceId,workspace:{schemaVersion:5,boards:Array.from({length:5},(_,index)=>({id:`oversized-${index}`,title:'Oversized',lists:[]}))}});}catch(error){oversized=error.code||'unknown';}
+    const legacy={schemaVersion:1,activeBoardId:'duplicate-board',preferences:{theme:'system'},boards:[0,1,2,3].map(index=>({id:'duplicate-board',title:'Repeated board',createdAt:'2025-01-01T00:00:00.000Z',updatedAt:'2025-01-02T00:00:00.000Z',archived:index===1,lists:[{id:'duplicate-list',title:'List',createdAt:'2025-01-01T00:00:00.000Z',updatedAt:'2025-01-02T00:00:00.000Z',archived:false,cards:[{id:'duplicate-card',title:`Imported ${index+1}`,description:'Legacy detail',labels:[],checklist:[],activity:[{id:'legacy-history',text:'Legacy note',at:'2025-01-01T00:00:00.000Z'}],assignees:['Legacy person'],archived:index===1,createdAt:'2025-01-01T00:00:00.000Z',updatedAt:'2025-01-02T00:00:00.000Z'}]}]}))};
+    const raw=JSON.stringify(legacy),secondary='legacy-key-sentinel';localStorage.setItem('flowboard-workspace',raw);localStorage.setItem('flowboard-data',secondary);
+    const inspected=localAdapter.inspectLegacyWorkspace();let first;try{first=await cloudAdapter.importLegacyWorkspace({workspaceId,workspace:inspected.workspace});}catch(error){return{errorStage:error.flowboardStage||'first-import',errorCode:error.code||'unknown'};}
+    localAdapter.saveLegacyMigrationReceipt({version:1,accountUid:user.uid,workspaceId,source:inspected.source,operationId:first.operationId,counts:inspected.counts,state:'verified'});
+    const second=await cloudAdapter.importLegacyWorkspace({workspaceId,workspace:inspected.workspace}),loaded=await cloudAdapter.fetchWorkspace(workspaceId),backup=await cloudAdapter.exportCloudBackup(workspaceId),receipt=localAdapter.loadLegacyMigrationReceipt();
+    await signInRole('owner');let crossAccount='unexpected-success';try{await cloudAdapter.importLegacyWorkspace({workspaceId,workspace:inspected.workspace});}catch(error){crossAccount=error.code||'unknown';}await signInFreshPersonal();
+    const imported=backup.records.filter(item=>item.board.importOperationId===first.operationId),allCards=imported.flatMap(item=>item.cards);return{oversized,firstImported:!first.alreadyImported,secondIdempotent:second.alreadyImported,sameOperation:first.operationId===second.operationId,activeVisible:loaded.boards.some(board=>board.title==='Repeated board'),boards:imported.length,activeBoards:imported.filter(item=>!item.board.archived).length,lists:imported.reduce((n,item)=>n+item.lists.length,0),cards:allCards.length,archivedBoards:imported.filter(item=>item.board.archived).length,legacyLabelsOnly:allCards.every(card=>card.assigneeUids.length===0&&card.legacyAssignees[0]==='Legacy person'),receiptVerified:receipt?.state==='verified',rawPreserved:localStorage.getItem('flowboard-workspace')===raw&&localStorage.getItem('flowboard-data')===secondary,crossAccount};
+  },
+  async backupAndUpgradeSnapshot(){
+    await signInRole('owner');for(let index=0;index<27;index++)await cloudAdapter.createComment({workspaceId:FIXTURE.workspaceId,boardId:FIXTURE.boardId,cardId:FIXTURE.cardId,body:`Synthetic page comment ${index}`});
+    const snapshotId='snapshot-upgrade-board';
+    const backup=await cloudAdapter.exportCloudBackup(FIXTURE.workspaceId),fixtureRecord=backup.records.find(item=>item.board.id===FIXTURE.boardId),snapshotRecord=backup.records.find(item=>item.board.id===snapshotId),first=await cloudAdapter.migrateWorkspaceToGranular(FIXTURE.workspaceId),second=await cloudAdapter.migrateWorkspaceToGranular(FIXTURE.workspaceId),root=await getDoc(doc(db,'workspaces',FIXTURE.workspaceId,'boards',snapshotId)),lists=await getDocs(query(collection(db,'workspaces',FIXTURE.workspaceId,'boards',snapshotId,'lists'),where('lifecycleState','==','active'))),cards=await getDocs(query(collection(db,'workspaces',FIXTURE.workspaceId,'boards',snapshotId,'cards'),where('listId','==','snapshot-list'),where('lifecycleState','==','active')));
+    return{backupFormat:backup.format,commentCount:fixtureRecord.cards.find(card=>card.id===FIXTURE.cardId).comments.length,snapshotBackedUp:Boolean(snapshotRecord.board.snapshot),firstMigrated:!first.alreadyMigrated,secondIdempotent:second.alreadyMigrated,sameOperation:first.operationId===second.operationId,snapshotScrubbed:root.data()?.snapshot===undefined,lists:lists.size,cards:cards.size};
+  }
 };
 
 const personalMode=new URLSearchParams(location.search).get('personal')==='1';

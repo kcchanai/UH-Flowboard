@@ -2,16 +2,17 @@ import {test, expect} from '@playwright/test';
 import {readdirSync} from 'node:fs';
 import {basePath} from '../scripts/repository-path.mjs';
 
-const builtLifecycleAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('workspace-lifecycle-ui-') && file.endsWith('.js'))}`;
-const builtCloudWorkspaceAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('cloud-workspace-ui-') && file.endsWith('.js'))}`;
-const builtCloudSyncAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('cloud-sync-controller-') && file.endsWith('.js'))}`;
-const builtMembersAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('members-ui-') && file.endsWith('.js'))}`;
-const builtActivityAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('activity-ui-') && file.endsWith('.js'))}`;
-const builtAssignmentAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('assignment-ui-') && file.endsWith('.js'))}`;
-const builtCommentsAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('comments-ui-') && file.endsWith('.js'))}`;
-const builtAuthAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('auth-ui-') && file.endsWith('.js'))}`;
-const builtRosterAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('cloud-roster-ui-') && file.endsWith('.js'))}`;
-const openReady = async page => { await page.goto(basePath); await page.waitForFunction(() => globalThis.FlowboardApp && globalThis.FlowboardState); await page.waitForFunction(() => /Google sign-in available|Signed in · local workspace|Local-only workspace/.test(document.querySelector('#cloud-status')?.textContent || '')); };
+const builtCloudUIAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('cloud-ui-') && file.endsWith('.js'))}`;
+const builtLifecycleAsset = builtCloudUIAsset;
+const builtCloudWorkspaceAsset = builtCloudUIAsset;
+const builtCloudSyncAsset = builtCloudUIAsset;
+const builtMembersAsset = builtCloudUIAsset;
+const builtActivityAsset = builtCloudUIAsset;
+const builtAssignmentAsset = builtCloudUIAsset;
+const builtCommentsAsset = builtCloudUIAsset;
+const builtAuthAsset = builtCloudUIAsset;
+const builtRosterAsset = builtCloudUIAsset;
+const openReady = async page => { await page.goto(basePath); await page.waitForFunction(() => globalThis.FlowboardApp && globalThis.FlowboardState); await page.waitForFunction(() => ['unavailable','signed-out','cloud','cloud-preview','ready-empty'].includes(globalThis.FlowboardApp.getMode().kind)); };
 
 test('critical local-first card workflow persists after reload', async ({page}) => {
   await openReady(page);
@@ -253,22 +254,27 @@ test('account panel is a first-level workspace and profile hub without session f
   expect(await page.evaluate(() => localStorage.getItem('flowboard-workspace'))).toBe(before);
 });
 
-test('Workspace status opens cloud chooser separately from Boards', async ({page}) => {
+test('Workspace status and Boards open the same My workspace manager', async ({page}) => {
   await openReady(page);
   await page.evaluate(async asset => {
     await new Promise(resolve => setTimeout(resolve, 50));
-    globalThis.FlowboardApp = {getMode:() => ({kind:'local'}), returnToLocal:()=>{}, exportCloudPreview:()=>{}};
-    const cloudAdapter={listWorkspaces:async()=>[]};
+    globalThis.FlowboardApp = {getMode:() => ({kind:'cloud',id:'scope',role:'owner'}),getActiveBoardId:()=>'',openCloudWorkspace:()=>{},openCloudPreview:()=>{},selectBoard:()=>{},createBoard:()=>false};
+    const cloudAdapter={listBoardDirectory:async()=>[]};
     const {initializeCloudWorkspaceUI}=await import(asset);
-    initializeCloudWorkspaceUI({localAdapter:{},cloudAdapter}).setSession({uid:'owner'});
+    initializeCloudWorkspaceUI({localAdapter:{inspectLegacyWorkspace:()=>({status:'none',counts:{boards:0}})},cloudAdapter}).setSession({uid:'owner'});
+    document.querySelector('#boards-button').disabled=false;
   }, builtCloudWorkspaceAsset());
   await expect(page.locator('#boards-button')).toHaveText('Boards');
   await expect(page.locator('#cloud-status')).toBeEnabled();
-  await expect(page.locator('#cloud-status')).toHaveAccessibleName(/Open workspace chooser/);
+  await expect(page.locator('#cloud-status')).toHaveAccessibleName(/Open My workspace/);
   await page.locator('#cloud-status').click();
-  await expect(page.getByRole('dialog', {name:'Cloud workspaces'})).toBeVisible();
-  await page.getByRole('button', {name:'Close cloud workspaces'}).click();
+  await expect(page.getByRole('dialog', {name:'Your boards'})).toBeVisible();
+  await page.getByRole('button', {name:'Close My workspace'}).click();
   await expect(page.locator('#cloud-status')).toBeFocused();
+  await page.locator('#boards-button').click();
+  await expect(page.getByRole('dialog', {name:'Your boards'})).toBeVisible();
+  await page.getByRole('button', {name:'Close My workspace'}).click();
+  await expect(page.locator('#boards-button')).toBeFocused();
 });
 
 test('cloud status feedback stays distinct and preserves local data scope', async ({page}) => {
@@ -314,9 +320,10 @@ test('rich dialogs keep close actions reachable across office and compatibility 
   await openReady(page);
   await page.locator('#account-button').evaluate(button => { button.hidden = false; });
   await page.evaluate(async ({cloudAsset,authAsset}) => {
-    globalThis.FlowboardApp = {getMode:() => ({kind:'local'}), returnToLocal:()=>{}, exportCloudPreview:()=>{}};
+    globalThis.FlowboardApp = {getMode:() => ({kind:'cloud',id:'scope',role:'owner'}),getActiveBoardId:()=>'',openCloudWorkspace:()=>{},openCloudPreview:()=>{},selectBoard:()=>{},createBoard:()=>false};
     const {initializeCloudWorkspaceUI}=await import(cloudAsset);
-    initializeCloudWorkspaceUI({localAdapter:{},cloudAdapter:{listWorkspaces:async()=>[]}}).setSession({uid:'owner'});
+    initializeCloudWorkspaceUI({localAdapter:{inspectLegacyWorkspace:()=>({status:'none',counts:{boards:0}})},cloudAdapter:{listBoardDirectory:async()=>[]}}).setSession({uid:'owner'});
+    document.querySelector('#boards-button').disabled=false;
     const {initializeAuthUI}=await import(authAsset);
     initializeAuthUI({onAuthStateChange:()=>()=>{},signInWithGoogle:async()=>{},signOut:async()=>{} });
   }, {cloudAsset:builtCloudWorkspaceAsset(),authAsset:builtAuthAsset()});
@@ -344,11 +351,11 @@ test('rich dialogs keep close actions reachable across office and compatibility 
     await expect(appearanceButton).toBeFocused();
     const boardsButton=page.getByRole('button',{name:'Boards'});
     await boardsButton.click();
-    await check(page.getByRole('dialog',{name:'Your boards'}),page.getByRole('button',{name:'Close boards'}));
+    await check(page.getByRole('dialog',{name:'Your boards'}),page.getByRole('button',{name:'Close My workspace'}));
     await expect(boardsButton).toBeFocused();
     const workspaceButton=page.locator('#cloud-status');
     await workspaceButton.click();
-    await check(page.getByRole('dialog',{name:'Cloud workspaces'}),page.getByRole('button',{name:'Close cloud workspaces'}));
+    await check(page.getByRole('dialog',{name:'Your boards'}),page.getByRole('button',{name:'Close My workspace'}));
     await expect(workspaceButton).toBeFocused();
   }
 });
@@ -546,23 +553,25 @@ test('owner can retry an interrupted migration and the workspace list refreshes 
   await page.setViewportSize({width:390,height:844});
   await openReady(page);
   await page.evaluate(async asset => {
-    document.body.innerHTML = `<dialog id="account-dialog"></dialog><button id="open-cloud-migration"></button><dialog id="cloud-migration-dialog"><button id="close-cloud-migration"></button><input id="cloud-workspace-name"><dl id="cloud-migration-summary"></dl><p id="cloud-migration-status"></p><button id="download-migration-backup"></button><button id="create-cloud-workspace"></button></dialog><button id="open-cloud-workspaces">Cloud workspaces</button><dialog id="cloud-workspaces-dialog"><button id="close-cloud-workspaces"></button><div id="cloud-workspaces-list"></div><p id="cloud-workspaces-status"></p><button id="return-to-local-workspace"></button><button id="migrate-cloud-workspace">Migrate cloud format</button><button id="export-cloud-workspace"></button></dialog><div id="announcer"></div>`;
     let verified = false;
-    const entry = () => ({id:'retry-fixture',name:'Interrupted fixture',ownerUid:'owner',role:'owner',status:verified?'ready':'migrating',migration:{state:verified?'verified':'migrating'}});
-    const archivedEntry = {id:'archived-fixture',name:'Archived fixture',ownerUid:'owner',role:'owner',status:'archived',migration:{state:'verified'}};
+    const entry = () => ({id:'retry-fixture',name:'Interrupted fixture',ownerUid:'owner',role:'owner',status:verified?'ready':'migrating',migration:{state:verified?'verified':'migrating'},boards:[],hasMore:false});
+    const archivedEntry = {id:'archived-fixture',name:'Archived fixture',ownerUid:'owner',role:'owner',status:'archived',migration:{state:'verified'},boards:[],hasMore:false};
     const cloudAdapter = {
-      listWorkspaces:async()=>[entry(),archivedEntry],
+      listBoardDirectory:async()=>[entry(),archivedEntry],
       fetchWorkspace:async()=>{if(!verified)throw new Error('interrupted');return {schemaVersion:4,activeBoardId:'board',boards:[]};},
+      exportCloudBackup:async()=>({format:'flowboard-cloud-backup'}),
       migrateWorkspaceToGranular:async()=>{verified=true;return {boards:1,lists:1,cards:1};},
       renameWorkspace:async()=>({}),archiveWorkspace:async()=>({}),restoreWorkspace:async()=>({lifecycleRevision:1})
     };
-    globalThis.FlowboardApp={getMode:()=>({kind:'local'}),openCloudPreview:()=>{},returnToLocal:()=>{},exportCloudPreview:()=>{}};
+    globalThis.FlowboardApp={getMode:()=>({kind:'cloud',id:'retry-fixture',role:'owner'}),getActiveBoardId:()=>'',openCloudWorkspace:()=>{globalThis.upgradeOpened=true;},openCloudPreview:()=>{},selectBoard:()=>{},createBoard:()=>false};
     const {initializeCloudWorkspaceUI}=await import(asset);
-    initializeCloudWorkspaceUI({localAdapter:{},cloudAdapter}).setSession({uid:'owner'});
+    initializeCloudWorkspaceUI({localAdapter:{inspectLegacyWorkspace:()=>({status:'none',counts:{boards:0}})},cloudAdapter}).setSession({uid:'owner'});
+    document.querySelector('#boards-button').disabled=false;
   }, builtCloudWorkspaceAsset());
-  await page.getByRole('button',{name:'Cloud workspaces'}).click();
+  await page.locator('#boards-button').click();
+  await page.locator('#legacy-spaces-section').evaluate(section=>{section.open=true;});
   const archivedRow=page.locator('.workspace-entry').filter({hasText:'Archived fixture'});
-  await expect(archivedRow).toContainText('Cloud workspace · archived · retained');
+  await expect(archivedRow).toContainText('archived · retained');
   await expect(archivedRow.getByRole('button',{name:/Open|Rename|Archive/})).toHaveCount(0);
   await expect(archivedRow.getByRole('button',{name:'Restore'})).toBeVisible();
   const [summaryBox,restoreBox]=await Promise.all([archivedRow.locator('.workspace-board').boundingBox(),archivedRow.getByRole('button',{name:'Restore'}).boundingBox()]);
@@ -574,10 +583,10 @@ test('owner can retry an interrupted migration and the workspace list refreshes 
   await expect(archivedRow.getByRole('button',{name:'Rename'})).toBeVisible();
   await expect(archivedRow.getByRole('button',{name:'Archive',exact:true})).toBeVisible();
   await expect(archivedRow.getByRole('button',{name:'Restore'})).toHaveCount(0);
-  await page.getByRole('button',{name:/Interrupted fixture/}).click();
-  await expect(page.locator('#cloud-workspaces-status')).toContainText('migration was interrupted');
-  await page.getByRole('button',{name:'Migrate cloud format'}).click();
-  await expect(page.locator('#cloud-workspaces-list')).toContainText('owner · editable');
+  await page.getByRole('button',{name:'Download complete backup'}).click();
+  await page.getByRole('button',{name:'Upgrade legacy format'}).click();
+  await expect(page.locator('#cloud-workspaces-status')).toContainText('Upgrade verified');
+  expect(await page.evaluate(()=>globalThis.upgradeOpened)).toBe(true);
 });
 
 test('desktop board discovery handles many long board names', async ({page}) => {

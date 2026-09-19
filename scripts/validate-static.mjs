@@ -1,9 +1,9 @@
 import {readFile} from 'node:fs/promises';
 
-const [html, app, core, main, runtimeBootstrap, contract, localAdapter, firebaseAdapter, cloudAdapter, lifecycleAdapter, phaseHProbes, authUI, cloudUI, lifecycleUI, inviteUI, membersUI, cloudSync, activityUI, assignmentUI, commentsUI, rules] = await Promise.all([
+const [html, app, core, main, runtimeBootstrap, contract, localAdapter, firebaseAdapter, cloudAdapter, migrationAdapter, lifecycleAdapter, phaseHProbes, authUI, cloudUI, legacyImportUI, lifecycleUI, inviteUI, membersUI, cloudSync, activityUI, assignmentUI, commentsUI, rules] = await Promise.all([
   'index.html', 'app.js', 'state-core.js', 'src/main.js', 'src/runtime-bootstrap.js', 'src/adapters/adapter-contract.js', 'src/adapters/local-workspace-adapter.js',
-  'src/adapters/firebase-workspace-adapter.js', 'src/adapters/firebase-cloud-workspace.js', 'src/adapters/firebase-workspace-lifecycle.js', 'src/adapters/firebase-phase-h-probes.js',
-  'src/auth-ui.js', 'src/cloud-workspace-ui.js', 'src/workspace-lifecycle-ui.js', 'src/invite-ui.js', 'src/members-ui.js', 'src/cloud-sync-controller.js', 'src/activity-ui.js', 'src/assignment-ui.js', 'src/comments-ui.js', 'firestore.rules'
+  'src/adapters/firebase-workspace-adapter.js', 'src/adapters/firebase-cloud-workspace.js', 'src/adapters/firebase-migration.js', 'src/adapters/firebase-workspace-lifecycle.js', 'src/adapters/firebase-phase-h-probes.js',
+  'src/auth-ui.js', 'src/cloud-workspace-ui.js', 'src/legacy-import-ui.js', 'src/workspace-lifecycle-ui.js', 'src/invite-ui.js', 'src/members-ui.js', 'src/cloud-sync-controller.js', 'src/activity-ui.js', 'src/assignment-ui.js', 'src/comments-ui.js', 'firestore.rules'
 ].map(file => readFile(file, 'utf8')));
 
 const required = [
@@ -16,7 +16,7 @@ const required = [
   ['honest cloud status', /id="cloud-status"/],
   ['Google account dialog', /id="account-dialog"/],
   ['explicit cloud migration dialog', /id="cloud-migration-dialog"/],
-  ['cloud workspace preview dialog', /id="cloud-workspaces-dialog"/],
+  ['unified My workspace dialog', /id="workspace-dialog"/],
   ['explicit legacy-data safety notice', /Existing browser-only data is never uploaded/]
 ];
 for (const [label, pattern] of required) if (!pattern.test(html)) throw new Error(`Static validation failed: missing ${label}.`);
@@ -27,17 +27,18 @@ if (html.includes('id="collaboration-button"') || html.includes('id="collaborati
 if (contract.includes("'applyMutation'") || contract.includes("'createWorkspace'") || contract.includes("'inviteMember'") || contract.includes("'exportRemoteWorkspace'") || firebaseAdapter.includes('applyMutation') || cloudAdapter.includes('export async function applyCloudMutation')) throw new Error('Obsolete cloud adapter mutation surface remains exposed.');
 if (!runtimeBootstrap.includes('Object.freeze({cloudStatus, localAdapter, cloudAdapter, canvasPalettes:CANVAS_PALETTES, applyCanvasPalette})') || runtimeBootstrap.includes('CloudNotConfiguredError') || /\{cloudConfig(?:[,}])/.test(runtimeBootstrap)) throw new Error('Runtime bootstrap exposes an obsolete or sensitive property.');
 if (!core.includes('module.exports')) throw new Error('State helpers are not testable in Node.');
-if (!main.includes('createLocalWorkspaceAdapter') || !localAdapter.includes('loadWorkspace')) throw new Error('Local adapter boundary is incomplete.');
+if (!main.includes('createLocalWorkspaceAdapter') || !localAdapter.includes('inspectLegacyWorkspace') || localAdapter.includes('loadWorkspace()')) throw new Error('Inert legacy recovery adapter boundary is incomplete.');
 if (!main.includes('createFirebaseWorkspaceAdapter') || !firebaseAdapter.includes('signInWithPopup')) throw new Error('Firebase Authentication boundary is incomplete.');
 if (!authUI.includes('Existing legacy browser data was not changed') || !authUI.includes('Legacy browser data is not uploaded automatically')) throw new Error('Authentication UI lacks legacy-data safety handling.');
-if (!firebaseAdapter.includes('firebase-cloud-workspace.js') || !cloudAdapter.includes('MIGRATION_VERIFICATION_FAILED') || !cloudAdapter.includes('MIGRATION_UNAVAILABLE') || !cloudAdapter.includes('alreadyMigrated')) throw new Error('Verified cloud migration adapter is incomplete or not safely retryable.');
+if (!cloudAdapter.includes('firebase-migration.js') || !migrationAdapter.includes('getDocFromServer') || !migrationAdapter.includes('getDocsFromServer') || !migrationAdapter.includes('importLegacyWorkspace') || !migrationAdapter.includes('exportCloudBackup') || !migrationAdapter.includes('groups=(values,size=4)') || !migrationAdapter.includes('alreadyMigrated')) throw new Error('Verified cloud migration adapter is incomplete, unbounded, or not safely retryable.');
+if (!cloudAdapter.includes('orderBy(documentId())') || !cloudAdapter.includes('startAfter(cursor)') || !cloudUI.includes('async function loadMore') || !cloudUI.includes("async function openSpace(space,boardId=''){const request=++generation") || html.includes('cloud-workspaces-dialog') || html.includes('return-to-local-workspace')) throw new Error('Unified My workspace pagination, stale-request protection, or obsolete-route removal is incomplete.');
 if (!firebaseAdapter.includes('firebase-workspace-lifecycle.js') || !firebaseAdapter.includes('renameWorkspace') || !firebaseAdapter.includes('archiveWorkspace') || !firebaseAdapter.includes('restoreWorkspace') || !/status:["']archived["']/.test(lifecycleAdapter) || !lifecycleAdapter.includes('archivedByUid:') || !lifecycleAdapter.includes('runTransaction') || !lifecycleAdapter.includes('REVISION_CONFLICT')) throw new Error('Owner workspace lifecycle adapter is incomplete or not revision-safe.');
 if (!cloudUI.includes('workspace-lifecycle-ui.js') || !lifecycleUI.includes('archived') || !lifecycleUI.includes('retained') || !lifecycleUI.includes('will be retained') || lifecycleUI.includes('confirm(')) throw new Error('Workspace lifecycle UI must disclose retention and use an in-app confirmation.');
 if (!cloudUI.includes('summary.append(title,detail)') || !lifecycleUI.includes('l.append(x)')) throw new Error('Archived identity and restored Open controls must survive lifecycle refreshes.');
-if (!cloudUI.includes("entry.status === 'migrating'") || !cloudUI.includes('This migration was interrupted') || !cloudUI.includes('workspacesDialog.close(); workspaceButton.click();')) throw new Error('Interrupted cloud migration recovery UI is incomplete.');
+if (!cloudUI.includes('Workspace container · upgrade needed') || !cloudUI.includes('retry uses the same operation')) throw new Error('Interrupted cloud migration recovery UI is incomplete.');
 if (!rules.includes('validWorkspaceOwnerUpdate') || !rules.includes('canReadWorkspaceContent') || !rules.includes('isActiveWorkspace(workspaceId)') || !rules.includes("request.resource.data.status == 'archived'") || !rules.includes('allow delete: if false;')) throw new Error('Workspace lifecycle Rules are incomplete or allow hard deletion.');
-if (!cloudUI.includes('flowboard-before-cloud-') || !cloudUI.includes('still using the local original')) throw new Error('Cloud migration UI lacks backup-first local safety handling.');
-if (!app.includes('openCloudPreview') || !app.includes('normalizeCloudWorkspace') || !app.includes("['cloud','cloud-preview']") || !cloudUI.includes('read-only cloud preview')) throw new Error('Cloud preview or cloud-only mode boundary is incomplete.');
+if (!legacyImportUI.includes('inspection.backup.content') || !legacyImportUI.includes('The original browser data remains unchanged') || !legacyImportUI.includes('saveLegacyMigrationReceipt')) throw new Error('Legacy import UI lacks exact-backup and receipt safety handling.');
+if (!app.includes('openCloudPreview') || !app.includes('normalizeCloudWorkspace') || !app.includes("['cloud','cloud-preview']") || !cloudUI.includes('read-only')) throw new Error('Cloud preview or cloud-only mode boundary is incomplete.');
 if (app.includes("activeWorkspace = {kind:'local'}") || /state\s*=\s*loadState\(\)/.test(app) || !app.includes("{kind:'auth-loading'}") || !firebaseAdapter.includes('ensurePersonalWorkspace')) throw new Error('Cloud-first bootstrap must not activate an editable local workspace.');
 if (!html.includes('workspace-members-dialog') || !html.includes('workspace-profile-section') || !inviteUI.includes('acceptInvite') || !membersUI.includes('transferOwnership') || !membersUI.includes('updateOwnMemberProfile')) throw new Error('Secure membership administration UI is incomplete.');
 if (!firebaseAdapter.includes('updateOwnMemberProfile') || !cloudAdapter.includes('safePhotoURL') || !rules.includes('validOwnMemberProfileUpdate') || !rules.includes('profileUpdatedAt')) throw new Error('Workspace profile-photo authorization boundary is incomplete.');
@@ -49,12 +50,12 @@ if (!html.includes('cloud-comments-section') || !firebaseAdapter.includes('subsc
 if (!firebaseAdapter.includes('probeCommentQueryAuthorization') || !cloudAdapter.includes("limit(26)") || !cloudAdapter.includes("unbounded:await classify")) throw new Error('Phase H authenticated comment query-bound probe is incomplete.');
 if (!firebaseAdapter.includes('firebase-phase-h-probes.js') || !phaseHProbes.includes("['workspace', 'workspaces']") || !phaseHProbes.includes('deleteDoc(doc(db, ...path, crypto.randomUUID()))')) throw new Error('Phase H random-ID hard-delete probe is incomplete or unsafe.');
 const workspaceMutationStart = cloudAdapter.indexOf('export async function applyCloudWorkspaceMutation');
-const workspaceMutationEnd = cloudAdapter.indexOf('\nexport async function uploadLocalWorkspace', workspaceMutationStart);
+const workspaceMutationEnd = cloudAdapter.indexOf('\nexport async function listMembers', workspaceMutationStart);
 const workspaceMutation = cloudAdapter.slice(workspaceMutationStart, workspaceMutationEnd);
 const readPhase = workspaceMutation.indexOf('await Promise.all(ops.map(item => transaction.get(item.ref)))');
 const writePhase = workspaceMutation.indexOf('writes.forEach(write =>');
 if (workspaceMutationStart < 0 || workspaceMutationEnd < 0 || readPhase < 0 || writePhase < 0 || readPhase > writePhase || workspaceMutation.slice(writePhase).includes('transaction.get(')) throw new Error('Workspace transactions must complete every document read before the write phase.');
 if (!app.includes("Archive this cloud card?") || !app.includes("Cloud lists cannot be permanently deleted") || !rules.includes('validDeletionJobCreate') || !rules.includes('validBoardPurgeDelete')) throw new Error('Cloud retention and bounded deletion lifecycle guards are incomplete.');
-const cloudSources = [firebaseAdapter, cloudAdapter, lifecycleAdapter, cloudSync, main].join('\n');
+const cloudSources = [firebaseAdapter, cloudAdapter, migrationAdapter, lifecycleAdapter, cloudSync, main].join('\n');
 if (/enableIndexedDbPersistence|persistentLocalCache|persistentMultipleTabManager|CACHE_SIZE_UNLIMITED/.test(cloudSources)) throw new Error('Persistent Firestore caching is approval-gated and must remain disabled.');
 console.log(`Static validation passed: ${required.length} semantic/runtime guards plus adapter-boundary checks.`);

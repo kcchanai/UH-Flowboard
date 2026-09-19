@@ -1,7 +1,8 @@
 import {granularizeBoard, rehydrateGranularWorkspace} from '../granular-workspace.js';
+export {importLegacyWorkspace,exportCloudBackup,migrateWorkspaceToGranular} from './firebase-migration.js';
 import {safePhotoURL} from '../person-badges.js';
 import {
-  arrayRemove, arrayUnion, collection, deleteDoc, doc, getDoc, getDocs, getFirestore, limit, onSnapshot, orderBy, query, where,
+  arrayRemove, arrayUnion, collection, deleteDoc, doc, documentId, getDoc, getDocs, getDocsFromServer, getFirestore, limit, onSnapshot, orderBy, query, where,
   runTransaction, serverTimestamp, startAfter, Timestamp, updateDoc, writeBatch
 } from 'firebase/firestore';
 
@@ -11,12 +12,17 @@ const requireUser = auth => {
 };
 const context = (app, auth) => ({db:getFirestore(app), user:requireUser(auth)});
 const pageSizeOf = value => Math.min(Math.max(Number.isInteger(value) ? value : 25, 1), 25);
-const bytes = value => new TextEncoder().encode(JSON.stringify(value)).length;
+
 const normalizeEmail = value => String(value || '').trim().toLowerCase();
 const randomId = () => {
   const values = new Uint8Array(16); crypto.getRandomValues(values);
   return btoa(String.fromCharCode(...values)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 };
+
+export async function ensurePersonalWorkspace(app,auth){
+  const user=requireUser(auth),token=await user.getIdTokenResult(true);if(user.emailVerified!==true&&token.claims.email_verified!==true)throw Object.assign(new Error('Verify your Google email before creating your workspace.'),{code:'EMAIL_NOT_VERIFIED'});
+  const db=getFirestore(app),profileRef=doc(db,'users',user.uid),candidate=randomId(),emailLower=normalizeEmail(user.email),decision=await runTransaction(db,async transaction=>{const profile=await transaction.get(profileRef),data=profile.data()||{},pointer=typeof data.personalWorkspaceId==='string'?data.personalWorkspaceId:'',hints=[...new Set(Array.isArray(data.workspaceIds)?data.workspaceIds:[])].filter(id=>typeof id==='string'&&id).slice(0,100);if(pointer)return{state:'existing',workspaceId:pointer};if(hints.length)return{state:'needs-selection',workspaceIds:hints};const workspaceRef=doc(db,'workspaces',candidate),memberRef=doc(workspaceRef,'members',user.uid);transaction.set(workspaceRef,{name:'My workspace',ownerUid:user.uid,schemaVersion:5,status:'ready',personal:true,lifecycleRevision:0,activeBoardId:'',migration:{version:1,state:'verified',counts:{boards:0,lists:0,cards:0}},createdAt:serverTimestamp(),updatedAt:serverTimestamp()});transaction.set(memberRef,{uid:user.uid,role:'owner',emailLower});transaction.set(profileRef,{uid:user.uid,emailLower,workspaceIds:arrayUnion(candidate),personalWorkspaceId:candidate},{merge:true});return{state:'created',workspaceId:candidate};});if(decision.state==='needs-selection')return decision;try{const [workspace,membership]=await Promise.all([getDoc(doc(db,'workspaces',decision.workspaceId)),getDoc(doc(db,'workspaces',decision.workspaceId,'members',user.uid))]);if(workspace.exists()&&membership.exists()&&membership.data().role==='owner')return{...decision,entry:{id:workspace.id,...workspace.data(),role:'owner'}};}catch{}return{state:'needs-recovery',workspaceId:decision.workspaceId};
+}
 
 export async function listCloudWorkspaces(app, auth) {
   const {db,user}=context(app,auth);
@@ -31,14 +37,26 @@ export async function listCloudWorkspaces(app, auth) {
   return results.flatMap(result => result.status === 'fulfilled' && result.value ? [result.value] : []);
 }
 
+export async function listBoardDirectory(app, auth, {workspaceId='',cursor='',pageSize=25}={}) {
+  const spaces=await listCloudWorkspaces(app,auth),db=getFirestore(app);
+  const selected=workspaceId?spaces.filter(space=>space.id===workspaceId):spaces,safeSize=Math.min(Math.max(Number.isInteger(pageSize)?pageSize:25,1),100);
+  const results=await Promise.allSettled(selected.map(async space=>{
+    if(space.status==='archived'||space.migration?.state!=='verified')return{...space,boards:[],hasMore:false};
+    const constraints=[where('lifecycleState','==','active')];if(space.role!=='owner')constraints.push(where('archived','==',false));constraints.push(orderBy(documentId()));if(cursor)constraints.push(startAfter(cursor));constraints.push(limit(safeSize+1));const page=await getDocsFromServer(query(collection(db,'workspaces',space.id,'boards'),...constraints)),visible=page.docs.slice(0,safeSize),boards=visible.map(item=>{const data=item.data();return{id:item.id,title:String(data.title||'Untitled board'),rank:data.rank??0,archived:Boolean(data.archived),revision:data.revision??0};}).sort((a,b)=>a.rank-b.rank||a.title.localeCompare(b.title));
+    return{...space,boards,cursor:visible.at(-1)?.id||'',hasMore:page.size>safeSize};
+  }));
+  return results.flatMap((result,index)=>result.status==='fulfilled'?[result.value]:[{...selected[index],boards:[],cursor:'',hasMore:false,unavailable:true}]);
+}
+
 export async function fetchCloudWorkspace(app, auth, workspaceId) {
   const {db}=context(app,auth);
   const metadata = await getDoc(doc(db, 'workspaces', workspaceId));
   if (!metadata.exists()) throw Object.assign(new Error('Cloud workspace was not found.'), {code:'WORKSPACE_NOT_FOUND'});
-  const boards = await getDocs(query(collection(db, 'workspaces', workspaceId, 'boards'), where('lifecycleState', '==', 'active')));
+  const boards = await getDocs(query(collection(db, 'workspaces', workspaceId, 'boards'), where('lifecycleState', '==', 'active'), where('archived', '==', false)));
   const workspace = {...metadata.data(), id:workspaceId};
-  if (workspace.migration?.state !== 'verified') return {...workspace, boards:boards.docs.map(item => item.data().snapshot)};
-  const records = await Promise.all(boards.docs.map(async item => {
+  const visibleBoards=boards.docs.filter(item=>!item.data().archived);
+  if (workspace.migration?.state !== 'verified') return {...workspace, boards:visibleBoards.map(item => item.data().snapshot)};
+  const records = await Promise.all(visibleBoards.map(async item => {
     const lists=await getDocs(query(collection(item.ref, 'lists'),where('lifecycleState','==','active')));
     const cardPages=await Promise.all(lists.docs.map(list=>getDocs(query(collection(item.ref,'cards'),where('listId','==',list.id),where('lifecycleState','==','active')))));
     return {board:{id:item.id, ...item.data()},lists:lists.docs.map(doc=>({id:doc.id,...doc.data()})),cards:cardPages.flatMap(page=>page.docs.map(doc=>({id:doc.id,...doc.data()})))};
@@ -143,7 +161,7 @@ export async function verifyWorkspaceAccess(app, auth, workspaceId) {
   return membership.data().role;
 }
 
-async function E(w,h,f){const c=getFirestore(w),v=requireUser(h),l=doc(c,"workspaces",f),g=await getDoc(l);if(!g.exists()||g.data().ownerUid!==v.uid)throw Object.assign(new Error("Only the workspace owner can migrate this cloud workspace."),{code:"OWNER_REQUIRED"});const n=g.data();if(n.migration?.state==="verified")return{alreadyMigrated:!0,...n.migration.counts};if(!["ready","migrating"].includes(n.status))throw Object.assign(new Error("This workspace cannot be migrated in its current state."),{code:"MIGRATION_UNAVAILABLE"});const u=await getDocs(query(collection(c,"workspaces",f,"boards"),orderBy("rank"))),b=await Promise.all(u.docs.map(async e=>({board:e,lists:await getDocs(collection(e.ref,"lists")),cards:await getDocs(collection(e.ref,"cards"))}))),i=u.docs.map((e,r)=>granularizeBoard(e.data().snapshot,r)),s={boards:i.length,lists:i.reduce((e,r)=>e+r.lists.length,0),cards:i.reduce((e,r)=>e+r.cards.length,0)};if(s.boards>100||s.lists>1e3||s.cards>1e4)throw Object.assign(new Error("This workspace is too large for the safe granular migration."),{code:"WORKSPACE_TOO_LARGE"});n.status!=="migrating"&&await updateDoc(l,{status:"migrating",migration:{version:1,state:"migrating",counts:s,startedAt:serverTimestamp()},updatedAt:serverTimestamp()});const p=e=>e?(e.data().revision??-1)+1:0,o=[];i.forEach(e=>{const r=b.find(a=>a.board.id===e.board.id),t=r.board.ref;o.push({ref:t,data:{...e.board,granularVersion:1,revision:p(r.board),clientMutationId:randomId(),updatedAt:serverTimestamp()},options:{merge:!0}});const d=new Map(r.lists.docs.map(a=>[a.id,a])),m=new Map(r.cards.docs.map(a=>[a.id,a]));e.lists.forEach(a=>o.push({ref:doc(t,"lists",a.id),data:{...a,granularVersion:1,revision:p(d.get(a.id)),clientMutationId:randomId(),updatedAt:serverTimestamp()},options:{merge:!0}})),e.cards.forEach(a=>o.push({ref:doc(t,"cards",a.id),data:{...a,granularVersion:1,revision:p(m.get(a.id)),clientMutationId:randomId(),updatedAt:serverTimestamp()},options:{merge:!0}}))});for(let e=0;e<o.length;e+=400){const r=writeBatch(c);o.slice(e,e+400).forEach(t=>r.set(t.ref,t.data,t.options)),await r.commit()}if(!(await Promise.all(u.docs.map(async e=>{const[r,t]=await Promise.all([getDocs(collection(e.ref,"lists")),getDocs(collection(e.ref,"cards"))]),d=i.find(m=>m.board.id===e.id);return r.size===d.lists.length&&t.size===d.cards.length}))).every(Boolean))throw Object.assign(new Error("Granular cloud migration could not be verified. The legacy snapshots were preserved."),{code:"MIGRATION_VERIFICATION_FAILED"});return await updateDoc(l,{status:"ready",migration:{version:1,state:"verified",counts:s,verifiedAt:serverTimestamp()},updatedAt:serverTimestamp()}),{alreadyMigrated:!1,...s}}export{E as migrateWorkspaceToGranular};
+
 
 const comparable = value => JSON.stringify(value, (key, item) => ['revision', 'clientMutationId', 'updatedAt'].includes(key) ? undefined : item);
 const granularDocuments = workspace => {
@@ -197,55 +215,7 @@ export async function applyCloudWorkspaceMutation(app, auth, {workspaceId, befor
   return fetchCloudWorkspace(app, auth, workspaceId);
 }
 
-export async function uploadLocalWorkspace(app, auth, {name, workspace}) {
-  const {db,user}=context(app,auth);
-  if (!user.emailVerified) throw Object.assign(new Error('Verify your Google email before creating a cloud workspace.'), {code:'EMAIL_NOT_VERIFIED'});
-  if (!workspace || !Array.isArray(workspace.boards) || !workspace.boards.length) throw Object.assign(new Error('The local workspace has no boards to upload.'), {code:'INVALID_WORKSPACE'});
-  if (workspace.boards.length > 450) throw Object.assign(new Error('This workspace has too many boards for one safe migration.'), {code:'WORKSPACE_TOO_LARGE'});
-  const cloudBoards = JSON.parse(JSON.stringify(workspace.boards)), boardIds = new Set();
-  for (const board of cloudBoards) {
-    if (typeof board.id !== 'string' || !board.id || board.id.includes('/') || board.id.length > 500 || boardIds.has(board.id)) {
-      throw Object.assign(new Error('A board has an invalid or duplicate identifier.'), {code:'INVALID_WORKSPACE'});
-    }
-    boardIds.add(board.id);
-    if (bytes(board) > 800_000) throw Object.assign(new Error(`“${board.title || 'Untitled board'}” is too large for a Firestore document.`), {code:'BOARD_TOO_LARGE'});
-  }
 
-  const workspaceId = crypto.randomUUID(), workspaceRef = doc(db, 'workspaces', workspaceId);
-  const cleanName = String(name || 'My cloud workspace').trim().slice(0, 80) || 'My cloud workspace';
-  const bootstrap = writeBatch(db);
-  bootstrap.set(workspaceRef, {
-    name:cleanName, ownerUid:user.uid, schemaVersion:workspace.schemaVersion,
-    activeBoardId:workspace.activeBoardId, status:'initializing', createdAt:serverTimestamp(), updatedAt:serverTimestamp()
-  });
-  bootstrap.set(doc(db, 'workspaces', workspaceId, 'members', user.uid), {
-    uid:user.uid, role:'owner', emailLower:(user.email || '').toLowerCase(),
-    displayName:user.displayName || '', joinedAt:serverTimestamp()
-  });
-  bootstrap.set(doc(db, 'users', user.uid), {
-    uid:user.uid, emailLower:(user.email || '').toLowerCase(), displayName:user.displayName || '',
-    workspaceIds:arrayUnion(workspaceId), updatedAt:serverTimestamp()
-  }, {merge:true});
-  await bootstrap.commit();
-
-  const upload = writeBatch(db);
-  cloudBoards.forEach((board, rank) => upload.set(doc(db, 'workspaces', workspaceId, 'boards', board.id), {
-    title:board.title || 'Untitled board', rank, snapshot:board, revision:0, clientMutationId:randomId(), updatedAt:serverTimestamp()
-  }));
-  upload.update(workspaceRef, {status:'ready', updatedAt:serverTimestamp()});
-  await upload.commit();
-
-  const [verifiedMetadata, verifiedBoards] = await Promise.all([
-    getDoc(workspaceRef), getDocs(collection(db, 'workspaces', workspaceId, 'boards'))
-  ]);
-  const expectedIds = new Set(cloudBoards.map(board => board.id));
-  const verified = verifiedMetadata.exists()
-    && verifiedMetadata.data().status === 'ready'
-    && verifiedBoards.size === cloudBoards.length
-    && verifiedBoards.docs.every(item => expectedIds.has(item.id) && item.data().snapshot?.id === item.id);
-  if (!verified) throw Object.assign(new Error('Cloud workspace verification failed.'), {code:'MIGRATION_VERIFICATION_FAILED', workspaceId});
-  return {id:workspaceId, name:cleanName, boardCount:cloudBoards.length, status:'ready'};
-}
 
 export async function listMembers(app, auth, workspaceId) {
   const {db}=context(app,auth);
@@ -290,7 +260,7 @@ export async function acceptInvite(app, auth, {workspaceId, inviteId}) {
   const data = invite.data(), batch = writeBatch(db), emailLower = normalizeEmail(user.email);
   batch.set(doc(db, 'workspaces', workspaceId, 'members', user.uid), {uid:user.uid, role:data.role, emailLower, inviteId});
   batch.update(invite.ref, {acceptedAt:serverTimestamp(), acceptedBy:user.uid});
-  batch.set(doc(db, 'users', user.uid), {uid:user.uid, emailLower, displayName:user.displayName || '', workspaceIds:arrayUnion(workspaceId), updatedAt:serverTimestamp()}, {merge:true});
+  batch.set(doc(db, 'users', user.uid), {uid:user.uid, emailLower, workspaceIds:arrayUnion(workspaceId)}, {merge:true});
   await batch.commit();
 }
 
@@ -303,7 +273,7 @@ export async function removeMember(app, auth, workspaceId, uid) { const {db}=con
 export async function leaveWorkspace(app, auth, workspaceId) {
   const {db,user}=context(app,auth), batch = writeBatch(db);
   batch.delete(doc(db, 'workspaces', workspaceId, 'members', user.uid));
-  batch.set(doc(db, 'users', user.uid), {workspaceIds:arrayRemove(workspaceId), updatedAt:serverTimestamp()}, {merge:true});
+  batch.set(doc(db, 'users', user.uid), {workspaceIds:arrayRemove(workspaceId)}, {merge:true});
   await batch.commit();
 }
 export async function transferOwnership(app, auth, {workspaceId, successorUid, formerOwnerRole = 'editor'}) {

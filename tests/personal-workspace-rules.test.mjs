@@ -31,7 +31,7 @@ test('two concurrent first-login contexts converge on one empty personal workspa
   const profile=await getDoc(doc(first,'users',uid));
   assert.equal(profile.data().personalWorkspaceId,a.workspaceId);
   assert.deepEqual(profile.data().workspaceIds,[a.workspaceId]);
-  assert.equal((await getDocs(query(collection(first,'workspaces',a.workspaceId,'boards'),where('lifecycleState','==','active')))).size,0);
+  assert.equal((await getDocs(query(collection(first,'workspaces',a.workspaceId,'boards'),where('lifecycleState','==','active'),where('archived','==',false)))).size,0);
   await env.withSecurityRulesDisabled(async context=>{
     const db=context.firestore();
     const roots=await Promise.all(['personal-candidate-a','personal-candidate-b'].map(id=>getDoc(doc(db,'workspaces',id))));
