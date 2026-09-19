@@ -19,9 +19,9 @@ export const cloudConfigured = Boolean(
 export const cloudStatus = Object.freeze(cloudConfigured ? {
   configured: true,
   provider: 'firebase',
-  message: 'Firebase public configuration is present. Google sign-in does not upload or synchronize the local workspace.'
+  message: 'Firebase public configuration is present. Boards synchronize after sign-in.'
 } : {
   configured: false,
   provider: 'firebase',
-  message: 'Firebase is not configured. This workspace is saved only in this browser.'
+  message: 'Firebase is not configured. Board editing is unavailable in this build. Existing legacy browser data is unchanged.'
 });

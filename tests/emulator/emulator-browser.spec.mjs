@@ -21,9 +21,32 @@ async function openFixture(page) {
   const row = picker.locator('.workspace-entry').filter({hasText: fixtureName});
   await expect(row).toBeVisible();
   await row.getByRole('button', {name: `Open ${fixtureName}`}).click();
+  await expect.poll(()=>page.evaluate(()=>globalThis.FlowboardApp.getMode().kind)).toMatch(/cloud/);
+  expect(await page.evaluate(()=>{const board=FlowboardApp.getActiveBoardSnapshot();return{hasBoard:Boolean(board),lists:board?.lists.length||0,cards:board?.lists.reduce((sum,list)=>sum+list.cards.length,0)||0};})).toEqual({hasBoard:true,lists:2,cards:1});
+  expect(await page.evaluate(()=>{const root=document.querySelector('#board');return{cardButtons:root.querySelectorAll('.card-open').length,listView:root.classList.contains('list-view-active'),lists:root.querySelectorAll('.list').length,gate:root.classList.contains('is-gated')};})).toEqual({cardButtons:1,listView:false,lists:2,gate:false});
   await expect(page.locator('.card-open').filter({hasText: cardName})).toBeVisible();
   await page.locator('#close-cloud-workspaces').click();
 }
+
+test('fresh account bootstraps one empty personal cloud workspace across contexts without touching legacy bytes', async ({browser}) => {
+  const firstContext=await browser.newContext(), secondContext=await browser.newContext();
+  const legacy='{"legacy":"unchanged"}';
+  await Promise.all([firstContext,secondContext].map(async context=>{await context.addInitScript(value=>localStorage.setItem('flowboard-workspace',value),legacy);await context.route('**/favicon.ico',route=>route.fulfill({status:200,contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg"/>'}));}));
+  const first=await firstContext.newPage(), second=await secondContext.newPage(), errors=[];
+  for(const page of [first,second]){page.on('pageerror',()=>errors.push('page'));page.on('console',message=>{if(message.type()==='error'){const text=message.text();errors.push(text.includes('Flowboard cloud session')?'flowboard-session':text.includes('@firebase/firestore')?'firestore-sdk':text.includes('Failed to load resource')?`resource:${new URL(message.location().url||baseURL).pathname}`:'other-console');}});}
+  try{
+    for(const [index,page] of [first,second].entries()){
+      await page.goto(`${baseURL}/tests/emulator/index.html?personal=1`);
+      await page.waitForFunction(()=>globalThis.__flowboardEmulatorTest?.ready===true);
+      await page.evaluate(method=>globalThis.__flowboardEmulatorTest[method](),index===0?'signInFreshPersonal':'signInExistingPersonal');
+      await expect.poll(()=>page.evaluate(()=>globalThis.FlowboardApp.getMode().kind)).toBe('cloud');
+      await expect(page.locator('#board').getByRole('heading',{name:'Your workspace is ready'})).toBeVisible();
+      expect(await page.evaluate(()=>localStorage.getItem('flowboard-workspace'))).toBe(legacy);
+      expect(await page.evaluate(()=>globalThis.__flowboardEmulatorTest.personalSummary())).toEqual({signedIn:true,hasPointer:true,workspaceExists:true,role:'owner',boardCount:0});
+    }
+    expect(errors).toEqual([]);
+  } finally { await Promise.all([firstContext.close(),secondContext.close()]); }
+});
 
 test('Auth and Firestore Emulator workflow proves discovery, convergence, denial, conflict, revocation, and lifecycle', async ({browser}) => {
   const ownerContext = await browser.newContext();
@@ -35,6 +58,8 @@ test('Auth and Firestore Emulator workflow proves discovery, convergence, denial
   try {
     await openRole(owner, 'owner');
     await owner.evaluate(() => globalThis.__flowboardEmulatorTest.seedFixture());
+    expect(await owner.evaluate(()=>globalThis.__flowboardEmulatorTest.fixtureSummary())).toEqual({boards:1,lists:2,cards:1,currentRole:'owner',adapterRole:'owner',entryRole:'owner'});
+
     await openFixture(owner);
 
     await openRole(editor, 'editor');
@@ -77,12 +102,12 @@ test('Auth and Firestore Emulator workflow proves discovery, convergence, denial
     expect(downgraded.result).toBe('permission-denied');
 
     await owner.evaluate(() => globalThis.__flowboardEmulatorTest.removeEditor());
-    await expect.poll(() => editor.evaluate(() => globalThis.FlowboardApp.getMode().kind)).toBe('local');
-    await expect(editor.getByText('Browser-local workspace · editable')).toBeVisible();
+    await expect.poll(() => editor.evaluate(() => globalThis.FlowboardApp.getMode().kind)).toBe('access-lost');
+    await expect(editor.locator('#board').getByRole('heading',{name:'Workspace access ended'})).toBeVisible();
 
     await owner.evaluate(() => globalThis.__flowboardEmulatorTest.archiveWorkspace());
-    await expect.poll(() => owner.evaluate(() => globalThis.FlowboardApp.getMode().kind)).toBe('local');
-    await expect.poll(() => viewer.evaluate(() => globalThis.FlowboardApp.getMode().kind)).toBe('local');
+    await expect.poll(() => owner.evaluate(() => globalThis.FlowboardApp.getMode().kind)).toBe('access-lost');
+    await expect.poll(() => viewer.evaluate(() => globalThis.FlowboardApp.getMode().kind)).toBe('access-lost');
     await owner.evaluate(() => globalThis.__flowboardEmulatorTest.restoreWorkspace());
 
     await owner.locator('#account-button').click();

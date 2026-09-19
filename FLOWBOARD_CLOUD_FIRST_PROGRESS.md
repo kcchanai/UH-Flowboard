@@ -13,7 +13,7 @@
 
 - [x] Step 1 of 13 - pin baseline and add reproductions
 - [x] Step 2 of 13 - prove cloud and deletion architecture
-- [ ] Step 3 of 13 - cloud-only session bootstrap and empty states
+- [x] Step 3 of 13 - cloud-only session bootstrap and empty states
 - [ ] Step 4 of 13 - safe legacy migration and schema upgrade
 - [ ] Step 5 of 13 - unified My workspace directory
 - [ ] Step 6 of 13 - reliable command, confirmation, and lifecycle engine

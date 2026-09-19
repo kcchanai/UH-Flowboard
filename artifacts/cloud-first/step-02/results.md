@@ -54,8 +54,12 @@ Proposed total preflight caps are documented in the ADR and must receive boundar
 - Production source remained **272,829 bytes**; Step 2 added Rules/tests/docs, not shipped JavaScript.
 - Rules candidate: 42,040 bytes.
 - Rules candidate blob: `3c74224080a1849b98b35a3a27bdcd30fac601ee`.
-- Index source remains unchanged at blob `415027e5ddaf944819977c1d5e9aaf49e835093f`; no composite deletion index is needed.
+- At the original Step 2 checkpoint, index source was unchanged at blob `415027e5ddaf944819977c1d5e9aaf49e835093f`; the post-review correction below supersedes that decision.
 - Syntax/static/performance/workflow guards passed.
+
+## Post-review correction
+
+A subsequent read-only security review identified that the Step 2 board-root `read` rule was still workspace-scoped. The active Step 3 tree corrects this with lifecycle-aware board `get`, active-only board/list/card collection queries, coupled entity lifecycle locks, protected snapshot fields, and the source-controlled card index. The expanded current Rules suite passes 34/34. The Step 2 blob above remains the immutable checkpoint identity, not the eventual release Rules identity.
 
 ## Boundary
 

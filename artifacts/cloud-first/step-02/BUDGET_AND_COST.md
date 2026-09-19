@@ -61,4 +61,4 @@ No TTL, backup/restore service, Cloud Function, Admin SDK or paid bulk-delete se
 
 ## Index decision
 
-The proof uses document reads, single-field `listId` filtering, and bounded per-parent pages. No composite index is required for the deletion protocol, so `firestore.indexes.json` remains unchanged at Step 2. Any later directory query that combines status and rank must either page one rank-ordered metadata collection and partition client-side or add a source-controlled index that is separately qualified and later published with explicit authorization.
+Lifecycle-aware board and list queries use their single-field `lifecycleState` indexes. Active card reads and listeners are scoped by both `listId` and `lifecycleState`, so `firestore.indexes.json` now declares that source-controlled composite card index. The index has only been qualified locally in Emulators and build/static checks. Publishing it remains a separate production authorization gate.

@@ -373,7 +373,7 @@ test('revoked invitation becomes unreadable and cannot be accepted or reused', a
 });
 
 test('non-owner self-leave atomically removes membership and profile discovery, while owner deletion remains protected', async () => {
-  const viewer = dbFor('viewer-a'), leave = writeBatch(viewer);
+  const viewer = dbFor('viewer-a', 'viewer@example.com'), leave = writeBatch(viewer);
   leave.delete(doc(viewer, 'workspaces', 'alpha', 'members', 'viewer-a'));
   leave.set(doc(viewer, 'users', 'viewer-a'), {workspaceIds:[]}, {merge:true});
   await assertSucceeds(leave.commit());

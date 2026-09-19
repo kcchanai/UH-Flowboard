@@ -4,8 +4,8 @@ import {
   signOut, updateProfile
 } from 'firebase/auth';
 import {
-  collection, connectFirestoreEmulator, deleteDoc, doc, getDoc, getFirestore, query,
-  setDoc, serverTimestamp, updateDoc, writeBatch
+  collection, connectFirestoreEmulator, deleteDoc, doc, getDoc, getDocs, getFirestore, query,
+  setDoc, serverTimestamp, updateDoc, where, writeBatch
 } from 'firebase/firestore';
 import {createFirebaseWorkspaceAdapter} from '../../src/adapters/firebase-workspace-adapter.js';
 import {createLocalWorkspaceAdapter} from '../../src/adapters/local-workspace-adapter.js';
@@ -53,18 +53,18 @@ const localAdapter = createLocalWorkspaceAdapter({
 const users = new Map();
 let capturedWorkspace = null;
 
-async function verifyEmail(user) {
+async function verifyEmail(user, password) {
   if (user.emailVerified) return user;
-  const token = await user.getIdToken();
-  const response = await fetch(`${AUTH_EMULATOR}/identitytoolkit.googleapis.com/v1/accounts:update?key=${CONFIG.apiKey}`, {
+  const response = await fetch(`${AUTH_EMULATOR}/identitytoolkit.googleapis.com/v1/projects/${CONFIG.projectId}/accounts:update?key=${CONFIG.apiKey}`, {
     method: 'POST',
-    headers: {'content-type': 'application/json'},
-    body: JSON.stringify({idToken: token, emailVerified: true, returnSecureToken: true})
+    headers: {'content-type': 'application/json', authorization:'Bearer owner'},
+    body: JSON.stringify({localId:user.uid, emailVerified:true})
   });
   if (!response.ok) throw new Error('The Auth Emulator could not verify the synthetic test account.');
-  await user.reload();
-  await user.getIdToken(true);
-  return user;
+  await signOut(auth);
+  const refreshed=await signInWithEmailAndPassword(auth,user.email,password);
+  await refreshed.user.getIdToken(true);
+  return refreshed.user;
 }
 
 async function signInRole(role) {
@@ -79,7 +79,7 @@ async function signInRole(role) {
     credential = await createUserWithEmailAndPassword(auth, account.email, account.password);
     await updateProfile(credential.user, {displayName: `${role} emulator user`});
   }
-  const user = await verifyEmail(credential.user);
+  const user = await verifyEmail(credential.user,account.password);
   users.set(role, {uid: user.uid, email: account.email});
   return user;
 }
@@ -90,9 +90,17 @@ async function writeProfile(role, workspaceIds = [FIXTURE.workspaceId]) {
   await setDoc(doc(db, 'users', user.uid), {
     uid: user.uid,
     emailLower: user.email.toLowerCase(),
-    displayName: user.displayName || `${role} emulator user`,
     workspaceIds
   }, {merge: true});
+}
+
+async function signInFreshPersonal() {
+  const account={email:'personal@flowboard.test',password:'Flowboard-personal-123!'};
+  if(auth.currentUser?.email!==account.email)await signOut(auth);
+  const created=await fetch(`${AUTH_EMULATOR}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=${CONFIG.apiKey}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email:account.email,password:account.password,returnSecureToken:true})});
+  if(created.ok){const {localId}=await created.json(),verified=await fetch(`${AUTH_EMULATOR}/identitytoolkit.googleapis.com/v1/projects/${CONFIG.projectId}/accounts:update?key=${CONFIG.apiKey}`,{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer owner'},body:JSON.stringify({localId,emailVerified:true})});if(!verified.ok)throw new Error('The Auth Emulator could not verify the synthetic personal account.');}
+  else{const detail=await created.json();if(!String(detail?.error?.message||'').includes('EMAIL_EXISTS'))throw new Error('The Auth Emulator could not create the synthetic personal account.');}
+  const credential=await signInWithEmailAndPassword(auth,account.email,account.password);if(!credential.user.displayName)await updateProfile(credential.user,{displayName:'Personal emulator user'});return credential.user;
 }
 
 async function seedFixture() {
@@ -120,27 +128,29 @@ async function seedFixture() {
   await members.commit();
   const records = writeBatch(db);
   records.set(doc(root, 'boards', FIXTURE.boardId), {
-    id: FIXTURE.boardId, title: 'Emulator board', rank: 0, revision: 0,
+    id: FIXTURE.boardId, title: 'Emulator board', rank: 0, lifecycleState:'active', revision: 0,
     clientMutationId: 'seed-board-mutation-0001', updatedAt: serverTimestamp()
   });
   records.set(doc(root, 'boards', FIXTURE.boardId, 'lists', FIXTURE.listId), {
-    id: FIXTURE.listId, title: 'Doing', rank: 0, revision: 0,
+    id: FIXTURE.listId, title: 'Doing', rank: 0, lifecycleState:'active', revision: 0,
     clientMutationId: 'seed-list-mutation-0001', updatedAt: serverTimestamp()
   });
   records.set(doc(root, 'boards', FIXTURE.boardId, 'lists', FIXTURE.secondListId), {
-    id: FIXTURE.secondListId, title: 'Review', rank: 1, revision: 0,
+    id: FIXTURE.secondListId, title: 'Review', rank: 1, lifecycleState:'active', revision: 0,
     clientMutationId: 'seed-list-mutation-0002', updatedAt: serverTimestamp()
   });
   records.set(doc(root, 'boards', FIXTURE.boardId, 'cards', FIXTURE.cardId), {
     id: FIXTURE.cardId, listId: FIXTURE.listId, title: 'Synthetic shared card', description: 'Emulator-only card',
-    rank: 0, assigneeUids: [editor.uid], labels: [], dueDate: '', checklist: [], archived: false,
+    rank: 0, assigneeUids: [editor.uid], labels: [], dueDate: '', checklist: [], archived: false, lifecycleState:'active',
     revision: 0, clientMutationId: 'seed-card-mutation-0001', updatedAt: serverTimestamp()
   });
   await records.commit();
   await writeProfile('owner');
   await signInRole('editor'); await writeProfile('editor');
   await signInRole('viewer'); await writeProfile('viewer');
-  await signInRole('owner');
+  await signOut(auth);
+  await signInWithEmailAndPassword(auth,ACCOUNTS.owner.email,ACCOUNTS.owner.password);
+  await new Promise(resolve=>setTimeout(resolve,50));
   return {name: FIXTURE.workspaceName};
 }
 
@@ -162,6 +172,8 @@ const testApi = {
   async seedFixture() { return seedFixture(); },
   async signInRole(role) { return {uid: (await signInRole(role)).uid}; },
   async captureWorkspace() { capturedWorkspace = await workspaceFor(); return {revision: cardFor(capturedWorkspace)?.revision ?? -1}; },
+  async fixtureSummary(){const workspace=await workspaceFor(),uid=auth.currentUser?.uid,adapterSession=await cloudAdapter.getSession(),currentRole=[...users.entries()].find(([,value])=>value.uid===uid)?.[0]||'unknown',adapterRole=[...users.entries()].find(([,value])=>value.uid===adapterSession?.uid)?.[0]||'unknown',entryRole=(await cloudAdapter.listWorkspaces()).find(entry=>entry.id===FIXTURE.workspaceId)?.role||'missing';return{boards:workspace.boards.length,lists:workspace.boards.reduce((n,board)=>n+board.lists.length,0),cards:workspace.boards.reduce((n,board)=>n+board.lists.reduce((m,list)=>m+list.cards.length,0),0),currentRole,adapterRole,entryRole};},
+
   async mutateCard(title) { return applyCardChange(await workspaceFor(), title); },
   async mutateCapturedCard(title) {
     if (!capturedWorkspace) throw new Error('No stale emulator snapshot has been captured.');
@@ -188,15 +200,22 @@ const testApi = {
   async restoreWorkspace() {
     const workspace = await getDoc(doc(db, 'workspaces', FIXTURE.workspaceId));
     return cloudAdapter.restoreWorkspace({workspaceId: FIXTURE.workspaceId, expectedRevision: workspace.data()?.lifecycleRevision ?? 0});
-  }
+  },
+  async signInFreshPersonal(){const user=await signInFreshPersonal();return{uid:user.uid};},
+  async signInExistingPersonal(){const user=(await signInWithEmailAndPassword(auth,'personal@flowboard.test','Flowboard-personal-123!')).user;return{uid:user.uid};},
+
+  async personalSummary(){const user=auth.currentUser;if(!user)return{signedIn:false};const profile=await getDoc(doc(db,'users',user.uid)),workspaceId=profile.data()?.personalWorkspaceId;if(!workspaceId)return{signedIn:true,hasPointer:false};const [workspace,membership,boards]=await Promise.all([getDoc(doc(db,'workspaces',workspaceId)),getDoc(doc(db,'workspaces',workspaceId,'members',user.uid)),getDocs(query(collection(db,'workspaces',workspaceId,'boards'),where('lifecycleState','==','active')))]);return{signedIn:true,hasPointer:true,workspaceExists:workspace.exists(),role:membership.data()?.role||'',boardCount:boards.size};}
 };
+
+const personalMode=new URLSearchParams(location.search).get('personal')==='1';
+const runtimeCloudAdapter=personalMode?cloudAdapter:Object.freeze({...cloudAdapter,ensurePersonalWorkspace:async()=>({state:'needs-selection',workspaceIds:[FIXTURE.workspaceId]})});
 
 await bootstrapFlowboard({
   cloudConfig: CONFIG,
   cloudConfigured: true,
   cloudStatus: {configured: true, provider: 'firebase', message: 'Synthetic Firebase Emulator workflow.'},
   localAdapter,
-  cloudAdapter,
+  cloudAdapter:runtimeCloudAdapter,
   CloudNotConfiguredError
 });
 window.__flowboardEmulatorTest = testApi;

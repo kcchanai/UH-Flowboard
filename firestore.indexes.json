@@ -1,4 +1,13 @@
 {
-  "indexes": [],
+  "indexes": [
+    {
+      "collectionGroup": "cards",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "listId", "order": "ASCENDING"},
+        {"fieldPath": "lifecycleState", "order": "ASCENDING"}
+      ]
+    }
+  ],
   "fieldOverrides": []
 }

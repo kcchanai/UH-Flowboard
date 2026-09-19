@@ -137,7 +137,32 @@ main { min-height:calc(100vh - 64px);padding:clamp(20px,3vw,32px) clamp(14px,3vw
   .dialog-actions { justify-content:flex-end; }
 }
 
-/* Board header alignment and disclosure foundations. */
+/* Cloud-first signed-out, empty, and failure states. */
+.board.is-gated { align-items:center;justify-content:center;overflow:hidden; }
+.cloud-gate { width:min(560px,100%);margin:auto;padding:32px;color:var(--ink);text-align:center;border:1px solid var(--line);border-radius:var(--radius-lg);background:var(--surface-strong);box-shadow:var(--shadow-md); }
+.cloud-gate h2 { margin:0 0 8px;font-size:22px; }
+.cloud-gate p { max-width:48ch;margin:0 auto;color:var(--muted); }
+
+/* Cloud workspace compatibility styles, pending Step 5 unification. */
+.cloud-workspaces-dialog { width:min(760px,calc(100vw - 32px)); }
+.cloud-workspaces-dialog .archive-dialog-card { padding:24px; }
+.workspace-entry { display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;min-width:0; }
+.cloud-workspace-card { display:grid;grid-template-columns:minmax(0,1fr);gap:4px;min-width:0;min-height:64px;padding:14px;color:var(--ink);border:1px solid var(--line);border-radius:9px;background:var(--surface-strong);text-align:left; }
+.cloud-workspace-card strong { min-width:0;overflow:hidden;text-overflow:clip;white-space:normal;overflow-wrap:anywhere;font-size:15px; }
+.cloud-workspace-card span { color:var(--muted);font-size:12px;line-height:1.35;overflow-wrap:anywhere;white-space:normal;text-align:left; }
+.workspace-lifecycle-actions { display:flex;align-items:center;justify-content:flex-end;gap:8px;min-width:0;flex-wrap:wrap; }
+.cloud-workspaces-dialog > .archive-dialog-card > .dialog-actions { justify-content:space-between;margin-top:20px;padding-top:16px;border-top:1px solid var(--line); }
+.cloud-workspaces-dialog > .archive-dialog-card > .dialog-actions > .button { min-width:0; }
+.cloud-workspaces-dialog .account-status { margin-top:12px!important; }
+@media (max-width:600px) {
+  .cloud-workspaces-dialog { max-width:calc(100vw - 20px); }
+  .cloud-workspaces-dialog .archive-dialog-card { padding:17px; }
+  .workspace-entry { grid-template-columns:1fr;gap:10px; }
+  .workspace-lifecycle-actions { justify-content:flex-start; }
+  .cloud-workspaces-dialog > .archive-dialog-card > .dialog-actions { justify-content:flex-start; }
+  .cloud-workspaces-dialog > .archive-dialog-card > .dialog-actions > .button { flex:1 1 140px; }
+}
+
+/* Board header alignment foundations. */
 .board-header { align-items:center;row-gap:10px; }
-.board-header > .collaboration-notice { min-height:38px;margin:0!important;padding:8px 12px!important;line-height:20px; }
 #card-form > .field + .field { margin-top:12px; }

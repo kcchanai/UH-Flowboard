@@ -18,7 +18,8 @@ test('granular migration preserves stable IDs, order, rich card fields, and arch
   assert.equal(granular.cards.length, 2);
   assert.deepEqual(granular.cards.map(card => [card.id, card.listId, card.rank]), [['card-a','list-a',0], ['card-b','list-b',0]]);
   const workspace = rehydrateGranularWorkspace({schemaVersion:4, activeBoardId:'board-a'}, [granular]);
-  assert.deepEqual(workspace.boards, [legacyBoard]);
+  const expected=structuredClone(legacyBoard); expected.lifecycleState='active'; expected.lists.forEach(list=>{list.lifecycleState='active';list.cards.forEach(card=>{card.lifecycleState='active';});});
+  assert.deepEqual(workspace.boards, [expected]);
 });
 
 test('granular migration rejects duplicate IDs rather than creating ambiguous documents', () => {

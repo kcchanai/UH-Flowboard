@@ -309,30 +309,34 @@ service cloud.firestore {
     }
     function boardPurgeReadable(workspaceId, boardId) {
       let path = boardLifecyclePath(workspaceId, boardId);
-      let data = get(path).data;
-      return exists(path)
-        && data.targetType == 'board'
-        && usableDeletionJob(workspaceId, data.operationId, boardId, 'board', boardId, '');
+      return exists(path) ? (
+        get(path).data.targetType == 'board'
+          && usableDeletionJob(workspaceId, get(path).data.operationId, boardId, 'board', boardId, '')
+      ) : false;
     }
     function listPurgeReadable(workspaceId, boardId, listId) {
       let path = deletedListPath(workspaceId, boardId, listId);
-      let data = get(path).data;
-      return boardPurgeReadable(workspaceId, boardId)
-        || (exists(path) && usableDeletionJob(workspaceId, data.operationId, boardId, 'list', listId, ''));
+      return boardPurgeReadable(workspaceId, boardId) ? true : (
+        exists(path) ? usableDeletionJob(workspaceId, get(path).data.operationId, boardId, 'list', listId, '') : false
+      );
     }
     function cardPurgeReadable(workspaceId, boardId, cardId, listId) {
       let cardTombstone = deletedCardPath(workspaceId, boardId, cardId);
       let listTombstone = deletedListPath(workspaceId, boardId, listId);
-      return boardPurgeReadable(workspaceId, boardId)
-        || (exists(cardTombstone) && usableDeletionJob(workspaceId, get(cardTombstone).data.operationId, boardId, 'card', cardId, get(cardTombstone).data.listId))
-        || (exists(listTombstone) && usableDeletionJob(workspaceId, get(listTombstone).data.operationId, boardId, 'card', cardId, listId));
+      return boardPurgeReadable(workspaceId, boardId) ? true : (
+        exists(cardTombstone)
+          ? usableDeletionJob(workspaceId, get(cardTombstone).data.operationId, boardId, 'card', cardId, get(cardTombstone).data.listId)
+          : (exists(listTombstone) ? usableDeletionJob(workspaceId, get(listTombstone).data.operationId, boardId, 'card', cardId, listId) : false)
+      );
     }
     function commentPurgeReadable(workspaceId, boardId, cardId) {
       let card = cardPath(workspaceId, boardId, cardId);
       let tombstone = deletedCardPath(workspaceId, boardId, cardId);
-      return boardPurgeReadable(workspaceId, boardId)
-        || (exists(tombstone) && usableDeletionJob(workspaceId, get(tombstone).data.operationId, boardId, 'card', cardId, get(tombstone).data.listId))
-        || (exists(card) && listPurgeReadable(workspaceId, boardId, get(card).data.listId));
+      return boardPurgeReadable(workspaceId, boardId) ? true : (
+        exists(tombstone)
+          ? usableDeletionJob(workspaceId, get(tombstone).data.operationId, boardId, 'card', cardId, get(tombstone).data.listId)
+          : (exists(card) ? listPurgeReadable(workspaceId, boardId, get(card).data.listId) : false)
+      );
     }
     function listIsLiveAfter(workspaceId, boardId, listId) {
       return !existsAfter(deletedListPath(workspaceId, boardId, listId));
@@ -341,13 +345,32 @@ service cloud.firestore {
       return !existsAfter(deletedCardPath(workspaceId, boardId, cardId))
         && !existsAfter(deletedListPath(workspaceId, boardId, listId));
     }
+    function activeList(workspaceId, boardId, listId) {
+      let path = listPath(workspaceId, boardId, listId);
+      return exists(path) ? (
+        get(path).data.get('lifecycleState', 'active') == 'active'
+          && !exists(deletedListPath(workspaceId, boardId, listId))
+      ) : false;
+    }
     function commentParentsExist(workspaceId, boardId, cardId) {
       let card = cardPath(workspaceId, boardId, cardId);
       return boardReadable(workspaceId, boardId)
         && exists(card)
+        && get(card).data.get('lifecycleState', 'active') == 'active'
         && !exists(deletedCardPath(workspaceId, boardId, cardId))
-        && !exists(deletedListPath(workspaceId, boardId, get(card).data.listId))
-        && exists(listPath(workspaceId, boardId, get(card).data.listId));
+        && activeList(workspaceId, boardId, get(card).data.listId);
+    }
+    function commentParentsWritableAfter(workspaceId, boardId, cardId) {
+      let card = cardPath(workspaceId, boardId, cardId);
+      let listId = getAfter(card).data.listId;
+      let list = listPath(workspaceId, boardId, listId);
+      return boardWritable(workspaceId, boardId)
+        && existsAfter(card)
+        && getAfter(card).data.get('lifecycleState', 'active') == 'active'
+        && !existsAfter(deletedCardPath(workspaceId, boardId, cardId))
+        && existsAfter(list)
+        && getAfter(list).data.get('lifecycleState', 'active') == 'active'
+        && !existsAfter(deletedListPath(workspaceId, boardId, listId));
     }
     function activityPath(workspaceId, activityId) {
       return /databases/$(database)/documents/workspaces/$(workspaceId)/activity/$(activityId);
@@ -519,6 +542,29 @@ service cloud.firestore {
         && control.operationId == operationId
         && control.state == 'deleting';
     }
+    function validListDeletionLock(workspaceId, boardId, listId) {
+      let operationId = request.resource.data.activeDeletionJobId;
+      let tombstone = getAfter(deletedListPath(workspaceId, boardId, listId)).data;
+      return resource.data.get('lifecycleState', 'active') == 'active'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lifecycleState', 'activeDeletionJobId', 'revision', 'clientMutationId', 'updatedAt'])
+        && request.resource.data.lifecycleState == 'deleting'
+        && validRevision()
+        && request.resource.data.clientMutationId == operationId
+        && tombstone.operationId == operationId
+        && usableDeletionJobAfter(workspaceId, operationId, boardId, 'list', listId, '');
+    }
+    function validCardDeletionLock(workspaceId, boardId, cardId) {
+      let operationId = request.resource.data.activeDeletionJobId;
+      let tombstone = getAfter(deletedCardPath(workspaceId, boardId, cardId)).data;
+      return resource.data.get('lifecycleState', 'active') == 'active'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lifecycleState', 'activeDeletionJobId', 'revision', 'clientMutationId', 'updatedAt'])
+        && request.resource.data.lifecycleState == 'deleting'
+        && validRevision()
+        && request.resource.data.clientMutationId == operationId
+        && tombstone.operationId == operationId
+        && tombstone.listId == resource.data.listId
+        && usableDeletionJobAfter(workspaceId, operationId, boardId, 'card', cardId, resource.data.listId);
+    }
     function validListTombstoneCreate(workspaceId, boardId, listId) {
       let data = request.resource.data;
       return data.keys().hasAll(['schemaVersion', 'entityType', 'boardId', 'entityId', 'operationId', 'deletedByUid', 'createdAt'])
@@ -530,6 +576,8 @@ service cloud.firestore {
         && data.deletedByUid == request.auth.uid
         && data.createdAt == request.time
         && exists(listPath(workspaceId, boardId, listId))
+        && getAfter(listPath(workspaceId, boardId, listId)).data.lifecycleState == 'deleting'
+        && getAfter(listPath(workspaceId, boardId, listId)).data.activeDeletionJobId == data.operationId
         && usableDeletionJobAfter(workspaceId, data.operationId, boardId, 'list', listId, '');
     }
     function validCardTombstoneCreate(workspaceId, boardId, cardId) {
@@ -546,6 +594,8 @@ service cloud.firestore {
         && data.createdAt == request.time
         && exists(card)
         && data.listId == get(card).data.listId
+        && getAfter(card).data.lifecycleState == 'deleting'
+        && getAfter(card).data.activeDeletionJobId == data.operationId
         && usableDeletionJobAfter(workspaceId, data.operationId, boardId, 'card', cardId, data.listId);
     }
     function validBoardPurgeDelete(workspaceId, boardId) {
@@ -627,8 +677,44 @@ service cloud.firestore {
         && control.state == 'active';
     }
 
+    function validUserProfileShape(uid, data) {
+      return data.keys().hasAll(['uid', 'emailLower', 'workspaceIds'])
+        && data.keys().hasOnly(['uid', 'emailLower', 'workspaceIds', 'personalWorkspaceId'])
+        && data.uid == uid
+        && data.emailLower == request.auth.token.email
+        && data.workspaceIds is list
+        && data.workspaceIds.size() <= 100;
+    }
+    function validPersonalWorkspacePointer(uid, data) {
+      return !data.keys().hasAny(['personalWorkspaceId'])
+        || data.personalWorkspaceId == null
+        || data.personalWorkspaceId == ''
+        || (data.personalWorkspaceId is string
+          && data.personalWorkspaceId.size() <= 500
+          && getAfter(workspaceDoc(data.personalWorkspaceId)).data.ownerUid == uid
+          && getAfter(memberDoc(data.personalWorkspaceId, uid)).data.uid == uid
+          && getAfter(memberDoc(data.personalWorkspaceId, uid)).data.role == 'owner');
+    }
+    function validUserProfileCreate(uid) {
+      return verifiedEmail()
+        && request.auth.uid == uid
+        && validUserProfileShape(uid, request.resource.data)
+        && validPersonalWorkspacePointer(uid, request.resource.data);
+    }
+    function validUserProfileUpdate(uid) {
+      return verifiedEmail()
+        && request.auth.uid == uid
+        && validUserProfileShape(uid, request.resource.data)
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.emailLower == resource.data.emailLower
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['workspaceIds', 'personalWorkspaceId'])
+        && validPersonalWorkspacePointer(uid, request.resource.data);
+    }
+
     match /users/{uid} {
-      allow read, create, update: if signedIn() && request.auth.uid == uid;
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow create: if validUserProfileCreate(uid);
+      allow update: if validUserProfileUpdate(uid);
       allow delete: if false;
     }
 
@@ -711,7 +797,8 @@ service cloud.firestore {
       }
 
       match /boards/{boardId} {
-        allow read: if canReadWorkspaceContent(workspaceId);
+        allow get: if boardReadable(workspaceId, boardId) || boardPurgeReadable(workspaceId, boardId);
+        allow list: if canReadWorkspaceContent(workspaceId) && resource.data.get('lifecycleState', '') == 'active';
         allow create: if canEdit(workspaceId)
           && validInitialRevision()
           && request.resource.data.get('archived', false) == false
@@ -725,41 +812,64 @@ service cloud.firestore {
         ) || validBoardDeletionLock(workspaceId, boardId) || validBoardDeletionUnlock(workspaceId, boardId);
         allow delete: if validBoardPurgeDelete(workspaceId, boardId);
         match /lists/{listId} {
-          allow read: if (boardReadable(workspaceId, boardId) && !exists(deletedListPath(workspaceId, boardId, listId)))
+          allow get: if (boardReadable(workspaceId, boardId)
+            && resource.data.get('lifecycleState', 'active') == 'active'
+            && !exists(deletedListPath(workspaceId, boardId, listId)))
             || listPurgeReadable(workspaceId, boardId, listId);
-          allow create: if boardWritable(workspaceId, boardId) && listIsLiveAfter(workspaceId, boardId, listId) && validInitialRevision();
-          allow update: if boardWritable(workspaceId, boardId) && listIsLiveAfter(workspaceId, boardId, listId) && validRevision();
+          allow list: if boardReadable(workspaceId, boardId) && resource.data.get('lifecycleState', '') == 'active';
+          allow create: if boardWritable(workspaceId, boardId)
+            && request.resource.data.get('lifecycleState', 'active') == 'active'
+            && !request.resource.data.keys().hasAny(['activeDeletionJobId'])
+            && listIsLiveAfter(workspaceId, boardId, listId)
+            && validInitialRevision();
+          allow update: if (
+            boardWritable(workspaceId, boardId)
+              && request.resource.data.get('lifecycleState', 'active') == 'active'
+              && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['lifecycleState', 'activeDeletionJobId'])
+              && listIsLiveAfter(workspaceId, boardId, listId)
+              && validRevision()
+          ) || validListDeletionLock(workspaceId, boardId, listId);
           allow delete: if validListPurgeDelete(workspaceId, boardId, listId);
         }
         match /cards/{cardId} {
-          allow read: if (
+          allow get: if (
             boardReadable(workspaceId, boardId)
+              && resource.data.get('lifecycleState', 'active') == 'active'
+              && activeList(workspaceId, boardId, resource.data.listId)
               && !exists(deletedCardPath(workspaceId, boardId, cardId))
-              && !exists(deletedListPath(workspaceId, boardId, resource.data.listId))
+          ) || cardPurgeReadable(workspaceId, boardId, cardId, resource.data.listId);
+          allow list: if (
+            boardReadable(workspaceId, boardId)
+              && resource.data.get('lifecycleState', '') == 'active'
+              && activeList(workspaceId, boardId, resource.data.listId)
           ) || cardPurgeReadable(workspaceId, boardId, cardId, resource.data.listId);
           allow create: if boardWritable(workspaceId, boardId)
             && existsAfter(listPath(workspaceId, boardId, request.resource.data.listId))
+            && request.resource.data.get('lifecycleState', 'active') == 'active'
+            && !request.resource.data.keys().hasAny(['activeDeletionJobId'])
             && listIsLiveAfter(workspaceId, boardId, request.resource.data.listId)
             && cardIsLiveAfter(workspaceId, boardId, cardId, request.resource.data.listId)
             && validInitialRevision()
             && validCardAssignments(workspaceId, request.resource.data);
-          allow update: if boardWritable(workspaceId, boardId)
-            && existsAfter(listPath(workspaceId, boardId, request.resource.data.listId))
-            && listIsLiveAfter(workspaceId, boardId, request.resource.data.listId)
-            && cardIsLiveAfter(workspaceId, boardId, cardId, request.resource.data.listId)
-            && validRevision()
-            && validCardAssignmentUpdate(workspaceId);
+          allow update: if (
+            boardWritable(workspaceId, boardId)
+              && existsAfter(listPath(workspaceId, boardId, request.resource.data.listId))
+              && request.resource.data.get('lifecycleState', 'active') == 'active'
+              && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['lifecycleState', 'activeDeletionJobId'])
+              && listIsLiveAfter(workspaceId, boardId, request.resource.data.listId)
+              && cardIsLiveAfter(workspaceId, boardId, cardId, request.resource.data.listId)
+              && validRevision()
+              && validCardAssignmentUpdate(workspaceId)
+          ) || validCardDeletionLock(workspaceId, boardId, cardId);
           allow delete: if validCardPurgeDelete(workspaceId, boardId, cardId);
           match /comments/{commentId} {
             allow get: if isMember(workspaceId) && (commentParentsExist(workspaceId, boardId, cardId) || commentPurgeReadable(workspaceId, boardId, cardId));
             allow list: if isMember(workspaceId)
               && (commentParentsExist(workspaceId, boardId, cardId) || commentPurgeReadable(workspaceId, boardId, cardId))
               && request.query.limit != null && request.query.limit <= 25;
-            allow create: if boardWritable(workspaceId, boardId)
-              && commentParentsExist(workspaceId, boardId, cardId)
+            allow create: if commentParentsWritableAfter(workspaceId, boardId, cardId)
               && validCommentCreate(workspaceId, boardId, commentId);
-            allow update: if boardWritable(workspaceId, boardId)
-              && commentParentsExist(workspaceId, boardId, cardId)
+            allow update: if commentParentsWritableAfter(workspaceId, boardId, cardId)
               && (validCommentEdit(workspaceId, boardId) || validCommentRemoval(workspaceId, boardId));
             allow delete: if validCommentPurgeDelete(workspaceId, boardId, cardId);
           }

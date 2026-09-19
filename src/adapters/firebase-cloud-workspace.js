@@ -1,7 +1,7 @@
 import {granularizeBoard, rehydrateGranularWorkspace} from '../granular-workspace.js';
 import {safePhotoURL} from '../person-badges.js';
 import {
-  arrayRemove, arrayUnion, collection, deleteDoc, doc, getDoc, getDocs, getFirestore, limit, onSnapshot, orderBy, query,
+  arrayRemove, arrayUnion, collection, deleteDoc, doc, getDoc, getDocs, getFirestore, limit, onSnapshot, orderBy, query, where,
   runTransaction, serverTimestamp, startAfter, Timestamp, updateDoc, writeBatch
 } from 'firebase/firestore';
 
@@ -35,14 +35,14 @@ export async function fetchCloudWorkspace(app, auth, workspaceId) {
   const {db}=context(app,auth);
   const metadata = await getDoc(doc(db, 'workspaces', workspaceId));
   if (!metadata.exists()) throw Object.assign(new Error('Cloud workspace was not found.'), {code:'WORKSPACE_NOT_FOUND'});
-  const boards = await getDocs(query(collection(db, 'workspaces', workspaceId, 'boards'), orderBy('rank')));
+  const boards = await getDocs(query(collection(db, 'workspaces', workspaceId, 'boards'), where('lifecycleState', '==', 'active')));
   const workspace = {...metadata.data(), id:workspaceId};
   if (workspace.migration?.state !== 'verified') return {...workspace, boards:boards.docs.map(item => item.data().snapshot)};
-  const records = await Promise.all(boards.docs.map(async item => ({
-    board:{id:item.id, ...item.data()},
-    lists:(await getDocs(query(collection(item.ref, 'lists'), orderBy('rank')))).docs.map(doc => ({id:doc.id, ...doc.data()})),
-    cards:(await getDocs(query(collection(item.ref, 'cards'), orderBy('rank')))).docs.map(doc => ({id:doc.id, ...doc.data()}))
-  })));
+  const records = await Promise.all(boards.docs.map(async item => {
+    const lists=await getDocs(query(collection(item.ref, 'lists'),where('lifecycleState','==','active')));
+    const cardPages=await Promise.all(lists.docs.map(list=>getDocs(query(collection(item.ref,'cards'),where('listId','==',list.id),where('lifecycleState','==','active')))));
+    return {board:{id:item.id, ...item.data()},lists:lists.docs.map(doc=>({id:doc.id,...doc.data()})),cards:cardPages.flatMap(page=>page.docs.map(doc=>({id:doc.id,...doc.data()})))};
+  }));
   return rehydrateGranularWorkspace(workspace, records);
 }
 
@@ -119,28 +119,19 @@ export const updateCardComment = (app, auth, options) => changeCardComment(app, 
 export const removeCardComment = (app, auth, options) => changeCardComment(app, auth, {...options, remove:true});
 
 export function subscribeCloudWorkspace(app, auth, {workspaceId, boardId, onWorkspace, onBoard, onMembership, onStatus, onError}) {
-  const {db,user}=context(app,auth), snapshots = {board:null, lists:null, cards:null};
-  let stopped = false, unsubscribers = [];
-  const stop = () => { if (stopped) return; stopped = true; unsubscribers.splice(0).forEach(unsubscribe => unsubscribe()); };
-  const fail = error => { if (stopped) return; stop(); onError?.(error); };
-  const metadataStatus = metadata => onStatus?.(metadata.hasPendingWrites ? 'saving' : metadata.fromCache ? 'offline' : 'synced');
-  const emitBoard = () => {
-    if (stopped || !snapshots.board || !snapshots.lists || !snapshots.cards) return;
-    if (!snapshots.board.exists()) return fail(Object.assign(new Error('The active cloud board is no longer available.'), {code:'BOARD_NOT_FOUND'}));
-    const board = {id:snapshots.board.id, ...snapshots.board.data()};
-    const lists = snapshots.lists.docs.map(item => ({id:item.id, ...item.data()}));
-    const cards = snapshots.cards.docs.map(item => ({id:item.id, ...item.data()}));
-    onBoard?.({board, lists, cards});
-    metadataStatus([snapshots.board, snapshots.lists, snapshots.cards].some(item => item.metadata.hasPendingWrites) ? {hasPendingWrites:true, fromCache:false} : {hasPendingWrites:false, fromCache:[snapshots.board, snapshots.lists, snapshots.cards].some(item => item.metadata.fromCache)});
-  };
-  const options = {includeMetadataChanges:true};
-  const watch = (reference, next) => onSnapshot(reference, options, next, fail);
-  unsubscribers = [
-    watch(doc(db, 'workspaces', workspaceId), snapshot => { if (!snapshot.exists()) return fail(Object.assign(new Error('Workspace access was removed.'), {code:'ACCESS_REMOVED'})); onWorkspace?.(snapshot.data()); }),
-    watch(doc(db, 'workspaces', workspaceId, 'members', user.uid), snapshot => { if (!snapshot.exists()) return fail(Object.assign(new Error('Workspace access was removed.'), {code:'ACCESS_REMOVED'})); onMembership?.(snapshot.data().role); }),
-    watch(doc(db, 'workspaces', workspaceId, 'boards', boardId), snapshot => { snapshots.board = snapshot; emitBoard(); }),
-    watch(query(collection(db, 'workspaces', workspaceId, 'boards', boardId, 'lists'), orderBy('rank')), snapshot => { snapshots.lists = snapshot; emitBoard(); }),
-    watch(query(collection(db, 'workspaces', workspaceId, 'boards', boardId, 'cards'), orderBy('rank')), snapshot => { snapshots.cards = snapshot; emitBoard(); })
+  const {db,user}=context(app,auth), snapshots={board:null,lists:null}, cardSnapshots=new Map();
+  let stopped=false,unsubscribers=[],cardUnsubscribers=[],cardGeneration=0;
+  const stopCards=()=>{cardGeneration+=1;cardUnsubscribers.splice(0).forEach(unsubscribe=>unsubscribe());cardSnapshots.clear();};
+  const stop=()=>{if(stopped)return;stopped=true;stopCards();unsubscribers.splice(0).forEach(unsubscribe=>unsubscribe());};
+  const fail=error=>{if(stopped)return;stop();onError?.(error);};
+  const emitBoard=()=>{if(stopped||!snapshots.board||!snapshots.lists||cardSnapshots.size!==Math.ceil(snapshots.lists.size/30))return;if(!snapshots.board.exists())return fail(Object.assign(new Error('The active cloud board is no longer available.'),{code:'BOARD_NOT_FOUND'}));const board={id:snapshots.board.id,...snapshots.board.data()},lists=snapshots.lists.docs.map(item=>({id:item.id,...item.data()})),pages=[...cardSnapshots.values()],cards=pages.flatMap(page=>page.docs.map(item=>({id:item.id,...item.data()}))),all=[snapshots.board,snapshots.lists,...pages];onBoard?.({board,lists,cards});onStatus?.(all.some(item=>item.metadata.hasPendingWrites)?'saving':all.some(item=>item.metadata.fromCache)?'offline':'synced');};
+  const options={includeMetadataChanges:true},watch=(reference,next)=>onSnapshot(reference,options,next,fail),cards=collection(db,'workspaces',workspaceId,'boards',boardId,'cards');
+  const watchCards=listSnapshot=>{stopCards();snapshots.lists=listSnapshot;const ids=listSnapshot.docs.map(item=>item.id),generation=cardGeneration;if(!ids.length)return emitBoard();for(let index=0;index<ids.length;index+=30){const group=ids.slice(index,index+30),key=group.join('|');cardUnsubscribers.push(watch(query(cards,where('listId','in',group),where('lifecycleState','==','active')),snapshot=>{if(generation!==cardGeneration)return;cardSnapshots.set(key,snapshot);emitBoard();}));}};
+  unsubscribers=[
+    watch(doc(db,'workspaces',workspaceId),snapshot=>{if(!snapshot.exists())return fail(Object.assign(new Error('Workspace access was removed.'),{code:'ACCESS_REMOVED'}));onWorkspace?.(snapshot.data());}),
+    watch(doc(db,'workspaces',workspaceId,'members',user.uid),snapshot=>{if(!snapshot.exists())return fail(Object.assign(new Error('Workspace access was removed.'),{code:'ACCESS_REMOVED'}));onMembership?.(snapshot.data().role);}),
+    watch(doc(db,'workspaces',workspaceId,'boards',boardId),snapshot=>{snapshots.board=snapshot;emitBoard();}),
+    watch(query(collection(db,'workspaces',workspaceId,'boards',boardId,'lists'),where('lifecycleState','==','active')),watchCards)
   ];
   return stop;
 }

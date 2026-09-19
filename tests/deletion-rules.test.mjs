@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {assertFails, assertSucceeds, initializeTestEnvironment} from '@firebase/rules-unit-testing';
 import {
   collection, deleteDoc, doc, getDoc, getDocs, limit, query, serverTimestamp,
-  setDoc, Timestamp, updateDoc, where, writeBatch
+  setDoc, Timestamp, updateDoc, writeBatch
 } from 'firebase/firestore';
 
 const projectId = 'demo-flowboard-rules';
@@ -30,19 +30,19 @@ async function seedFixture(suffix, {commentCount = 1, secondList = false, snapsh
     for (const [uid,role] of [[owner,'owner'],[editor,'editor'],[viewer,'viewer']]) {
       await setDoc(doc(db,'workspaces',workspaceId,'members',uid),{uid,role,emailLower:`${uid}@example.com`});
     }
-    const board={id:boardId,title:`Board ${suffix}`,rank:0,archived:false,revision:0,clientMutationId:`${suffix}-board-seed-0001`,updatedAt:now};
+    const board={id:boardId,title:`Board ${suffix}`,rank:0,archived:false,lifecycleState:'active',revision:0,clientMutationId:`${suffix}-board-seed-0001`,updatedAt:now};
     if(snapshot) board.snapshot={id:boardId,title:board.title,lists:[{id:'list-target',title:'Target',cards:[{id:'card-target',title:'Target card'}]}]};
     await setDoc(doc(db,'workspaces',workspaceId,'boards',boardId),board);
-    await setDoc(doc(db,'workspaces',workspaceId,'boards',boardId,'lists','list-target'),{id:'list-target',title:'Target',rank:0,archived:false,revision:0,clientMutationId:`${suffix}-list-seed-0001`,updatedAt:now});
-    await setDoc(doc(db,'workspaces',workspaceId,'boards',boardId,'cards','card-target'),{id:'card-target',listId:'list-target',title:'Target card',rank:0,archived:false,assigneeUids:[],revision:0,clientMutationId:`${suffix}-card-seed-0001`,updatedAt:now});
+    await setDoc(doc(db,'workspaces',workspaceId,'boards',boardId,'lists','list-target'),{id:'list-target',title:'Target',rank:0,archived:false,lifecycleState:'active',revision:0,clientMutationId:`${suffix}-list-seed-0001`,updatedAt:now});
+    await setDoc(doc(db,'workspaces',workspaceId,'boards',boardId,'cards','card-target'),{id:'card-target',listId:'list-target',title:'Target card',rank:0,archived:false,lifecycleState:'active',assigneeUids:[],revision:0,clientMutationId:`${suffix}-card-seed-0001`,updatedAt:now});
     for(let i=0;i<commentCount;i++) {
       const id=`comment-${String(i).padStart(3,'0')}-0000000000`;
       await setDoc(doc(db,'workspaces',workspaceId,'boards',boardId,'cards','card-target','comments',id),{authorUid:owner,body:`Synthetic ${i}`,createdAt:now,updatedAt:now,deletedAt:i%2?now:null,revision:0,clientMutationId:id});
     }
     if(secondList) {
-      await setDoc(doc(db,'workspaces',workspaceId,'boards',boardId,'lists','list-keep'),{id:'list-keep',title:'Keep',rank:1,archived:false,revision:0,clientMutationId:`${suffix}-list-keep-0001`,updatedAt:now});
-      await setDoc(doc(db,'workspaces',workspaceId,'boards',boardId,'cards','card-keep'),{id:'card-keep',listId:'list-keep',title:'Keep card',rank:1,archived:false,assigneeUids:[],revision:0,clientMutationId:`${suffix}-card-keep-0001`,updatedAt:now});
-      await setDoc(doc(db,'workspaces',workspaceId,'boards',boardId,'cards','card-archived'),{id:'card-archived',listId:'list-target',title:'Archived target',rank:1,archived:true,assigneeUids:[],revision:0,clientMutationId:`${suffix}-card-archived-0001`,updatedAt:now});
+      await setDoc(doc(db,'workspaces',workspaceId,'boards',boardId,'lists','list-keep'),{id:'list-keep',title:'Keep',rank:1,archived:false,lifecycleState:'active',revision:0,clientMutationId:`${suffix}-list-keep-0001`,updatedAt:now});
+      await setDoc(doc(db,'workspaces',workspaceId,'boards',boardId,'cards','card-keep'),{id:'card-keep',listId:'list-keep',title:'Keep card',rank:1,archived:false,lifecycleState:'active',assigneeUids:[],revision:0,clientMutationId:`${suffix}-card-keep-0001`,updatedAt:now});
+      await setDoc(doc(db,'workspaces',workspaceId,'boards',boardId,'cards','card-archived'),{id:'card-archived',listId:'list-target',title:'Archived target',rank:1,archived:true,lifecycleState:'active',assigneeUids:[],revision:0,clientMutationId:`${suffix}-card-archived-0001`,updatedAt:now});
     }
   });
   return value;
@@ -61,8 +61,8 @@ function addStartWrites(batch, db, fixture, {actor,targetType,targetId,operation
   batch.update(refs.board,{lifecycleState:'deleting',activeDeletionJobId:operationId,revision:expectedRevision+1,clientMutationId:operationId,updatedAt:serverTimestamp()});
   batch.set(refs.job,{schemaVersion:1,operationId,boardId:fixture.boardId,targetType,targetId,initiatorUid:actor,state:'deleting',expectedRevision,createdAt:serverTimestamp(),updatedAt:serverTimestamp(),revision:0});
   batch.set(refs.control,{schemaVersion:1,boardId:fixture.boardId,state:'deleting',operationId,targetType,targetId,initiatorUid:actor,startedAt:serverTimestamp(),completedAt:null,revision:controlRevision});
-  if(targetType==='list') batch.set(doc(db,'workspaces',fixture.workspaceId,'boardLifecycle',fixture.boardId,'deletedLists',targetId),{schemaVersion:1,entityType:'list',boardId:fixture.boardId,entityId:targetId,operationId,deletedByUid:actor,createdAt:serverTimestamp()});
-  if(targetType==='card') batch.set(doc(db,'workspaces',fixture.workspaceId,'boardLifecycle',fixture.boardId,'deletedCards',targetId),{schemaVersion:1,entityType:'card',boardId:fixture.boardId,entityId:targetId,listId:'list-target',operationId,deletedByUid:actor,createdAt:serverTimestamp()});
+  if(targetType==='list'){batch.update(doc(db,'workspaces',fixture.workspaceId,'boards',fixture.boardId,'lists',targetId),{lifecycleState:'deleting',activeDeletionJobId:operationId,revision:1,clientMutationId:operationId,updatedAt:serverTimestamp()});batch.set(doc(db,'workspaces',fixture.workspaceId,'boardLifecycle',fixture.boardId,'deletedLists',targetId),{schemaVersion:1,entityType:'list',boardId:fixture.boardId,entityId:targetId,operationId,deletedByUid:actor,createdAt:serverTimestamp()});}
+  if(targetType==='card'){batch.update(doc(db,'workspaces',fixture.workspaceId,'boards',fixture.boardId,'cards',targetId),{lifecycleState:'deleting',activeDeletionJobId:operationId,revision:1,clientMutationId:operationId,updatedAt:serverTimestamp()});batch.set(doc(db,'workspaces',fixture.workspaceId,'boardLifecycle',fixture.boardId,'deletedCards',targetId),{schemaVersion:1,entityType:'card',boardId:fixture.boardId,entityId:targetId,listId:'list-target',operationId,deletedByUid:actor,createdAt:serverTimestamp()});}
   return refs;
 }
 
@@ -86,7 +86,17 @@ async function completeBoardDeletion(db,fixture,operationId,{controlRevision=0}=
 }
 
 async function createCardTombstone(db,fixture,{actor,operationId,cardId,listId}) {
-  return setDoc(doc(db,'workspaces',fixture.workspaceId,'boardLifecycle',fixture.boardId,'deletedCards',cardId),{schemaVersion:1,entityType:'card',boardId:fixture.boardId,entityId:cardId,listId,operationId,deletedByUid:actor,createdAt:serverTimestamp()});
+  const batch=writeBatch(db);
+  batch.update(doc(db,'workspaces',fixture.workspaceId,'boards',fixture.boardId,'cards',cardId),{lifecycleState:'deleting',activeDeletionJobId:operationId,revision:1,clientMutationId:operationId,updatedAt:serverTimestamp()});
+  batch.set(doc(db,'workspaces',fixture.workspaceId,'boardLifecycle',fixture.boardId,'deletedCards',cardId),{schemaVersion:1,entityType:'card',boardId:fixture.boardId,entityId:cardId,listId,operationId,deletedByUid:actor,createdAt:serverTimestamp()});
+  return batch.commit();
+}
+
+async function createListTombstone(db,fixture,{actor,operationId,listId}) {
+  const batch=writeBatch(db);
+  batch.update(doc(db,'workspaces',fixture.workspaceId,'boards',fixture.boardId,'lists',listId),{lifecycleState:'deleting',activeDeletionJobId:operationId,revision:1,clientMutationId:operationId,updatedAt:serverTimestamp()});
+  batch.set(doc(db,'workspaces',fixture.workspaceId,'boardLifecycle',fixture.boardId,'deletedLists',listId),{schemaVersion:1,entityType:'list',boardId:fixture.boardId,entityId:listId,operationId,deletedByUid:actor,createdAt:serverTimestamp()});
+  return batch.commit();
 }
 
 async function deleteCommentPages(db,fixture,cardId) {
@@ -131,8 +141,8 @@ test('list deletion covers active and archived sibling cards without touching an
   const fixture=await seedFixture('list',{commentCount:2,secondList:true}), operationId=mid('list-delete'), editor=dbFor(fixture.editor);
   await assertSucceeds(startDeletion(editor,fixture,{actor:fixture.editor,targetType:'list',targetId:'list-target',operationId,expectedRevision:0}));
   const cards=collection(editor,'workspaces',fixture.workspaceId,'boards',fixture.boardId,'cards');
-  const targetCards=await assertSucceeds(getDocs(query(cards,where('listId','==','list-target'),limit(25))));
-  assert.equal(targetCards.size,2);
+  assert.equal((await assertSucceeds(getDoc(doc(cards,'card-target')))).exists(),true);
+  assert.equal((await assertSucceeds(getDoc(doc(cards,'card-archived')))).exists(),true);
   await assertFails(setDoc(doc(cards,'new-target-card'),{id:'new-target-card',listId:'list-target',title:'Blocked',rank:2,assigneeUids:[],revision:0,clientMutationId:'blocked-target-create-0001'}));
   await assertFails(updateDoc(doc(cards,'card-keep'),{listId:'list-target',revision:1,clientMutationId:'blocked-target-move-0001'}));
 
@@ -156,8 +166,10 @@ test('board owner may delete parent first while durable control keeps leftovers 
   const editorStart=writeBatch(editor); addStartWrites(editorStart,editor,fixture,{actor:fixture.editor,targetType:'board',targetId:fixture.boardId,operationId,expectedRevision:0});
   await assertFails(editorStart.commit());
   await assertSucceeds(startDeletion(owner,fixture,{actor:fixture.owner,targetType:'board',targetId:fixture.boardId,operationId,expectedRevision:0}));
-
   const board=doc(owner,'workspaces',fixture.workspaceId,'boards',fixture.boardId);
+  await assertFails(getDoc(doc(viewer,'workspaces',fixture.workspaceId,'boards',fixture.boardId)));
+  await assertSucceeds(getDoc(board));
+
   await assertSucceeds(deleteDoc(board));
   await assertSucceeds(completeBoardDeletion(owner,fixture,operationId));
   const viewerCard=doc(viewer,'workspaces',fixture.workspaceId,'boards',fixture.boardId,'cards','card-target');
@@ -165,9 +177,9 @@ test('board owner may delete parent first while durable control keeps leftovers 
 
   // Job-complete maintenance access remains available to the current owner.
   const ownerCards=collection(owner,'workspaces',fixture.workspaceId,'boards',fixture.boardId,'cards');
-  assert.equal((await assertSucceeds(getDocs(query(ownerCards,limit(25))))).size,1);
+  assert.equal((await assertSucceeds(getDoc(doc(ownerCards,'card-target')))).exists(),true);
   await assertSucceeds(createCardTombstone(owner,fixture,{actor:fixture.owner,operationId,cardId:'card-target',listId:'list-target'}));
-  await assertSucceeds(setDoc(doc(owner,'workspaces',fixture.workspaceId,'boardLifecycle',fixture.boardId,'deletedLists','list-target'),{schemaVersion:1,entityType:'list',boardId:fixture.boardId,entityId:'list-target',operationId,deletedByUid:fixture.owner,createdAt:serverTimestamp()}));
+  await assertSucceeds(createListTombstone(owner,fixture,{actor:fixture.owner,operationId,listId:'list-target'}));
   assert.equal(await deleteCommentPages(owner,fixture,'card-target'),3);
   await assertSucceeds(deleteDoc(doc(ownerCards,'card-target')));
   await assertSucceeds(deleteDoc(doc(owner,'workspaces',fixture.workspaceId,'boards',fixture.boardId,'lists','list-target')));

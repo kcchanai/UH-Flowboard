@@ -174,6 +174,12 @@ The directory fetches bounded board metadata per authorized workspace and uses c
 - Revocation stops current actor cleanup immediately.
 - Tombstones and minimal lifecycle metadata remain after payload deletion by design.
 
+## Post-review visibility hardening
+
+Every board, list, and card now carries a server-visible `lifecycleState`. Normal collection reads must query only `active` records. Card queries are additionally scoped to currently active list IDs. Starting a board/list/card deletion changes the target lifecycle field in the same coupled write that creates its tombstone and job. Therefore a client cannot expose a snapshot-bearing board, residual list, or residual card through a normal collection query after the deletion lock starts.
+
+Exact maintenance reads remain available only through the immutable job/tombstone scope and current role. A board-root read uses lifecycle-aware `get` authorization rather than the workspace-only read rule. Generic board updates cannot add, replace, or remove `snapshot`, `lifecycleState`, or `activeDeletionJobId`; list/card generic updates likewise cannot change their lifecycle fields. Owner-verified migration is the only future route for scrubbing legacy snapshots.
+
 ## Rejected alternatives
 
 - Generic client recursive delete: unsafe and unbounded.

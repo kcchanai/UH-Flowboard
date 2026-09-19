@@ -1,5 +1,5 @@
 const ACCESS_CODES = new Set(['permission-denied', 'ACCESS_REMOVED', 'WORKSPACE_NOT_FOUND']);
-const LOCAL_SAFE = ' Your browser-local workspace is active and unchanged.';
+
 const isCloud = mode => ['cloud-preview', 'cloud'].includes(mode?.kind);
 
 export function initializeCloudSyncController(adapter) {
@@ -7,7 +7,7 @@ export function initializeCloudSyncController(adapter) {
   const app = () => globalThis.FlowboardApp;
   const stop = () => { generation += 1; unsubscribe?.(); unsubscribe = null; };
   const status = (name, message = '') => app()?.setCloudSyncStatus(name, message);
-  const accessRemoved = message => { stop(); app()?.handleCloudAccessRemoved(`${message || 'Cloud workspace access was removed.'}${LOCAL_SAFE}`); };
+  const accessRemoved = message => { stop(); app()?.handleCloudAccessRemoved(message || 'Cloud workspace access was removed.'); };
   const reportError = (error, message) => ACCESS_CODES.has(error?.code)
     ? accessRemoved()
     : status(error?.code === 'unavailable' || !navigator.onLine ? 'Offline' : 'Error', message);
