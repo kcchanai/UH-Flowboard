@@ -2,7 +2,7 @@ import test,{after,before,beforeEach} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {assertFails,assertSucceeds,initializeTestEnvironment} from '@firebase/rules-unit-testing';
-import {collection,deleteField,doc,getDoc,getDocs,query,serverTimestamp,setDoc,Timestamp,updateDoc,where,writeBatch} from 'firebase/firestore';
+import {collection,deleteField,doc,getDoc,getDocs,getDocsFromServer,query,serverTimestamp,setDoc,Timestamp,updateDoc,where,writeBatch} from 'firebase/firestore';
 
 const projectId='demo-flowboard-rules';let env;
 before(async()=>{env=await initializeTestEnvironment({projectId,firestore:{rules:await readFile('firestore.rules','utf8')}});});
@@ -57,9 +57,13 @@ test('archived board payloads stay owner-maintenance-only in list queries',async
   await seed();await env.withSecurityRulesDisabled(async context=>setDoc(doc(context.firestore(),'workspaces','personal','boards','archived-board'),{id:'archived-board',title:'Archived',rank:3,archived:true,lifecycleState:'active',snapshot:{id:'archived-board',title:'Archived',lists:[]},revision:0,clientMutationId:'archived-board-seed-0001'}));
   const viewer=dbFor('viewer'),owner=dbFor('owner'),boards=collection(viewer,'workspaces','personal','boards');
   await assertFails(getDoc(doc(boards,'archived-board')));
-  await assertFails(getDocs(query(boards,where('lifecycleState','==','active'))));
-  assert.equal((await assertSucceeds(getDocs(query(boards,where('lifecycleState','==','active'),where('archived','==',false))))).size,0);
-  assert.equal((await assertSucceeds(getDocs(query(collection(owner,'workspaces','personal','boards'),where('lifecycleState','==','active'))))).size,1);
+  await assertFails(getDocsFromServer(query(boards,where('lifecycleState','==','active'))));
+  assert.equal((await assertSucceeds(getDocsFromServer(query(boards,where('lifecycleState','==','active'),where('archived','==',false))))).size,0);
+  assert.equal((await assertSucceeds(getDocsFromServer(query(collection(owner,'workspaces','personal','boards'),where('lifecycleState','==','active'))))).size,1);
+});
+
+test('only owners restore and rearchive granular boards while editor and viewer stay filtered',async()=>{
+  await seed();await env.withSecurityRulesDisabled(async context=>setDoc(doc(context.firestore(),'workspaces','personal','boards','editor-archived'),{id:'editor-archived',title:'Archived',rank:2,archived:true,archivedAt:Timestamp.now(),archivedByUid:'owner',lifecycleState:'active',revision:0,clientMutationId:'editor-archive-seed-0001'}));const owner=dbFor('owner'),editor=dbFor('editor'),viewer=dbFor('viewer'),board=doc(owner,'workspaces','personal','boards','editor-archived');await assertFails(getDoc(doc(editor,'workspaces','personal','boards','editor-archived')));await assertSucceeds(updateDoc(board,{archived:false,archivedAt:null,archivedByUid:null,revision:1,clientMutationId:'owner-restore-operation-0001',updatedAt:serverTimestamp()}));assert.equal((await assertSucceeds(getDocs(query(collection(viewer,'workspaces','personal','boards'),where('lifecycleState','==','active'),where('archived','==',false))))).size,1);await assertFails(updateDoc(doc(editor,'workspaces','personal','boards','editor-archived'),{archived:true,archivedAt:serverTimestamp(),archivedByUid:'editor',revision:2,clientMutationId:'editor-archive-operation-0001',updatedAt:serverTimestamp()}));await assertSucceeds(updateDoc(board,{archived:true,archivedAt:serverTimestamp(),archivedByUid:'owner',revision:2,clientMutationId:'owner-archive-operation-0001',updatedAt:serverTimestamp()}));await assertFails(getDoc(doc(viewer,'workspaces','personal','boards','editor-archived')));
 });
 
 test('migration bounds, operation changes, archived starts, and generic snapshot mutation are denied',async()=>{

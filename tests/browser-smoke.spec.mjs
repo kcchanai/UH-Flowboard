@@ -589,6 +589,14 @@ test('owner can retry an interrupted migration and the workspace list refreshes 
   expect(await page.evaluate(()=>globalThis.upgradeOpened)).toBe(true);
 });
 
+test('dirty card discard preserves the nested cloud lifecycle confirmation',async({page})=>{
+  await openReady(page);await page.evaluate(()=>FlowboardApp.openCloudWorkspace(FlowboardState.makeWorkspace(),{id:'confirmation-scope',name:'Confirmation scope',role:'owner'}));const card=page.locator('.card-open').first();await card.click();await page.locator('#card-description-input').fill('Unsaved nested confirmation draft');await page.locator('#delete-card').click();const confirmation=page.locator('#confirm-dialog');await expect(confirmation.locator('#confirm-title')).toHaveText('Discard unsaved changes?');await confirmation.getByRole('button',{name:'Discard changes'}).click();await expect(confirmation).toBeVisible();await expect(confirmation.locator('#confirm-title')).toHaveText('Archive this cloud card?');await confirmation.getByRole('button',{name:'Cancel'}).click();await expect(confirmation).toBeHidden();await expect(card).toBeVisible();
+});
+
+test('read-only commands return an awaitable rejected result without mutation',async({page})=>{
+  await openReady(page);const result=await page.evaluate(async()=>{const workspace=FlowboardState.makeWorkspace(),before=JSON.stringify(workspace);FlowboardApp.openCloudPreview(workspace,{id:'read-only-scope',name:'Read only',role:'viewer'});const command=FlowboardApp.createBoard('Must not exist','blank'),completion=await command.completion;return{started:command.started,status:command.status,completion:completion.status,unchanged:FlowboardApp.getActiveBoardSnapshot().title===workspace.boards[0].title&&before===JSON.stringify(workspace)};});expect(result).toEqual({started:false,status:'rejected',completion:'rejected',unchanged:true});
+});
+
 test('desktop board discovery handles many long board names', async ({page}) => {
   await page.setViewportSize({width:1440, height:900});
   await openReady(page);
@@ -1288,4 +1296,15 @@ test('cloud roster maps assignment UIDs to three badges, overflow, and profile r
   await page.evaluate(() => { globalThis.rosterPhoto='https://lh3.googleusercontent.com/a/synthetic=s96-c'; window.dispatchEvent(new Event('flowboard:profile-change')); });
   await expect.poll(() => page.evaluate(() => globalThis.rosterReads)).toBeGreaterThan(reads);
   await expect(page.locator('.assignees img')).toHaveCount(1);
+});
+
+test('cloud-first board keeps horizontal and list scrolling inside the viewport',async({page})=>{
+  await openReady(page);await page.evaluate(()=>{const workspace=FlowboardState.makeEmptyWorkspace(),board=FlowboardState.makeBoard('blank');board.title='Overflow board';board.lists=Array.from({length:10},(_,i)=>FlowboardState.makeList(`List ${i+1}`,Array.from({length:30},(_,j)=>FlowboardState.makeCard(`Card ${i+1}-${j+1}`))));workspace.boards=[board];workspace.activeBoardId=board.id;FlowboardApp.openCloudWorkspace(workspace,{id:'overflow-workspace',name:'Overflow',role:'owner'});});
+  for(const viewport of[{width:1280,height:720},{width:1440,height:900},{width:1920,height:1080},{width:960,height:720},{width:390,height:640}]){await page.setViewportSize(viewport);const before=await page.evaluate(()=>{const root=document.documentElement,board=document.querySelector('#board'),cards=document.querySelector('.cards'),add=document.querySelector('.add-card'),box=board.getBoundingClientRect();window.scrollTo(0,0);board.scrollLeft=board.scrollWidth;cards.scrollTop=cards.scrollHeight;return{pageX:root.scrollWidth<=root.clientWidth,pageY:root.scrollHeight<=root.clientHeight,bottom:box.bottom,viewport:innerHeight,scrollLeft:board.scrollLeft,scrollable:board.scrollWidth>board.clientWidth,documentTop:root.scrollTop,cardBottom:cards.scrollTop>0,addBottom:add.getBoundingClientRect().bottom};});expect(before.pageX).toBe(true);expect(before.pageY).toBe(true);expect(before.bottom).toBeLessThanOrEqual(before.viewport+1);expect(before.scrollable).toBe(true);expect(before.scrollLeft).toBeGreaterThan(0);expect(before.documentTop).toBe(0);expect(before.cardBottom).toBe(true);expect(before.addBottom).toBeLessThanOrEqual(before.viewport+1);}
+});
+
+test('Filters stays bounded, preserves selections, and dismisses outside or with Escape',async({page})=>{
+  await openReady(page);await page.evaluate(()=>{const workspace=FlowboardState.makeEmptyWorkspace(),board=FlowboardState.makeBoard('blank');workspace.boards=[board];workspace.activeBoardId=board.id;FlowboardApp.openCloudWorkspace(workspace,{id:'filter-workspace',name:'Filters',role:'owner'});});
+  for(const width of[1280,390,320]){await page.setViewportSize({width,height:720});const toggle=page.locator('#filter-toggle'),panel=page.locator('#filter-panel');await toggle.click();await expect(panel).toBeVisible();await panel.locator('#due-filter').selectOption('today');await expect(panel).toBeVisible();const box=await panel.boundingBox();expect(box.x).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(width);await page.mouse.click(width-10,710);await expect(panel).toBeHidden();await toggle.click();await expect(panel.locator('#due-filter')).toHaveValue('today');await page.keyboard.press('Escape');await expect(panel).toBeHidden();await expect(toggle).toBeFocused();}
+  await expect(page.getByText('Start here',{exact:true})).toHaveCount(0);
 });

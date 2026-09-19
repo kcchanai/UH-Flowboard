@@ -40,6 +40,7 @@ export function initializeCloudSyncController(adapter) {
   }
 
   ['flowboard:cloud-preview-change', 'flowboard:active-board-change'].forEach(name => window.addEventListener(name, () => start()));
+  window.addEventListener('flowboard:lifecycle-start',stop);
   window.addEventListener('offline', () => status('Offline'));
   window.addEventListener('online', () => start(true));
 

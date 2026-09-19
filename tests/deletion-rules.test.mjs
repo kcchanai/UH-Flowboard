@@ -117,6 +117,8 @@ test('card deletion lock is coupled, role-bound, resumable after early completio
   addStartWrites(viewerStart,viewer,fixture,{actor:fixture.viewer,targetType:'card',targetId:'card-target',operationId,expectedRevision:0});
   await assertFails(viewerStart.commit());
   await assertSucceeds(startDeletion(editor,fixture,{actor:fixture.editor,targetType:'card',targetId:'card-target',operationId,expectedRevision:0}));
+  await assertSucceeds(getDoc(doc(editor,'workspaces',fixture.workspaceId,'boards',fixture.boardId)));
+  await assertFails(getDoc(doc(viewer,'workspaces',fixture.workspaceId,'boards',fixture.boardId)));
 
   const cardPath=['workspaces',fixture.workspaceId,'boards',fixture.boardId,'cards','card-target'];
   await assertFails(getDoc(doc(viewer,...cardPath)));

@@ -20,7 +20,7 @@ export function initializeInviteUI(adapter) {
   signIn.addEventListener('click', async () => {
     signIn.disabled = true; status.textContent = 'Opening Google sign-in…';
     try { session = await adapter.signInWithGoogle(); render(); }
-    catch (error) { console.error('Flowboard invitation sign-in failed.', error); status.textContent = 'Google sign-in could not be completed. The invitation has not been accepted.'; }
+    catch (error) { console.error('Invitation sign-in failed.', error); status.textContent = 'Sign-in failed. Invitation not accepted.'; }
     finally { signIn.disabled = false; }
   });
   dialog.showModal(); render();
@@ -35,7 +35,7 @@ export function initializeInviteUI(adapter) {
       accept.hidden = true;
       const url = new URL(window.location.href); url.searchParams.delete('workspace'); url.searchParams.delete('invite'); history.replaceState({}, '', url);
     } catch (error) {
-      console.error('Flowboard invitation acceptance failed.', error);
+      console.error('Invitation acceptance failed.', error);
       status.textContent = 'This invitation is unavailable for this account. Use the invited verified Google account, or ask the owner for a new link.';
     } finally { accept.disabled = false; }
   });

@@ -18,6 +18,7 @@ The manager displays board metadata only. It does not fetch every board's cards 
 - New boards always target the personal owner scope, even while a shared scope is active, then open through the existing cloud session bridge.
 - One board action changes the backend workspace context, selects the board, closes the modal, and starts the normal scoped cloud runtime.
 - Each board-open request increments the UI generation. A slower earlier request cannot replace a later board selection.
+- A non-null account switch immediately clears rows, closes the manager, invalidates requests, and removes the prior account's directory from the DOM.
 - Closing the real manager restores focus to its actual opener.
 - Archived legacy workspace containers remain owner-recoverable in the secondary recovery disclosure.
 - Workspace leave copy no longer describes an editable local fallback.
@@ -29,6 +30,7 @@ The manager displays board metadata only. It does not fetch every board's cards 
 - Same-named boards across same-named workspace containers remain distinguishable and open the intended scope.
 - A missing workspace hint is ignored while the two valid scopes remain usable.
 - A delayed first board open cannot replace the later selection.
+- Switching directly between signed-in accounts closes and clears the prior directory before the new account loads.
 - Duplicate board names from legacy import remain four distinct rows with position metadata.
 - Account/status/Boards use the same manager; no old chooser exists.
 - Manager opening focuses search; visible close restores focus to Boards.

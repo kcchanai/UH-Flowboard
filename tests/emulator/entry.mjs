@@ -86,7 +86,7 @@ async function signInRole(role) {
 async function writeProfile(role, workspaceIds = [FIXTURE.workspaceId]) {
   const user = auth.currentUser;
   if (!user) throw new Error('Synthetic profile write requires an authenticated emulator user.');
-  await setDoc(doc(db, 'users', user.uid), {
+  const ref=doc(db,'users',user.uid),current=await getDoc(ref),pointer=current.data()?.personalWorkspaceId;workspaceIds=[...new Set([pointer,...workspaceIds].filter(Boolean))];await setDoc(ref, {
     uid: user.uid,
     emailLower: user.email.toLowerCase(),
     workspaceIds
@@ -102,7 +102,7 @@ async function signInFreshPersonal() {
   const credential=await signInWithEmailAndPassword(auth,account.email,account.password);if(!credential.user.displayName)await updateProfile(credential.user,{displayName:'Personal emulator user'});return credential.user;
 }
 
-async function seedFixture() {
+let seedStage='start';async function seedFixture() {
   const owner = await signInRole('owner');
   const editor = await signInRole('editor');
   const viewer = await signInRole('viewer');
@@ -120,11 +120,11 @@ async function seedFixture() {
     updatedAt: serverTimestamp()
   });
   bootstrap.set(doc(root, 'members', owner.uid), {uid: owner.uid, role: 'owner', emailLower: owner.email.toLowerCase(), displayName: 'Owner emulator user'});
-  await bootstrap.commit();
+  seedStage='bootstrap';await bootstrap.commit();
   const members = writeBatch(db);
   members.set(doc(root, 'members', editor.uid), {uid: editor.uid, role: 'editor', emailLower: editor.email.toLowerCase(), displayName: 'Editor emulator user'});
   members.set(doc(root, 'members', viewer.uid), {uid: viewer.uid, role: 'viewer', emailLower: viewer.email.toLowerCase(), displayName: 'Viewer emulator user'});
-  await members.commit();
+  seedStage='members';await members.commit();
   const records = writeBatch(db);
   records.set(doc(root, 'boards', FIXTURE.boardId), {
     id: FIXTURE.boardId, title: 'Emulator board', rank: 0, archived:false, lifecycleState:'active', revision: 0,
@@ -143,10 +143,10 @@ async function seedFixture() {
     rank: 0, assigneeUids: [editor.uid], labels: [], dueDate: '', checklist: [], archived: false, lifecycleState:'active',
     revision: 0, clientMutationId: 'seed-card-mutation-0001', updatedAt: serverTimestamp()
   });
-  await records.commit();
-  await writeProfile('owner');
-  await signInRole('editor'); await writeProfile('editor');
-  await signInRole('viewer'); await writeProfile('viewer');
+  seedStage='records';await records.commit();
+  seedStage='owner-profile';await writeProfile('owner');
+  seedStage='editor-profile';await signInRole('editor'); await writeProfile('editor');
+  seedStage='viewer-profile';await signInRole('viewer'); await writeProfile('viewer');
   await signOut(auth);
   await signInWithEmailAndPassword(auth,ACCOUNTS.owner.email,ACCOUNTS.owner.password);
   await new Promise(resolve=>setTimeout(resolve,50));
@@ -168,10 +168,11 @@ async function applyCardChange(before, title) {
 
 const testApi = {
   fixture: FIXTURE,
-  async seedFixture() { return seedFixture(); },
+  async seedFixture() { try{return await seedFixture();}catch(error){throw Error(`${seedStage}:${error.code||'unknown'}`);} },
   async signInRole(role) { return {uid: (await signInRole(role)).uid}; },
   async captureWorkspace() { capturedWorkspace = await workspaceFor(); return {revision: cardFor(capturedWorkspace)?.revision ?? -1}; },
   async fixtureSummary(){const workspace=await workspaceFor(),uid=auth.currentUser?.uid,adapterSession=await cloudAdapter.getSession(),currentRole=[...users.entries()].find(([,value])=>value.uid===uid)?.[0]||'unknown',adapterRole=[...users.entries()].find(([,value])=>value.uid===adapterSession?.uid)?.[0]||'unknown',entryRole=(await cloudAdapter.listWorkspaces()).find(entry=>entry.id===FIXTURE.workspaceId)?.role||'missing';return{boards:workspace.boards.length,lists:workspace.boards.reduce((n,board)=>n+board.lists.length,0),cards:workspace.boards.reduce((n,board)=>n+board.lists.reduce((m,list)=>m+list.cards.length,0),0),currentRole,adapterRole,entryRole};},
+  async mutationRetryFixture(){await signInRole('owner');const before=await workspaceFor(),next=State.clone(before),created=State.makeBoard('blank'),clientMutationId='idempotent-create-operation-0001';created.id='idempotent-created-board';created.title='Idempotent created board';next.boards.push(created);next.activeBoardId=created.id;const first=await cloudAdapter.applyWorkspaceMutation({workspaceId:FIXTURE.workspaceId,before,next,clientMutationId}),second=await cloudAdapter.applyWorkspaceMutation({workspaceId:FIXTURE.workspaceId,before,next,clientMutationId}),activity=await getDoc(doc(db,'workspaces',FIXTURE.workspaceId,'activity',clientMutationId));return{firstCount:first.boards.filter(board=>board.id===created.id).length,secondCount:second.boards.filter(board=>board.id===created.id).length,activity:activity.exists()};},
 
   async mutateCard(title) { return applyCardChange(await workspaceFor(), title); },
   async mutateCapturedCard(title) {
@@ -225,7 +226,8 @@ const testApi = {
 };
 
 const personalMode=new URLSearchParams(location.search).get('personal')==='1';
-const runtimeCloudAdapter=personalMode?cloudAdapter:Object.freeze({...cloudAdapter,ensurePersonalWorkspace:async()=>({state:'needs-selection',workspaceIds:[FIXTURE.workspaceId]})});
+const params=new URLSearchParams(location.search),commandRace=params.get('commandRace')==='1',verificationPending=params.get('verificationPending')==='1',staleRetry=params.get('staleRetry')==='1',mutationFailure=params.get('mutationFailure')==='1';let applyCount=0;const runtimeBase=mutationFailure?Object.freeze({...cloudAdapter,applyWorkspaceMutation:async()=>{throw Object.assign(new Error('Revision conflict.'),{code:'REVISION_CONFLICT'});}}):staleRetry?Object.freeze({...cloudAdapter,applyWorkspaceMutation:async options=>{const workspace=await cloudAdapter.applyWorkspaceMutation(options);if(!applyCount++)throw Object.assign(new Error('Verification pending.'),{code:'VERIFICATION_PENDING'});return workspace;}}):verificationPending?Object.freeze({...cloudAdapter,applyWorkspaceMutation:async()=>{throw Object.assign(new Error('Verification pending.'),{code:'VERIFICATION_PENDING'});}}):commandRace?Object.freeze({...cloudAdapter,applyWorkspaceMutation:async options=>{await new Promise(resolve=>setTimeout(resolve,120));return cloudAdapter.applyWorkspaceMutation(options);}}):cloudAdapter;
+const runtimeCloudAdapter=personalMode?runtimeBase:Object.freeze({...runtimeBase,ensurePersonalWorkspace:async()=>({state:'needs-selection',workspaceIds:[FIXTURE.workspaceId]})});
 
 await bootstrapFlowboard({
   cloudConfig: CONFIG,

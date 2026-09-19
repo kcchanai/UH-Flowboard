@@ -4,10 +4,10 @@ export {personInitials, safePhotoURL, renderPersonBadge} from './person-badges.j
 function messageFor(error) {
   const code = error?.code || '';
   if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') return 'Google sign-in was cancelled.';
-  if (code === 'auth/popup-blocked') return 'Your browser blocked the Google sign-in window. Allow popups for this site and try again.';
-  if (code === 'auth/unauthorized-domain') return 'This site is not authorized for Google sign-in. Check Firebase authorized domains.';
-  if (code === 'auth/operation-not-allowed') return 'Google sign-in is not enabled for this Firebase project.';
-  if (code === 'auth/network-request-failed') return 'Google sign-in could not reach the network. Check your connection and try again.';
+  if (code === 'auth/popup-blocked') return 'Allow popups, then try again.';
+  if (code === 'auth/unauthorized-domain') return 'This site is not authorized for sign-in.';
+  if (code === 'auth/operation-not-allowed') return 'Google sign-in is not enabled.';
+  if (code === 'auth/network-request-failed') return 'Check your connection and retry.';
   return 'Google sign-in could not be completed. Existing legacy browser data was not changed.';
 }
 
@@ -57,7 +57,7 @@ export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
       cloudStatus.title = preview ? `Viewing ${mode.name || 'this cloud workspace'} in read-only mode.` : `Editing ${mode.name || 'this cloud workspace'}.`;
     } else {
       workspaceName.textContent = 'My workspace';
-      workspaceDetail.textContent = mode.kind === 'loading' ? 'Loading synchronized boards...' : 'Choose or recover your personal workspace.';
+      workspaceDetail.textContent = mode.kind === 'loading' ? 'Loading synchronized boards...' : 'Choose or recover My workspace.';
       cloudStatus.textContent = mode.kind === 'loading' ? 'Loading workspace' : 'Workspace selection needed';
       cloudStatus.title = workspaceDetail.textContent;
     }
@@ -96,12 +96,12 @@ export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
   signOut.addEventListener('click', async () => {
     signOut.disabled = true;
     try { await adapter.signOut(); announce('Signed out. Synced boards are no longer visible.'); }
-    catch (error) { console.error('Flowboard sign-out failed.', error); announce('Sign-out could not be completed. Try again.'); }
+    catch (error) { console.error('Flowboard sign-out failed.', error); announce('Sign-out failed. Try again.'); }
     finally { signOut.disabled = false; }
   });
   appearance?.addEventListener('click', () => {
     dialog.close();
-    import('./appearance-ui.js').then(({openAppearance}) => openAppearance(appearance)).catch(error => { console.error('Flowboard appearance settings failed.', error); announce('Appearance settings could not be loaded.'); });
+    import('./appearance-ui.js').then(({openAppearance}) => openAppearance(appearance)).catch(error => { console.error('Flowboard appearance settings failed.', error); announce('Appearance could not load.'); });
   });
   ['flowboard:appearance-change','flowboard:cloud-preview-change','flowboard:cloud-selection'].forEach(eventName => window.addEventListener(eventName, () => render(currentSession, false)));
   render(null, false);

@@ -494,12 +494,30 @@ service cloud.firestore {
         && board.get('archived', false) == true && board.get('lifecycleState', 'active') == 'active'
         && (!exists(control) || get(control).data.state == 'active');
     }
+    function validBoardArchiveUpdate(workspaceId, boardId) {
+      return isOwner(workspaceId) && isActiveWorkspace(workspaceId)
+        && resource.data.get('lifecycleState', 'active') == 'active'
+        && request.resource.data.get('lifecycleState', 'active') == 'active'
+        && boardControlActiveAfter(workspaceId, boardId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['archived', 'archivedAt', 'archivedByUid', 'revision', 'clientMutationId', 'updatedAt'])
+        && request.resource.data.archived != resource.data.get('archived', false)
+        && validRevision()
+        && (request.resource.data.archived
+          ? request.resource.data.archivedAt == request.time && request.resource.data.archivedByUid == request.auth.uid
+          : request.resource.data.archivedAt == null && request.resource.data.archivedByUid == null);
+    }
     function boardPurgeReadable(workspaceId, boardId) {
       let path = boardLifecyclePath(workspaceId, boardId);
       return exists(path) ? (
         get(path).data.targetType == 'board'
           && usableDeletionJob(workspaceId, get(path).data.operationId, boardId, 'board', boardId, '')
       ) : false;
+    }
+    function entityPurgeBoardReadable(workspaceId, boardId) {
+      let path = boardLifecyclePath(workspaceId, boardId);
+      let data = get(path).data;
+      return exists(path) && data.targetType in ['list', 'card']
+        && usableDeletionJob(workspaceId, data.operationId, boardId, data.targetType, data.targetId, '');
     }
     function listPurgeReadable(workspaceId, boardId, listId) {
       let path = deletedListPath(workspaceId, boardId, listId);
@@ -515,6 +533,11 @@ service cloud.firestore {
           ? usableDeletionJob(workspaceId, get(cardTombstone).data.operationId, boardId, 'card', cardId, get(cardTombstone).data.listId)
           : (exists(listTombstone) ? usableDeletionJob(workspaceId, get(listTombstone).data.operationId, boardId, 'card', cardId, listId) : false)
       );
+    }
+    function missingCardPurgeReadable(workspaceId, boardId, cardId) {
+      let tombstone = deletedCardPath(workspaceId, boardId, cardId);
+      return exists(tombstone)
+        && usableDeletionJob(workspaceId, get(tombstone).data.operationId, boardId, 'card', cardId, get(tombstone).data.listId);
     }
     function commentPurgeReadable(workspaceId, boardId, cardId) {
       let card = cardPath(workspaceId, boardId, cardId);
@@ -999,7 +1022,7 @@ service cloud.firestore {
       }
 
       match /boards/{boardId} {
-        allow get: if boardReadable(workspaceId, boardId) || archivedBoardOwnerReadable(workspaceId, boardId) || boardPurgeReadable(workspaceId, boardId)
+        allow get: if boardReadable(workspaceId, boardId) || archivedBoardOwnerReadable(workspaceId, boardId) || boardPurgeReadable(workspaceId, boardId) || entityPurgeBoardReadable(workspaceId, boardId)
           || (resource.data.get('lifecycleState', '') == 'importing' && isOwner(workspaceId)
             && validOperationId(resource.data.importOperationId))
           || (canEdit(workspaceId) && !exists(boardPath(workspaceId, boardId))
@@ -1009,6 +1032,7 @@ service cloud.firestore {
           && resource.data.archived == false;
         allow list: if isOwner(workspaceId) && canReadWorkspaceContent(workspaceId)
           && resource.data.lifecycleState == 'active';
+
         allow create: if (canEdit(workspaceId)
           && validInitialRevision()
           && request.resource.data.get('archived', false) == false
@@ -1019,8 +1043,8 @@ service cloud.firestore {
         allow update: if (
           boardWritable(workspaceId, boardId)
             && validRevision()
-            && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['lifecycleState', 'activeDeletionJobId', 'snapshot', 'granularVersion', 'importOperationId', 'migrationOperationId', 'lastMigrationOperationId'])
-        ) || validBoardDeletionLock(workspaceId, boardId) || validBoardDeletionUnlock(workspaceId, boardId)
+            && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['lifecycleState', 'activeDeletionJobId', 'snapshot', 'granularVersion', 'archived', 'archivedAt', 'archivedByUid', 'importOperationId', 'migrationOperationId', 'lastMigrationOperationId'])
+        ) || validBoardArchiveUpdate(workspaceId, boardId) || validBoardDeletionLock(workspaceId, boardId) || validBoardDeletionUnlock(workspaceId, boardId)
           || (resource.data.get('lifecycleState', '') == 'importing'
             && (validImportedBoardUpdate(workspaceId, boardId) || validImportedBoardFinalize(workspaceId, boardId)))
           || (request.resource.data.keys().hasAny(['lastMigrationOperationId']) && validSnapshotScrub(workspaceId, boardId));
@@ -1038,6 +1062,7 @@ service cloud.firestore {
               && listIsLiveAfter(workspaceId, boardId, listId));
           allow list: if (boardReadable(workspaceId, boardId) || archivedBoardOwnerReadable(workspaceId, boardId))
             && resource.data.lifecycleState == 'active';
+          allow list: if listPurgeReadable(workspaceId, boardId, listId);
           allow create: if (boardWritable(workspaceId, boardId)
             && request.resource.data.get('lifecycleState', 'active') == 'active'
             && !request.resource.data.keys().hasAny(['activeDeletionJobId', 'importOperationId', 'migrationOperationId', 'lastMigrationOperationId'])
@@ -1063,6 +1088,7 @@ service cloud.firestore {
               && activeList(workspaceId, boardId, resource.data.listId)
               && !exists(deletedCardPath(workspaceId, boardId, cardId))
           ) || cardPurgeReadable(workspaceId, boardId, cardId, resource.data.listId)
+            || (!exists(cardPath(workspaceId, boardId, cardId)) && missingCardPurgeReadable(workspaceId, boardId, cardId))
             || (archivedBoardOwnerReadable(workspaceId, boardId)
               && resource.data.get('lifecycleState', 'active') == 'active'
               && activeList(workspaceId, boardId, resource.data.listId))
@@ -1076,6 +1102,7 @@ service cloud.firestore {
               && resource.data.lifecycleState == 'active'
               && activeList(workspaceId, boardId, resource.data.listId)
           ) || cardPurgeReadable(workspaceId, boardId, cardId, resource.data.listId)
+            || (!exists(cardPath(workspaceId, boardId, cardId)) && missingCardPurgeReadable(workspaceId, boardId, cardId))
             || (archivedBoardOwnerReadable(workspaceId, boardId)
               && resource.data.lifecycleState == 'active'
               && activeList(workspaceId, boardId, resource.data.listId));

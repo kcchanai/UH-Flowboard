@@ -21,7 +21,7 @@ async function waitForServer() {
 }
 
 function runEmulators() {
-  const browserCommand = `${command} playwright test tests/emulator/emulator-browser.spec.mjs --reporter=line`;
+  const browserCommand = `${command} playwright test tests/emulator/emulator-browser.spec.mjs tests/emulator/deletion-engine.spec.mjs tests/emulator/board-lifecycle-ui.spec.mjs --reporter=line --workers=1`;
   const childOptions = {
     stdio: ['ignore', 'pipe', 'pipe'],
     shell: process.platform === 'win32',
@@ -41,7 +41,7 @@ function runEmulators() {
         const passed = output.match(/(\d+) passed/);
         console.log(`Emulator browser workflow passed: ${passed?.[1] || 'all'} test(s).`);
       } else {
-        const safe=output.split(/[\r\n]+/).map(line=>line.replace(/\x1b\[[0-9;]*m/g,'')).filter(line=>line.includes('›')||/^\s*(?:Error: (?:expect|locator|page\.)|Locator:|Expected:|Received:|Timeout:)/.test(line)).join('\n');
+        const safe=output.split(/[\r\n]+/).map(line=>line.replace(/\x1b\[[0-9;]*m/g,'')).filter(line=>line.includes('›')||line.includes('emulator-browser.spec.mjs:')||/^\s*(?:Error: (?:expect|locator|page\.)|Locator:|Expected:|Received:|Timeout:)/.test(line)).join('\n');
         console.error(`Emulator browser workflow failed with exit ${code ?? `signal ${signal}`}. Raw fixture diagnostics were suppressed.${safe?`\n${safe}`:''}`);
       }
       resolve(code ?? (signal ? 1 : 0));

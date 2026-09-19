@@ -27,8 +27,8 @@ export function initializeAssignmentUI(adapter) {
       });
       if (legacy.length) status.textContent=`Legacy labels: ${legacy.join(', ')}. Select workspace members to map them.`;
       else if (former.length) status.textContent='This card includes a former member. Remove that assignment before changing other assignees.';
-      else status.textContent=active.kind==='cloud-preview' ? 'Workspace assignments are read only.' : 'Choose up to eight workspace members.';
-    } catch (error) { if (token!==generation) return; console.error('Flowboard assignment members failed to load.',error); status.textContent='Workspace members could not be loaded. Assignment changes are unavailable.'; }
+      else status.textContent=active.kind==='cloud-preview' ? 'Assignments are read only.' : 'Choose up to eight members.';
+    } catch (error) { if (token!==generation) return; console.error('Member load failed.',error); status.textContent='Members could not load.'; }
   };
   new MutationObserver(()=>render()).observe(dialog,{attributes:true,attributeFilter:['open']});
   ['flowboard:cloud-preview-change','flowboard:profile-change'].forEach(name=>window.addEventListener(name,()=>{members=[];render();}));

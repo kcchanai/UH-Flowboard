@@ -34,11 +34,11 @@ export function initializeActivityUI(cloudAdapter) {
       });
       cursor = page.cursor;
       more.hidden = !page.hasMore;
-      status.textContent = list.children.length ? `Showing ${list.children.length} authenticated event${list.children.length === 1 ? '' : 's'}, newest first.` : 'No authenticated workspace activity has been recorded yet.';
+      status.textContent = list.children.length ? `Showing ${list.children.length} authenticated event${list.children.length === 1 ? '' : 's'}, newest first.` : 'No activity yet.';
     } catch (error) {
       if (token !== generation || workspace !== targetWorkspace || session !== targetSession || !dialog.open) return;
-      console.error('Flowboard could not load authenticated activity.', error);
-      status.textContent = error?.code === 'permission-denied' ? 'Workspace access changed. Activity is no longer available.' : 'Authenticated activity could not be loaded.';
+      console.error('Activity load failed.', error);
+      status.textContent = error?.code === 'permission-denied' ? 'Activity is unavailable.' : 'Activity could not load.';
       more.hidden = true;
     } finally { if (token === generation) { loading = false; more.disabled = false; } }
   };
