@@ -1,0 +1,42 @@
+{
+  "format": "flowboard-cloud-first-local-release-candidate",
+  "version": 1,
+  "implementationCommit": "9880959fc25fcd3925ab7e5ff1096e546eea3d3d",
+  "productionBaselineCommit": "d1c00e619e9b9b907d599e0dcbd1981b80841bc0",
+  "rulesBlob": "ab892fb38e3c371d533ffc59c739adf7a9300ffb",
+  "indexesBlob": "79fc192e9b71eb3c18b7fd504b77fc9b07bcd18a",
+  "packageCommitReference": "ATTESTATION.md",
+  "validation": {
+    "unitPassed": 43,
+    "rulesPassed": 40,
+    "emulatorBrowserPassed": 18,
+    "focusedBuiltPreviewPassed": 6,
+    "lighthouseAccessibilityScore": 1,
+    "axeViolations": 0,
+    "consoleErrors": 0,
+    "pageErrors": 0
+  },
+  "budgets": {
+    "rawSourceBytes": 295676,
+    "rawSourceCapBytes": 300000,
+    "unconfiguredInitialShellGzipBytes": 26183,
+    "configuredInitialShellGzipBytes": 26244,
+    "initialShellGzipCapBytes": 26250,
+    "firstPartyLazyGzipBytes": 57982,
+    "firstPartyLazyGzipCapBytes": 58000,
+    "indexHtmlBytes": 23314,
+    "indexHtmlCapBytes": 27250
+  },
+  "deletionBounds": {
+    "listsPerBoard": 100,
+    "cardsPerBoard": 1000,
+    "commentsPerBoard": 10000,
+    "commentsPerCard": 500,
+    "commentDeletePageSize": 10
+  },
+  "migrationBounds": {
+    "boardsPerImport": 4,
+    "writesPerMigrationGroup": 4
+  },
+  "productionActionsAuthorized": false
+}
