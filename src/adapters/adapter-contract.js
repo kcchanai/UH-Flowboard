@@ -1,10 +1,11 @@
 
 export const REMOTE_METHODS = Object.freeze([
-  'getSession', 'onAuthStateChange', 'signInWithGoogle', 'signOut', 'verifyWorkspaceAccess',
-  'listWorkspaces', 'fetchWorkspace', 'renameWorkspace', 'archiveWorkspace', 'restoreWorkspace', 'migrateWorkspaceToGranular', 'subscribeWorkspace', 'subscribeComments', 'listActivity', 'listOlderComments',
-  'createComment', 'updateComment', 'removeComment', 'probeCommentQueryAuthorization', 'probeHardDeleteAuthorization',
+  'getSession', 'onAuthStateChange', 'signInWithGoogle', 'signOut', 'verifyWorkspaceAccess', 'ensurePersonalWorkspace',
+  'listWorkspaces', 'listBoardDirectory', 'fetchWorkspace', 'setBoardArchived', 'renameWorkspace', 'archiveWorkspace', 'restoreWorkspace', 'migrateWorkspaceToGranular', 'importLegacyWorkspace', 'exportCloudBackup', 'subscribeWorkspace', 'subscribeComments', 'listActivity', 'listOlderComments',
+  'preflightDeletion', 'deleteEntity', 'resumeDeletion',
+  'createComment', 'updateComment', 'removeComment',
   'applyWorkspaceMutation', 'createInvite', 'listMembers', 'listInvites', 'revokeInvite', 'acceptInvite',
-  'changeMemberRole', 'removeMember', 'leaveWorkspace', 'transferOwnership', 'updateOwnMemberProfile', 'uploadLocalWorkspace'
+  'changeMemberRole', 'removeMember', 'leaveWorkspace', 'transferOwnership', 'updateOwnMemberProfile'
 ]);
 
 export class CloudNotConfiguredError extends Error {

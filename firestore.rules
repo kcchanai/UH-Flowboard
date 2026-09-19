@@ -31,11 +31,7 @@ service cloud.firestore {
     function canEdit(workspaceId) {
       return isMember(workspaceId)
         && member(workspaceId).role in ['owner', 'editor']
-        && (
-          isActiveWorkspace(workspaceId)
-          || (member(workspaceId).role == 'owner' && get(workspaceDoc(workspaceId)).data.status == 'migrating')
-          || getAfter(workspaceDoc(workspaceId)).data.status == 'ready'
-        );
+        && isActiveWorkspace(workspaceId);
     }
     function validRole(role) { return role in ['owner', 'editor', 'viewer']; }
     function validMemberProfile(data) {
@@ -127,6 +123,49 @@ service cloud.firestore {
         && newOwnerAfter.uid == nextOwner
         && newOwnerAfter.role == 'owner';
     }
+    function validMigrationCounts(counts) {
+      return counts is map
+        && counts.keys().hasAll(['boards', 'lists', 'cards'])
+        && counts.keys().hasOnly(['boards', 'lists', 'cards'])
+        && counts.boards is int && counts.boards >= 0 && counts.boards <= 100
+        && counts.lists is int && counts.lists >= 0 && counts.lists <= 1000
+        && counts.cards is int && counts.cards >= 0 && counts.cards <= 10000;
+    }
+    function validMigrationStart() {
+      let migration = request.resource.data.migration;
+      return resource.data.status == 'ready'
+        && request.resource.data.status == 'migrating'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'migration', 'updatedAt'])
+        && migration.keys().hasAll(['version', 'state', 'operationId', 'counts', 'startedAt'])
+        && migration.keys().hasOnly(['version', 'state', 'operationId', 'counts', 'startedAt'])
+        && migration.version == 2 && migration.state == 'migrating'
+        && validOperationId(migration.operationId) && validMigrationCounts(migration.counts)
+        && migration.startedAt == request.time;
+    }
+    function validMigrationProgress() {
+      let before = resource.data.migration;
+      let after = request.resource.data.migration;
+      return resource.data.status == 'migrating'
+        && request.resource.data.status == 'migrating'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['migration', 'updatedAt'])
+        && after.keys().hasAll(['version', 'state', 'operationId', 'counts', 'startedAt'])
+        && after.keys().hasOnly(['version', 'state', 'operationId', 'counts', 'startedAt'])
+        && before.version == 2 && after.version == 2 && after.state == 'migrating'
+        && after.operationId == before.operationId && after.startedAt == before.startedAt
+        && validMigrationCounts(after.counts);
+    }
+    function validMigrationFinish() {
+      let before = resource.data.migration;
+      let after = request.resource.data.migration;
+      return resource.data.status == 'migrating'
+        && request.resource.data.status == 'ready'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'migration', 'updatedAt'])
+        && after.keys().hasAll(['version', 'state', 'operationId', 'counts', 'verifiedAt'])
+        && after.keys().hasOnly(['version', 'state', 'operationId', 'counts', 'verifiedAt'])
+        && before.version == 2 && after.version == 2 && after.state == 'verified'
+        && after.operationId == before.operationId && validMigrationCounts(after.counts)
+        && after.verifiedAt == request.time;
+    }
     function validWorkspaceOwnerUpdate(workspaceId) {
       let changed = request.resource.data.diff(resource.data).affectedKeys();
       let previousLifecycleRevision = resource.data.get('lifecycleRevision', 0);
@@ -154,12 +193,9 @@ service cloud.firestore {
           || (resource.data.status == 'initializing'
             && request.resource.data.status == 'ready'
             && changed.hasOnly(['status', 'updatedAt']))
-          || (resource.data.status == 'ready'
-            && request.resource.data.status == 'migrating'
-            && changed.hasOnly(['status', 'migration', 'updatedAt']))
-          || (resource.data.status == 'migrating'
-            && request.resource.data.status == 'ready'
-            && changed.hasOnly(['status', 'migration', 'updatedAt']))
+          || (resource.data.status == 'ready' && request.resource.data.status == 'migrating' && validMigrationStart())
+          || (resource.data.status == 'migrating' && request.resource.data.status == 'migrating' && validMigrationProgress())
+          || (resource.data.status == 'migrating' && request.resource.data.status == 'ready' && validMigrationFinish())
         );
     }
     function validTransferredMemberUpdate(workspaceId, uid) {
@@ -238,12 +274,320 @@ service cloud.firestore {
     function cardPath(workspaceId, boardId, cardId) {
       return /databases/$(database)/documents/workspaces/$(workspaceId)/boards/$(boardId)/cards/$(cardId);
     }
+    function boardLifecyclePath(workspaceId, boardId) {
+      return /databases/$(database)/documents/workspaces/$(workspaceId)/boardLifecycle/$(boardId);
+    }
+    function deletedListPath(workspaceId, boardId, listId) {
+      return /databases/$(database)/documents/workspaces/$(workspaceId)/boardLifecycle/$(boardId)/deletedLists/$(listId);
+    }
+    function deletedCardPath(workspaceId, boardId, cardId) {
+      return /databases/$(database)/documents/workspaces/$(workspaceId)/boardLifecycle/$(boardId)/deletedCards/$(cardId);
+    }
+    function deletionJobPath(workspaceId, operationId) {
+      return /databases/$(database)/documents/workspaces/$(workspaceId)/deletionJobs/$(operationId);
+    }
+    function validOperationId(value) {
+      return value is string && value.size() >= 16 && value.size() <= 128;
+    }
+    function validIdempotentRevision(operationId) {
+      return request.resource.data.revision == resource.data.revision
+        && request.resource.data.clientMutationId == operationId;
+    }
+    function importPath(workspaceId, operationId) {
+      return /databases/$(database)/documents/workspaces/$(workspaceId)/imports/$(operationId);
+    }
+    function validImportCounts(counts) { return validMigrationCounts(counts) && counts.boards <= 4; }
+    function validImportCreate(workspaceId, operationId) {
+      let data = request.resource.data;
+      let workspace = get(workspaceDoc(workspaceId)).data;
+      return isOwner(workspaceId) && isActiveWorkspace(workspaceId) && workspace.personal == true
+        && validOperationId(operationId) && data.operationId == operationId
+        && data.keys().hasAll(['schemaVersion', 'operationId', 'sourceDigest', 'sourceCounts', 'targetBoardIds', 'createdByUid', 'state', 'createdAt', 'updatedAt', 'revision'])
+        && data.keys().hasOnly(['schemaVersion', 'operationId', 'sourceDigest', 'sourceCounts', 'targetBoardIds', 'createdByUid', 'state', 'createdAt', 'updatedAt', 'revision'])
+        && data.schemaVersion == 1 && data.sourceDigest is string && data.sourceDigest.matches('[0-9a-f]{64}')
+        && validImportCounts(data.sourceCounts) && data.targetBoardIds is list
+        && data.targetBoardIds.size() == data.sourceCounts.boards && data.targetBoardIds.size() <= 4
+        && data.targetBoardIds.toSet().size() == data.targetBoardIds.size()
+        && data.createdByUid == request.auth.uid && data.state == 'importing'
+        && data.createdAt == request.time && data.updatedAt == request.time && data.revision == 0;
+    }
+    function validImportComplete(workspaceId, operationId) {
+      return isOwner(workspaceId) && resource.data.operationId == operationId
+        && resource.data.createdByUid == request.auth.uid && resource.data.state == 'importing'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['state', 'updatedAt', 'revision'])
+        && request.resource.data.state == 'verified' && request.resource.data.updatedAt == request.time
+        && request.resource.data.revision == resource.data.revision + 1;
+    }
+    function importCovers(workspaceId, operationId, boardId, after) {
+      let path = importPath(workspaceId, operationId);
+      let data = after ? getAfter(path).data : get(path).data;
+      return validOperationId(operationId) && (after ? existsAfter(path) : exists(path))
+        && data.operationId == operationId && data.createdByUid == request.auth.uid
+        && data.targetBoardIds.hasAll([boardId]);
+    }
+    function importingBoardAfter(workspaceId, boardId, operationId) {
+      let board = getAfter(boardPath(workspaceId, boardId)).data;
+      return existsAfter(boardPath(workspaceId, boardId)) && board.lifecycleState == 'importing'
+        && board.importOperationId == operationId;
+    }
+    function validImportedBoardCreate(workspaceId, boardId) {
+      let operationId = request.resource.data.importOperationId;
+      return isOwner(workspaceId) && isActiveWorkspace(workspaceId)
+        && importCovers(workspaceId, operationId, boardId, false)
+        && get(importPath(workspaceId, operationId)).data.state == 'importing'
+        && request.resource.data.lifecycleState == 'importing'
+        && validInitialRevision() && !request.resource.data.keys().hasAny(['snapshot', 'activeDeletionJobId'])
+        && !existsAfter(boardLifecyclePath(workspaceId, boardId));
+    }
+    function validImportedBoardUpdate(workspaceId, boardId) {
+      let operationId = request.resource.data.importOperationId;
+      return isOwner(workspaceId) && resource.data.importOperationId == operationId
+        && resource.data.lifecycleState == 'importing' && request.resource.data.lifecycleState == 'importing'
+        && importCovers(workspaceId, operationId, boardId, false)
+        && get(importPath(workspaceId, operationId)).data.state == 'importing'
+        && (validRevision() || validIdempotentRevision(operationId))
+        && !request.resource.data.keys().hasAny(['snapshot', 'activeDeletionJobId']);
+    }
+    function validImportedBoardFinalize(workspaceId, boardId) {
+      let operationId = resource.data.importOperationId;
+      return isOwner(workspaceId) && request.resource.data.importOperationId == operationId
+        && resource.data.lifecycleState == 'importing' && request.resource.data.lifecycleState == 'active'
+        && importCovers(workspaceId, operationId, boardId, true)
+        && getAfter(importPath(workspaceId, operationId)).data.state == 'verified'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lifecycleState', 'revision', 'clientMutationId', 'updatedAt'])
+        && validRevision();
+    }
+    function validImportedListWrite(workspaceId, boardId, listId, create) {
+      let operationId = request.resource.data.importOperationId;
+      return isOwner(workspaceId) && importingBoardAfter(workspaceId, boardId, operationId)
+        && importCovers(workspaceId, operationId, boardId, false)
+        && get(importPath(workspaceId, operationId)).data.state == 'importing'
+        && request.resource.data.lifecycleState == 'active' && listIsLiveAfter(workspaceId, boardId, listId)
+        && (create ? validInitialRevision() : resource.data.importOperationId == operationId
+          && (validRevision() || validIdempotentRevision(operationId)));
+    }
+    function validImportedCardWrite(workspaceId, boardId, cardId, create) {
+      let operationId = request.resource.data.importOperationId;
+      let list = getAfter(listPath(workspaceId, boardId, request.resource.data.listId)).data;
+      return isOwner(workspaceId) && importingBoardAfter(workspaceId, boardId, operationId)
+        && importCovers(workspaceId, operationId, boardId, false)
+        && get(importPath(workspaceId, operationId)).data.state == 'importing'
+        && list.importOperationId == operationId && list.lifecycleState == 'active'
+        && request.resource.data.lifecycleState == 'active'
+        && cardIsLiveAfter(workspaceId, boardId, cardId, request.resource.data.listId)
+        && validCardAssignments(workspaceId, request.resource.data)
+        && (create ? validInitialRevision() : resource.data.importOperationId == operationId
+          && (validRevision() || validIdempotentRevision(operationId)));
+    }
+    function importReadable(workspaceId, boardId) {
+      let board = get(boardPath(workspaceId, boardId)).data;
+      let operationId = board.importOperationId;
+      return isOwner(workspaceId) && board.lifecycleState == 'importing'
+        && importCovers(workspaceId, operationId, boardId, false)
+        && get(importPath(workspaceId, operationId)).data.state == 'importing';
+    }
+    function migrationActive(workspaceId, operationId) {
+      let workspace = get(workspaceDoc(workspaceId)).data;
+      return isOwner(workspaceId) && workspace.status == 'migrating'
+        && workspace.migration.version == 2 && workspace.migration.state == 'migrating'
+        && workspace.migration.operationId == operationId;
+    }
+    function validMigrationListWrite(workspaceId, boardId, listId, create) {
+      let operationId = request.resource.data.migrationOperationId;
+      let board = get(boardPath(workspaceId, boardId)).data;
+      return migrationActive(workspaceId, operationId) && board.keys().hasAny(['snapshot'])
+        && board.lifecycleState == 'active' && request.resource.data.lifecycleState == 'active'
+        && listIsLiveAfter(workspaceId, boardId, listId)
+        && (create ? validInitialRevision() : (!resource.data.keys().hasAny(['migrationOperationId'])
+          || resource.data.migrationOperationId == operationId)
+          && (validRevision() || validIdempotentRevision(operationId)));
+    }
+    function validMigrationIdentityAt(values, position) {
+      return values.size() <= position || values[position] is string && values[position].size() >= 1 && values[position].size() <= 128;
+    }
+    function validMigrationAssignments(data) {
+      let values = data.assigneeUids;
+      return values is list && values.size() <= 8 && values.toSet().size() == values.size()
+        && validMigrationIdentityAt(values, 0) && validMigrationIdentityAt(values, 1)
+        && validMigrationIdentityAt(values, 2) && validMigrationIdentityAt(values, 3)
+        && validMigrationIdentityAt(values, 4) && validMigrationIdentityAt(values, 5)
+        && validMigrationIdentityAt(values, 6) && validMigrationIdentityAt(values, 7);
+    }
+    function validMigrationCardWrite(workspaceId, boardId, cardId, create) {
+      let operationId = request.resource.data.migrationOperationId;
+      let board = get(boardPath(workspaceId, boardId)).data;
+      return migrationActive(workspaceId, operationId) && board.keys().hasAny(['snapshot'])
+        && board.lifecycleState == 'active' && request.resource.data.lifecycleState == 'active'
+        && getAfter(listPath(workspaceId, boardId, request.resource.data.listId)).data.lifecycleState == 'active'
+        && cardIsLiveAfter(workspaceId, boardId, cardId, request.resource.data.listId)
+        && validMigrationAssignments(request.resource.data)
+        && (create ? validInitialRevision() : (!resource.data.keys().hasAny(['migrationOperationId'])
+          || resource.data.migrationOperationId == operationId)
+          && (validRevision() || validIdempotentRevision(operationId)));
+    }
+    function validSnapshotScrub(workspaceId, boardId) {
+      let operationId = request.resource.data.lastMigrationOperationId;
+      return migrationActive(workspaceId, operationId) && resource.data.keys().hasAny(['snapshot'])
+        && !request.resource.data.keys().hasAny(['snapshot']) && request.resource.data.granularVersion == 1
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['snapshot', 'granularVersion', 'lastMigrationOperationId', 'revision', 'clientMutationId', 'updatedAt'])
+        && validRevision();
+    }
+    function deletionRoleAllowed(workspaceId, targetType) {
+      return targetType == 'board' ? isOwner(workspaceId) : canEdit(workspaceId);
+    }
+    function jobCovers(data, boardId, entityType, entityId, listId) {
+      return data.boardId == boardId && (
+        data.targetType == 'board'
+        || (entityType == 'list' && data.targetType == 'list' && data.targetId == entityId)
+        || (entityType == 'card' && data.targetType == 'card' && data.targetId == entityId)
+        || (entityType == 'card' && data.targetType == 'list' && data.targetId == listId)
+      );
+    }
+    function usableDeletionJob(workspaceId, operationId, boardId, entityType, entityId, listId) {
+      let path = deletionJobPath(workspaceId, operationId);
+      let data = get(path).data;
+      return validOperationId(operationId)
+        && exists(path)
+        && data.operationId == operationId
+        && data.state in ['deleting', 'complete']
+        && deletionRoleAllowed(workspaceId, data.targetType)
+        && jobCovers(data, boardId, entityType, entityId, listId);
+    }
+    function usableDeletionJobAfter(workspaceId, operationId, boardId, entityType, entityId, listId) {
+      let path = deletionJobPath(workspaceId, operationId);
+      let data = getAfter(path).data;
+      return validOperationId(operationId)
+        && existsAfter(path)
+        && data.operationId == operationId
+        && data.state in ['deleting', 'complete']
+        && deletionRoleAllowed(workspaceId, data.targetType)
+        && jobCovers(data, boardId, entityType, entityId, listId);
+    }
+    function boardControlActiveAfter(workspaceId, boardId) {
+      let path = boardLifecyclePath(workspaceId, boardId);
+      return !existsAfter(path) || getAfter(path).data.state == 'active';
+    }
+    function boardWritable(workspaceId, boardId) {
+      let path = boardPath(workspaceId, boardId);
+      let board = getAfter(path).data;
+      return canEdit(workspaceId)
+        && existsAfter(path)
+        && board.get('archived', false) == false
+        && board.get('lifecycleState', 'active') == 'active'
+        && boardControlActiveAfter(workspaceId, boardId);
+    }
+    function boardReadable(workspaceId, boardId) {
+      let path = boardPath(workspaceId, boardId);
+      let board = get(path).data;
+      let control = boardLifecyclePath(workspaceId, boardId);
+      return canReadWorkspaceContent(workspaceId)
+        && exists(path)
+        && board.get('archived', false) == false
+        && board.get('lifecycleState', 'active') == 'active'
+        && (!exists(control) || get(control).data.state == 'active');
+    }
+    function archivedBoardOwnerReadable(workspaceId, boardId) {
+      let path = boardPath(workspaceId, boardId);
+      let board = get(path).data;
+      let control = boardLifecyclePath(workspaceId, boardId);
+      return isOwner(workspaceId) && canReadWorkspaceContent(workspaceId) && exists(path)
+        && board.get('archived', false) == true && board.get('lifecycleState', 'active') == 'active'
+        && (!exists(control) || get(control).data.state == 'active');
+    }
+    function validBoardArchiveUpdate(workspaceId, boardId) {
+      return isOwner(workspaceId) && isActiveWorkspace(workspaceId)
+        && resource.data.get('lifecycleState', 'active') == 'active'
+        && request.resource.data.get('lifecycleState', 'active') == 'active'
+        && boardControlActiveAfter(workspaceId, boardId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['archived', 'archivedAt', 'archivedByUid', 'revision', 'clientMutationId', 'updatedAt'])
+        && request.resource.data.archived != resource.data.get('archived', false)
+        && validRevision()
+        && (request.resource.data.archived
+          ? request.resource.data.archivedAt == request.time && request.resource.data.archivedByUid == request.auth.uid
+          : request.resource.data.archivedAt == null && request.resource.data.archivedByUid == null);
+    }
+    function boardPurgeReadable(workspaceId, boardId) {
+      let path = boardLifecyclePath(workspaceId, boardId);
+      return exists(path) ? (
+        get(path).data.targetType == 'board'
+          && usableDeletionJob(workspaceId, get(path).data.operationId, boardId, 'board', boardId, '')
+      ) : false;
+    }
+    function entityPurgeBoardReadable(workspaceId, boardId) {
+      let path = boardLifecyclePath(workspaceId, boardId);
+      let data = get(path).data;
+      return exists(path) && data.targetType in ['list', 'card']
+        && usableDeletionJob(workspaceId, data.operationId, boardId, data.targetType, data.targetId, '');
+    }
+    function listPurgeReadable(workspaceId, boardId, listId) {
+      let path = deletedListPath(workspaceId, boardId, listId);
+      return boardPurgeReadable(workspaceId, boardId) ? true : (
+        exists(path) ? usableDeletionJob(workspaceId, get(path).data.operationId, boardId, 'list', listId, '') : false
+      );
+    }
+    function cardPurgeReadable(workspaceId, boardId, cardId, listId) {
+      let cardTombstone = deletedCardPath(workspaceId, boardId, cardId);
+      let listTombstone = deletedListPath(workspaceId, boardId, listId);
+      return boardPurgeReadable(workspaceId, boardId) ? true : (
+        exists(cardTombstone)
+          ? usableDeletionJob(workspaceId, get(cardTombstone).data.operationId, boardId, 'card', cardId, get(cardTombstone).data.listId)
+          : (exists(listTombstone) ? usableDeletionJob(workspaceId, get(listTombstone).data.operationId, boardId, 'card', cardId, listId) : false)
+      );
+    }
+    function missingCardPurgeReadable(workspaceId, boardId, cardId) {
+      let tombstone = deletedCardPath(workspaceId, boardId, cardId);
+      return exists(tombstone)
+        && usableDeletionJob(workspaceId, get(tombstone).data.operationId, boardId, 'card', cardId, get(tombstone).data.listId);
+    }
+    function commentPurgeReadable(workspaceId, boardId, cardId) {
+      let card = cardPath(workspaceId, boardId, cardId);
+      let tombstone = deletedCardPath(workspaceId, boardId, cardId);
+      return boardPurgeReadable(workspaceId, boardId) ? true : (
+        exists(tombstone)
+          ? usableDeletionJob(workspaceId, get(tombstone).data.operationId, boardId, 'card', cardId, get(tombstone).data.listId)
+          : (exists(card) ? listPurgeReadable(workspaceId, boardId, get(card).data.listId) : false)
+      );
+    }
+    function listIsLiveAfter(workspaceId, boardId, listId) {
+      return !existsAfter(deletedListPath(workspaceId, boardId, listId));
+    }
+    function cardIsLiveAfter(workspaceId, boardId, cardId, listId) {
+      return !existsAfter(deletedCardPath(workspaceId, boardId, cardId))
+        && !existsAfter(deletedListPath(workspaceId, boardId, listId));
+    }
+    function activeList(workspaceId, boardId, listId) {
+      let path = listPath(workspaceId, boardId, listId);
+      return exists(path) ? (
+        get(path).data.get('lifecycleState', 'active') == 'active'
+          && !exists(deletedListPath(workspaceId, boardId, listId))
+      ) : false;
+    }
     function commentParentsExist(workspaceId, boardId, cardId) {
-      return exists(workspaceDoc(workspaceId))
-        && get(workspaceDoc(workspaceId)).data.status == 'ready'
-        && exists(boardPath(workspaceId, boardId))
-        && exists(cardPath(workspaceId, boardId, cardId))
-        && exists(listPath(workspaceId, boardId, get(cardPath(workspaceId, boardId, cardId)).data.listId));
+      let card = cardPath(workspaceId, boardId, cardId);
+      return boardReadable(workspaceId, boardId)
+        && exists(card)
+        && get(card).data.get('lifecycleState', 'active') == 'active'
+        && !exists(deletedCardPath(workspaceId, boardId, cardId))
+        && activeList(workspaceId, boardId, get(card).data.listId);
+    }
+    function archivedCommentParentsExist(workspaceId, boardId, cardId) {
+      let card = cardPath(workspaceId, boardId, cardId);
+      return archivedBoardOwnerReadable(workspaceId, boardId) && exists(card)
+        && get(card).data.get('lifecycleState', 'active') == 'active'
+        && !exists(deletedCardPath(workspaceId, boardId, cardId))
+        && activeList(workspaceId, boardId, get(card).data.listId);
+    }
+    function commentParentsWritableAfter(workspaceId, boardId, cardId) {
+      let card = cardPath(workspaceId, boardId, cardId);
+      let listId = getAfter(card).data.listId;
+      let list = listPath(workspaceId, boardId, listId);
+      return boardWritable(workspaceId, boardId)
+        && existsAfter(card)
+        && getAfter(card).data.get('lifecycleState', 'active') == 'active'
+        && !existsAfter(deletedCardPath(workspaceId, boardId, cardId))
+        && existsAfter(list)
+        && getAfter(list).data.get('lifecycleState', 'active') == 'active'
+        && !existsAfter(deletedListPath(workspaceId, boardId, listId));
     }
     function activityPath(workspaceId, activityId) {
       return /databases/$(database)/documents/workspaces/$(workspaceId)/activity/$(activityId);
@@ -314,8 +658,280 @@ service cloud.firestore {
         && data.createdAt == request.time;
     }
 
+    function validDeletionJobShape(data, operationId) {
+      return data.keys().hasAll(['schemaVersion', 'operationId', 'boardId', 'targetType', 'targetId', 'initiatorUid', 'state', 'expectedRevision', 'createdAt', 'updatedAt', 'revision'])
+        && data.keys().hasOnly(['schemaVersion', 'operationId', 'boardId', 'targetType', 'targetId', 'initiatorUid', 'state', 'expectedRevision', 'createdAt', 'updatedAt', 'revision'])
+        && data.schemaVersion == 1
+        && data.operationId == operationId
+        && validOperationId(data.operationId)
+        && data.boardId is string
+        && data.boardId.size() > 0
+        && data.boardId.size() <= 500
+        && data.targetType in ['board', 'list', 'card']
+        && data.targetId is string
+        && data.targetId.size() > 0
+        && data.targetId.size() <= 500
+        && data.initiatorUid == request.auth.uid
+        && data.state == 'deleting'
+        && data.expectedRevision is int
+        && data.expectedRevision >= 0
+        && data.createdAt == request.time
+        && data.updatedAt == request.time
+        && data.revision == 0;
+    }
+    function validDeletionTarget(workspaceId, data) {
+      let board = boardPath(workspaceId, data.boardId);
+      return exists(board)
+        && get(board).data.get('revision', 0) == data.expectedRevision
+        && (data.targetType == 'board' || !get(board).data.keys().hasAny(['snapshot']))
+        && deletionRoleAllowed(workspaceId, data.targetType)
+        && (
+          (data.targetType == 'board' && data.targetId == data.boardId)
+          || (data.targetType == 'list'
+            && get(board).data.get('archived', false) == false
+            && exists(listPath(workspaceId, data.boardId, data.targetId)))
+          || (data.targetType == 'card'
+            && get(board).data.get('archived', false) == false
+            && exists(cardPath(workspaceId, data.boardId, data.targetId)))
+        );
+    }
+    function validDeletionJobCreate(workspaceId, operationId) {
+      let data = request.resource.data;
+      let board = getAfter(boardPath(workspaceId, data.boardId)).data;
+      let control = getAfter(boardLifecyclePath(workspaceId, data.boardId)).data;
+      return validDeletionJobShape(data, operationId)
+        && validDeletionTarget(workspaceId, data)
+        && board.get('lifecycleState', 'active') == 'deleting'
+        && board.activeDeletionJobId == operationId
+        && board.revision == data.expectedRevision + 1
+        && board.clientMutationId == operationId
+        && control.state == 'deleting'
+        && control.operationId == operationId
+        && control.targetType == data.targetType
+        && control.targetId == data.targetId;
+    }
+    function validLifecycleShape(data, boardId, operationId) {
+      return data.keys().hasAll(['schemaVersion', 'boardId', 'state', 'operationId', 'targetType', 'targetId', 'initiatorUid', 'startedAt', 'completedAt', 'revision'])
+        && data.keys().hasOnly(['schemaVersion', 'boardId', 'state', 'operationId', 'targetType', 'targetId', 'initiatorUid', 'startedAt', 'completedAt', 'revision'])
+        && data.schemaVersion == 1
+        && data.boardId == boardId
+        && data.state == 'deleting'
+        && data.operationId == operationId
+        && validOperationId(data.operationId)
+        && data.targetType in ['board', 'list', 'card']
+        && data.targetId is string
+        && data.targetId.size() > 0
+        && data.targetId.size() <= 500
+        && data.initiatorUid == request.auth.uid
+        && data.startedAt == request.time
+        && data.completedAt == null;
+    }
+    function validLifecycleStart(workspaceId, boardId, creating) {
+      let data = request.resource.data;
+      let job = getAfter(deletionJobPath(workspaceId, data.operationId)).data;
+      let board = getAfter(boardPath(workspaceId, boardId)).data;
+      return validLifecycleShape(data, boardId, data.operationId)
+        && data.revision == (creating ? 0 : resource.data.revision + 1)
+        && (creating || resource.data.state == 'active')
+        && job.operationId == data.operationId
+        && job.boardId == boardId
+        && job.targetType == data.targetType
+        && job.targetId == data.targetId
+        && job.state == 'deleting'
+        && deletionRoleAllowed(workspaceId, data.targetType)
+        && board.get('lifecycleState', 'active') == 'deleting'
+        && board.activeDeletionJobId == data.operationId;
+    }
+    function validBoardDeletionLock(workspaceId, boardId) {
+      let operationId = request.resource.data.activeDeletionJobId;
+      let job = getAfter(deletionJobPath(workspaceId, operationId)).data;
+      let control = getAfter(boardLifecyclePath(workspaceId, boardId)).data;
+      return resource.data.get('lifecycleState', 'active') == 'active'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lifecycleState', 'activeDeletionJobId', 'revision', 'clientMutationId', 'updatedAt'])
+        && request.resource.data.lifecycleState == 'deleting'
+        && validRevision()
+        && request.resource.data.clientMutationId == operationId
+        && job.operationId == operationId
+        && job.boardId == boardId
+        && job.expectedRevision == resource.data.get('revision', 0)
+        && job.state == 'deleting'
+        && deletionRoleAllowed(workspaceId, job.targetType)
+        && control.operationId == operationId
+        && control.state == 'deleting';
+    }
+    function validListDeletionLock(workspaceId, boardId, listId) {
+      let operationId = request.resource.data.activeDeletionJobId;
+      let tombstone = getAfter(deletedListPath(workspaceId, boardId, listId)).data;
+      return resource.data.get('lifecycleState', 'active') == 'active'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lifecycleState', 'activeDeletionJobId', 'revision', 'clientMutationId', 'updatedAt'])
+        && request.resource.data.lifecycleState == 'deleting'
+        && validRevision()
+        && request.resource.data.clientMutationId == operationId
+        && tombstone.operationId == operationId
+        && usableDeletionJobAfter(workspaceId, operationId, boardId, 'list', listId, '');
+    }
+    function validCardDeletionLock(workspaceId, boardId, cardId) {
+      let operationId = request.resource.data.activeDeletionJobId;
+      let tombstone = getAfter(deletedCardPath(workspaceId, boardId, cardId)).data;
+      return resource.data.get('lifecycleState', 'active') == 'active'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lifecycleState', 'activeDeletionJobId', 'revision', 'clientMutationId', 'updatedAt'])
+        && request.resource.data.lifecycleState == 'deleting'
+        && validRevision()
+        && request.resource.data.clientMutationId == operationId
+        && tombstone.operationId == operationId
+        && tombstone.listId == resource.data.listId
+        && usableDeletionJobAfter(workspaceId, operationId, boardId, 'card', cardId, resource.data.listId);
+    }
+    function validListTombstoneCreate(workspaceId, boardId, listId) {
+      let data = request.resource.data;
+      return data.keys().hasAll(['schemaVersion', 'entityType', 'boardId', 'entityId', 'operationId', 'deletedByUid', 'createdAt'])
+        && data.keys().hasOnly(['schemaVersion', 'entityType', 'boardId', 'entityId', 'operationId', 'deletedByUid', 'createdAt'])
+        && data.schemaVersion == 1
+        && data.entityType == 'list'
+        && data.boardId == boardId
+        && data.entityId == listId
+        && data.deletedByUid == request.auth.uid
+        && data.createdAt == request.time
+        && exists(listPath(workspaceId, boardId, listId))
+        && getAfter(listPath(workspaceId, boardId, listId)).data.lifecycleState == 'deleting'
+        && getAfter(listPath(workspaceId, boardId, listId)).data.activeDeletionJobId == data.operationId
+        && usableDeletionJobAfter(workspaceId, data.operationId, boardId, 'list', listId, '');
+    }
+    function validCardTombstoneCreate(workspaceId, boardId, cardId) {
+      let data = request.resource.data;
+      let card = cardPath(workspaceId, boardId, cardId);
+      return data.keys().hasAll(['schemaVersion', 'entityType', 'boardId', 'entityId', 'listId', 'operationId', 'deletedByUid', 'createdAt'])
+        && data.keys().hasOnly(['schemaVersion', 'entityType', 'boardId', 'entityId', 'listId', 'operationId', 'deletedByUid', 'createdAt'])
+        && data.schemaVersion == 1
+        && data.entityType == 'card'
+        && data.boardId == boardId
+        && data.entityId == cardId
+        && data.listId is string
+        && data.deletedByUid == request.auth.uid
+        && data.createdAt == request.time
+        && exists(card)
+        && data.listId == get(card).data.listId
+        && getAfter(card).data.lifecycleState == 'deleting'
+        && getAfter(card).data.activeDeletionJobId == data.operationId
+        && usableDeletionJobAfter(workspaceId, data.operationId, boardId, 'card', cardId, data.listId);
+    }
+    function validBoardPurgeDelete(workspaceId, boardId) {
+      let control = boardLifecyclePath(workspaceId, boardId);
+      return exists(control)
+        && get(control).data.targetType == 'board'
+        && usableDeletionJob(workspaceId, get(control).data.operationId, boardId, 'board', boardId, '');
+    }
+    function validListPurgeDelete(workspaceId, boardId, listId) {
+      let tombstone = deletedListPath(workspaceId, boardId, listId);
+      return exists(tombstone)
+        && get(tombstone).data.entityId == listId
+        && usableDeletionJob(workspaceId, get(tombstone).data.operationId, boardId, 'list', listId, '');
+    }
+    function validCardPurgeDelete(workspaceId, boardId, cardId) {
+      let tombstone = deletedCardPath(workspaceId, boardId, cardId);
+      return exists(tombstone)
+        && get(tombstone).data.entityId == cardId
+        && usableDeletionJob(workspaceId, get(tombstone).data.operationId, boardId, 'card', cardId, get(tombstone).data.listId);
+    }
+    function validCommentPurgeDelete(workspaceId, boardId, cardId) {
+      let tombstone = deletedCardPath(workspaceId, boardId, cardId);
+      return exists(tombstone)
+        && usableDeletionJob(workspaceId, get(tombstone).data.operationId, boardId, 'card', cardId, get(tombstone).data.listId);
+    }
+    function validDeletionJobComplete(workspaceId, operationId) {
+      let data = request.resource.data;
+      let control = getAfter(boardLifecyclePath(workspaceId, resource.data.boardId)).data;
+      let board = boardPath(workspaceId, resource.data.boardId);
+      return resource.data.state == 'deleting'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['state', 'updatedAt', 'revision'])
+        && data.state == 'complete'
+        && data.updatedAt == request.time
+        && data.revision == resource.data.revision + 1
+        && deletionRoleAllowed(workspaceId, data.targetType)
+        && control.operationId == operationId
+        && (
+          (data.targetType == 'board' && control.state == 'deleted' && !existsAfter(board))
+          || (data.targetType in ['list', 'card']
+            && control.state == 'active'
+            && getAfter(board).data.get('lifecycleState', 'active') == 'active'
+            && getAfter(board).data.activeDeletionJobId == null)
+        );
+    }
+    function validLifecycleFinish(workspaceId, boardId) {
+      let data = request.resource.data;
+      let job = getAfter(deletionJobPath(workspaceId, resource.data.operationId)).data;
+      let board = boardPath(workspaceId, boardId);
+      return resource.data.state == 'deleting'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['state', 'completedAt', 'revision'])
+        && data.completedAt == request.time
+        && data.revision == resource.data.revision + 1
+        && job.operationId == resource.data.operationId
+        && job.state == 'complete'
+        && deletionRoleAllowed(workspaceId, job.targetType)
+        && (
+          (job.targetType == 'board' && data.state == 'deleted' && !existsAfter(board))
+          || (job.targetType in ['list', 'card']
+            && data.state == 'active'
+            && getAfter(board).data.get('lifecycleState', 'active') == 'active'
+            && getAfter(board).data.activeDeletionJobId == null)
+        );
+    }
+    function validBoardDeletionUnlock(workspaceId, boardId) {
+      let operationId = resource.data.activeDeletionJobId;
+      let job = getAfter(deletionJobPath(workspaceId, operationId)).data;
+      let control = getAfter(boardLifecyclePath(workspaceId, boardId)).data;
+      return resource.data.get('lifecycleState', 'active') == 'deleting'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lifecycleState', 'activeDeletionJobId', 'revision', 'clientMutationId', 'updatedAt'])
+        && request.resource.data.lifecycleState == 'active'
+        && request.resource.data.activeDeletionJobId == null
+        && validRevision()
+        && request.resource.data.clientMutationId == operationId
+        && job.operationId == operationId
+        && job.state == 'complete'
+        && job.targetType in ['list', 'card']
+        && deletionRoleAllowed(workspaceId, job.targetType)
+        && control.operationId == operationId
+        && control.state == 'active';
+    }
+
+    function validUserProfileShape(uid, data) {
+      return data.keys().hasAll(['uid', 'emailLower', 'workspaceIds'])
+        && data.keys().hasOnly(['uid', 'emailLower', 'workspaceIds', 'personalWorkspaceId'])
+        && data.uid == uid
+        && data.emailLower == request.auth.token.email
+        && data.workspaceIds is list
+        && data.workspaceIds.size() <= 100;
+    }
+    function validPersonalWorkspacePointer(uid, data) {
+      return !data.keys().hasAny(['personalWorkspaceId'])
+        || data.personalWorkspaceId == null
+        || data.personalWorkspaceId == ''
+        || (data.personalWorkspaceId is string
+          && data.personalWorkspaceId.size() <= 500
+          && getAfter(workspaceDoc(data.personalWorkspaceId)).data.ownerUid == uid
+          && getAfter(memberDoc(data.personalWorkspaceId, uid)).data.uid == uid
+          && getAfter(memberDoc(data.personalWorkspaceId, uid)).data.role == 'owner');
+    }
+    function validUserProfileCreate(uid) {
+      return verifiedEmail()
+        && request.auth.uid == uid
+        && validUserProfileShape(uid, request.resource.data)
+        && validPersonalWorkspacePointer(uid, request.resource.data);
+    }
+    function validUserProfileUpdate(uid) {
+      return verifiedEmail()
+        && request.auth.uid == uid
+        && validUserProfileShape(uid, request.resource.data)
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.emailLower == resource.data.emailLower
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['workspaceIds', 'personalWorkspaceId'])
+        && validPersonalWorkspacePointer(uid, request.resource.data);
+    }
+
     match /users/{uid} {
-      allow read, create, update: if signedIn() && request.auth.uid == uid;
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow create: if validUserProfileCreate(uid);
+      allow update: if validUserProfileUpdate(uid);
       allow delete: if false;
     }
 
@@ -373,29 +989,156 @@ service cloud.firestore {
         allow delete: if false;
       }
 
-      match /boards/{boardId} {
-        allow read: if canReadWorkspaceContent(workspaceId);
-        allow create: if canEdit(workspaceId) && validInitialRevision();
-        allow update: if canEdit(workspaceId) && validRevision();
+      match /imports/{operationId} {
+        allow get: if isOwner(workspaceId);
+        allow list: if false;
+        allow create: if validImportCreate(workspaceId, operationId);
+        allow update: if validImportComplete(workspaceId, operationId);
         allow delete: if false;
+      }
+
+      match /deletionJobs/{operationId} {
+        allow read: if isMember(workspaceId);
+        allow create: if validDeletionJobCreate(workspaceId, operationId);
+        allow update: if validDeletionJobComplete(workspaceId, operationId);
+        allow delete: if false;
+      }
+
+      match /boardLifecycle/{boardId} {
+        allow read: if isMember(workspaceId);
+        allow create: if validLifecycleStart(workspaceId, boardId, true);
+        allow update: if validLifecycleStart(workspaceId, boardId, false) || validLifecycleFinish(workspaceId, boardId);
+        allow delete: if false;
+        match /deletedLists/{listId} {
+          allow read: if isMember(workspaceId);
+          allow create: if validListTombstoneCreate(workspaceId, boardId, listId);
+          allow update, delete: if false;
+        }
+        match /deletedCards/{cardId} {
+          allow read: if isMember(workspaceId);
+          allow create: if validCardTombstoneCreate(workspaceId, boardId, cardId);
+          allow update, delete: if false;
+        }
+      }
+
+      match /boards/{boardId} {
+        allow get: if boardReadable(workspaceId, boardId) || archivedBoardOwnerReadable(workspaceId, boardId) || boardPurgeReadable(workspaceId, boardId) || entityPurgeBoardReadable(workspaceId, boardId)
+          || (resource.data.get('lifecycleState', '') == 'importing' && isOwner(workspaceId)
+            && validOperationId(resource.data.importOperationId))
+          || (canEdit(workspaceId) && !exists(boardPath(workspaceId, boardId))
+            && !exists(boardLifecyclePath(workspaceId, boardId)));
+        allow list: if canReadWorkspaceContent(workspaceId)
+          && resource.data.lifecycleState == 'active'
+          && resource.data.archived == false;
+        allow list: if isOwner(workspaceId) && canReadWorkspaceContent(workspaceId)
+          && resource.data.lifecycleState == 'active';
+
+        allow create: if (canEdit(workspaceId)
+          && validInitialRevision()
+          && request.resource.data.get('archived', false) == false
+          && request.resource.data.get('lifecycleState', 'active') == 'active'
+          && !request.resource.data.keys().hasAny(['activeDeletionJobId', 'importOperationId', 'migrationOperationId', 'lastMigrationOperationId', 'snapshot', 'granularVersion'])
+          && !existsAfter(boardLifecyclePath(workspaceId, boardId)))
+          || (request.resource.data.get('lifecycleState', '') == 'importing' && validImportedBoardCreate(workspaceId, boardId));
+        allow update: if (
+          boardWritable(workspaceId, boardId)
+            && validRevision()
+            && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['lifecycleState', 'activeDeletionJobId', 'snapshot', 'granularVersion', 'archived', 'archivedAt', 'archivedByUid', 'importOperationId', 'migrationOperationId', 'lastMigrationOperationId'])
+        ) || validBoardArchiveUpdate(workspaceId, boardId) || validBoardDeletionLock(workspaceId, boardId) || validBoardDeletionUnlock(workspaceId, boardId)
+          || (resource.data.get('lifecycleState', '') == 'importing'
+            && (validImportedBoardUpdate(workspaceId, boardId) || validImportedBoardFinalize(workspaceId, boardId)))
+          || (request.resource.data.keys().hasAny(['lastMigrationOperationId']) && validSnapshotScrub(workspaceId, boardId));
+        allow delete: if validBoardPurgeDelete(workspaceId, boardId);
         match /lists/{listId} {
-          allow read: if canReadWorkspaceContent(workspaceId);
-          allow create: if canEdit(workspaceId) && validInitialRevision();
-          allow update: if canEdit(workspaceId) && validRevision();
-          allow delete: if false;
+          allow get: if (boardReadable(workspaceId, boardId)
+            && resource.data.get('lifecycleState', 'active') == 'active'
+            && !exists(deletedListPath(workspaceId, boardId, listId)))
+            || listPurgeReadable(workspaceId, boardId, listId)
+            || (archivedBoardOwnerReadable(workspaceId, boardId) && resource.data.get('lifecycleState', 'active') == 'active')
+            || (resource.data.keys().hasAny(['importOperationId']) && isOwner(workspaceId)
+              && get(boardPath(workspaceId, boardId)).data.lifecycleState == 'importing'
+              && resource.data.importOperationId == get(boardPath(workspaceId, boardId)).data.importOperationId)
+            || (boardWritable(workspaceId, boardId) && !exists(listPath(workspaceId, boardId, listId))
+              && listIsLiveAfter(workspaceId, boardId, listId));
+          allow list: if (boardReadable(workspaceId, boardId) || archivedBoardOwnerReadable(workspaceId, boardId))
+            && resource.data.lifecycleState == 'active';
+          allow list: if listPurgeReadable(workspaceId, boardId, listId);
+          allow create: if (boardWritable(workspaceId, boardId)
+            && request.resource.data.get('lifecycleState', 'active') == 'active'
+            && !request.resource.data.keys().hasAny(['activeDeletionJobId', 'importOperationId', 'migrationOperationId', 'lastMigrationOperationId'])
+            && listIsLiveAfter(workspaceId, boardId, listId)
+            && validInitialRevision())
+            || (request.resource.data.keys().hasAny(['importOperationId']) && validImportedListWrite(workspaceId, boardId, listId, true))
+            || (request.resource.data.keys().hasAny(['migrationOperationId']) && validMigrationListWrite(workspaceId, boardId, listId, true));
+          allow update: if (
+            boardWritable(workspaceId, boardId)
+              && request.resource.data.get('lifecycleState', 'active') == 'active'
+              && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['lifecycleState', 'activeDeletionJobId', 'importOperationId', 'migrationOperationId'])
+              && listIsLiveAfter(workspaceId, boardId, listId)
+              && validRevision()
+          ) || validListDeletionLock(workspaceId, boardId, listId)
+            || (request.resource.data.keys().hasAny(['importOperationId']) && validImportedListWrite(workspaceId, boardId, listId, false))
+            || (request.resource.data.keys().hasAny(['migrationOperationId']) && validMigrationListWrite(workspaceId, boardId, listId, false));
+          allow delete: if validListPurgeDelete(workspaceId, boardId, listId);
         }
         match /cards/{cardId} {
-          allow read: if canReadWorkspaceContent(workspaceId);
-          allow create: if canEdit(workspaceId) && validInitialRevision() && validCardAssignments(workspaceId, request.resource.data);
-          allow update: if canEdit(workspaceId) && validRevision() && validCardAssignmentUpdate(workspaceId);
-          allow delete: if false;
+          allow get: if (
+            boardReadable(workspaceId, boardId)
+              && resource.data.get('lifecycleState', 'active') == 'active'
+              && activeList(workspaceId, boardId, resource.data.listId)
+              && !exists(deletedCardPath(workspaceId, boardId, cardId))
+          ) || cardPurgeReadable(workspaceId, boardId, cardId, resource.data.listId)
+            || (!exists(cardPath(workspaceId, boardId, cardId)) && missingCardPurgeReadable(workspaceId, boardId, cardId))
+            || (archivedBoardOwnerReadable(workspaceId, boardId)
+              && resource.data.get('lifecycleState', 'active') == 'active'
+              && activeList(workspaceId, boardId, resource.data.listId))
+            || (resource.data.keys().hasAny(['importOperationId']) && isOwner(workspaceId)
+              && get(boardPath(workspaceId, boardId)).data.lifecycleState == 'importing'
+              && resource.data.importOperationId == get(boardPath(workspaceId, boardId)).data.importOperationId)
+            || (boardWritable(workspaceId, boardId) && !exists(cardPath(workspaceId, boardId, cardId))
+              && !exists(deletedCardPath(workspaceId, boardId, cardId)));
+          allow list: if (
+            boardReadable(workspaceId, boardId)
+              && resource.data.lifecycleState == 'active'
+              && activeList(workspaceId, boardId, resource.data.listId)
+          ) || cardPurgeReadable(workspaceId, boardId, cardId, resource.data.listId)
+            || (!exists(cardPath(workspaceId, boardId, cardId)) && missingCardPurgeReadable(workspaceId, boardId, cardId))
+            || (archivedBoardOwnerReadable(workspaceId, boardId)
+              && resource.data.lifecycleState == 'active'
+              && activeList(workspaceId, boardId, resource.data.listId));
+          allow create: if (boardWritable(workspaceId, boardId)
+            && existsAfter(listPath(workspaceId, boardId, request.resource.data.listId))
+            && request.resource.data.get('lifecycleState', 'active') == 'active'
+            && !request.resource.data.keys().hasAny(['activeDeletionJobId', 'importOperationId', 'migrationOperationId', 'lastMigrationOperationId'])
+            && listIsLiveAfter(workspaceId, boardId, request.resource.data.listId)
+            && cardIsLiveAfter(workspaceId, boardId, cardId, request.resource.data.listId)
+            && validInitialRevision()
+            && validCardAssignments(workspaceId, request.resource.data))
+            || (request.resource.data.keys().hasAny(['importOperationId']) && validImportedCardWrite(workspaceId, boardId, cardId, true))
+            || (request.resource.data.keys().hasAny(['migrationOperationId']) && validMigrationCardWrite(workspaceId, boardId, cardId, true));
+          allow update: if (
+            boardWritable(workspaceId, boardId)
+              && existsAfter(listPath(workspaceId, boardId, request.resource.data.listId))
+              && request.resource.data.get('lifecycleState', 'active') == 'active'
+              && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['lifecycleState', 'activeDeletionJobId', 'importOperationId', 'migrationOperationId'])
+              && listIsLiveAfter(workspaceId, boardId, request.resource.data.listId)
+              && cardIsLiveAfter(workspaceId, boardId, cardId, request.resource.data.listId)
+              && validRevision()
+              && validCardAssignmentUpdate(workspaceId)
+          ) || validCardDeletionLock(workspaceId, boardId, cardId)
+            || (request.resource.data.keys().hasAny(['importOperationId']) && validImportedCardWrite(workspaceId, boardId, cardId, false))
+            || (request.resource.data.keys().hasAny(['migrationOperationId']) && validMigrationCardWrite(workspaceId, boardId, cardId, false));
+          allow delete: if validCardPurgeDelete(workspaceId, boardId, cardId);
           match /comments/{commentId} {
-            allow get: if isMember(workspaceId) && commentParentsExist(workspaceId, boardId, cardId);
-            allow list: if isMember(workspaceId) && commentParentsExist(workspaceId, boardId, cardId)
+            allow get: if isMember(workspaceId) && (commentParentsExist(workspaceId, boardId, cardId) || archivedCommentParentsExist(workspaceId, boardId, cardId) || commentPurgeReadable(workspaceId, boardId, cardId));
+            allow list: if isMember(workspaceId)
+              && (commentParentsExist(workspaceId, boardId, cardId) || archivedCommentParentsExist(workspaceId, boardId, cardId) || commentPurgeReadable(workspaceId, boardId, cardId))
               && request.query.limit != null && request.query.limit <= 25;
-            allow create: if canEdit(workspaceId) && commentParentsExist(workspaceId, boardId, cardId) && validCommentCreate(workspaceId, boardId, commentId);
-            allow update: if canEdit(workspaceId) && commentParentsExist(workspaceId, boardId, cardId) && (validCommentEdit(workspaceId, boardId) || validCommentRemoval(workspaceId, boardId));
-            allow delete: if false;
+            allow create: if commentParentsWritableAfter(workspaceId, boardId, cardId)
+              && validCommentCreate(workspaceId, boardId, commentId);
+            allow update: if commentParentsWritableAfter(workspaceId, boardId, cardId)
+              && (validCommentEdit(workspaceId, boardId) || validCommentRemoval(workspaceId, boardId));
+            allow delete: if validCommentPurgeDelete(workspaceId, boardId, cardId);
           }
         }
       }

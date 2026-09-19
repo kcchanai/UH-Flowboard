@@ -3,10 +3,12 @@ import {
   browserLocalPersistence, getAuth, GoogleAuthProvider, onAuthStateChanged,
   setPersistence, signInWithPopup, signOut as firebaseSignOut
 } from 'firebase/auth';
+
 const sessionFor = user => user ? Object.freeze({
   uid:user.uid, displayName:user.displayName || '', email:user.email || '',
   emailVerified:Boolean(user.emailVerified), photoURL:user.photoURL || ''
 }) : null;
+
 
 export function createFirebaseWorkspaceAdapter(config) {
   const app = getApps().length ? getApp() : initializeApp(config);
@@ -14,11 +16,11 @@ export function createFirebaseWorkspaceAdapter(config) {
   const persistenceReady = setPersistence(auth, browserLocalPersistence);
   const provider = new GoogleAuthProvider();
   provider.setCustomParameters({prompt:'select_account'});
-  let workspaceModule, lifecycleModule;
-  const cloud = () => workspaceModule ||= import('./firebase-cloud-workspace.js');
-  const lifecycle = () => lifecycleModule ||= import('./firebase-workspace-lifecycle.js');
-  const cloudCall = (method, ...args) => cloud().then(module => module[method](app, auth, ...args));
-  const lifecycleCall = (method, ...args) => lifecycle().then(module => module[method](app, auth, ...args));
+  let workspaceModule,lifecycleModule;
+  const cloud=()=>workspaceModule||=import('./firebase-cloud-workspace.js'),lifecycle=()=>lifecycleModule||=import('./firebase-workspace-lifecycle.js');
+  const cloudCall=(method,...args)=>cloud().then(module=>module[method](app,auth,...args)),lifecycleCall=(method,...args)=>lifecycle().then(module=>module[method](app,auth,...args));
+
+
 
   const adapter = {
     async getSession() { await persistenceReady; return sessionFor(auth.currentUser); },
@@ -26,8 +28,11 @@ export function createFirebaseWorkspaceAdapter(config) {
     async signInWithGoogle() { await persistenceReady; return sessionFor((await signInWithPopup(auth, provider)).user); },
     async signOut() { await firebaseSignOut(auth); },
     verifyWorkspaceAccess(workspaceId) { return cloudCall('verifyWorkspaceAccess', workspaceId); },
+    ensurePersonalWorkspace() { return cloudCall('ensurePersonalWorkspace'); },
     listWorkspaces() { return cloudCall('listCloudWorkspaces'); },
+    listBoardDirectory(options) { return cloudCall('listBoardDirectory', options); },
     fetchWorkspace(workspaceId) { return cloudCall('fetchCloudWorkspace', workspaceId); },
+    setBoardArchived(options) { return cloudCall('setBoardArchived', options); },
     renameWorkspace(options) { return lifecycleCall('renameCloudWorkspace', options); },
     archiveWorkspace(options) { return lifecycleCall('archiveCloudWorkspace', options); },
     restoreWorkspace(options) { return lifecycleCall('restoreCloudWorkspace', options); },
@@ -35,13 +40,17 @@ export function createFirebaseWorkspaceAdapter(config) {
     listActivity(workspaceId, options) { return cloudCall('listWorkspaceActivity', workspaceId, options); },
     subscribeComments(options) { return cloudCall('subscribeCardComments', options); },
     listOlderComments(options) { return cloudCall('listOlderCardComments', options); },
-    probeCommentQueryAuthorization(options) { return cloudCall('probeCommentQueryAuthorization', options); },
-    async probeHardDeleteAuthorization(options) { return (await import('./firebase-phase-h-probes.js')).probeHardDeleteAuthorization(app, auth, options); },
+
     createComment(options) { return cloudCall('createCardComment', options); },
     updateComment(options) { return cloudCall('updateCardComment', options); },
     removeComment(options) { return cloudCall('removeCardComment', options); },
     applyWorkspaceMutation(options) { return cloudCall('applyCloudWorkspaceMutation', options); },
     migrateWorkspaceToGranular(workspaceId) { return cloudCall('migrateWorkspaceToGranular', workspaceId); },
+    importLegacyWorkspace(options) { return cloudCall('importLegacyWorkspace', options); },
+    exportCloudBackup(workspaceId) { return cloudCall('exportCloudBackup', workspaceId); },
+    preflightDeletion(options) { return lifecycleCall('preflightDeletion', options); },
+    deleteEntity(options) { return lifecycleCall('deleteEntity', options); },
+    resumeDeletion(options) { return lifecycleCall('resumeDeletion', options); },
     listMembers(workspaceId) { return cloudCall('listMembers', workspaceId); },
     updateOwnMemberProfile(workspaceId, options) { return cloudCall('updateOwnMemberProfile', workspaceId, options); },
     listInvites(workspaceId) { return cloudCall('listInvites', workspaceId); },
@@ -51,8 +60,7 @@ export function createFirebaseWorkspaceAdapter(config) {
     changeMemberRole(workspaceId, uid, role) { return cloudCall('changeMemberRole', workspaceId, uid, role); },
     removeMember(workspaceId, uid) { return cloudCall('removeMember', workspaceId, uid); },
     leaveWorkspace(workspaceId) { return cloudCall('leaveWorkspace', workspaceId); },
-    transferOwnership(options) { return cloudCall('transferOwnership', options); },
-    uploadLocalWorkspace(options) { return cloudCall('uploadLocalWorkspace', options); }
+    transferOwnership(options) { return cloudCall('transferOwnership', options); }
   };
 
   return Object.freeze(adapter);

@@ -5,7 +5,7 @@ const command = process.platform === 'win32' ? 'npx.cmd' : 'npx';
 const port = 4180;
 const baseURL = (process.env.PLAYWRIGHT_EMULATOR_BASE_URL || previewUrl(port)).replace(/\/$/, '');
 const spawnOptions = {stdio: ['ignore', 'pipe', 'pipe'], shell: process.platform === 'win32'};
-const server = spawn(command, ['--yes', 'vite', '--host', '127.0.0.1', '--port', String(port)], spawnOptions);
+const server = spawn(command, ['--yes', 'vite', '--host', '127.0.0.1', '--port', String(port), '--strictPort'], spawnOptions);
 server.stdout.on('data', () => {});
 server.stderr.on('data', () => {});
 
@@ -21,11 +21,12 @@ async function waitForServer() {
 }
 
 function runEmulators() {
-  const browserCommand = `${command} playwright test tests/emulator/emulator-browser.spec.mjs --reporter=line`;
+  const browserCommand = `${command} playwright test tests/emulator/emulator-browser.spec.mjs tests/emulator/deletion-engine.spec.mjs --reporter=line --workers=1`;
   const childOptions = {
     stdio: ['ignore', 'pipe', 'pipe'],
     shell: process.platform === 'win32',
-    env: {...process.env, PLAYWRIGHT_EMULATOR_BASE_URL: baseURL}
+    env: {...process.env, PLAYWRIGHT_EMULATOR_BASE_URL: baseURL,
+      PLAYWRIGHT_EXECUTABLE_PATH:process.env.PLAYWRIGHT_EXECUTABLE_PATH || (process.platform === 'win32' ? 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe' : '')}
   };
   const child = process.platform === 'win32'
     ? spawn(`${command} --yes firebase-tools@15.25.1 emulators:exec --only auth,firestore --project demo-flowboard-browser "${browserCommand}"`, [], childOptions)
@@ -39,7 +40,10 @@ function runEmulators() {
       if (code === 0) {
         const passed = output.match(/(\d+) passed/);
         console.log(`Emulator browser workflow passed: ${passed?.[1] || 'all'} test(s).`);
-      } else console.error(`Emulator browser workflow failed with exit ${code ?? `signal ${signal}`}. Fixture diagnostics were suppressed.`);
+      } else {
+        const safe=output.split(/[\r\n]+/).map(line=>line.replace(/\x1b\[[0-9;]*m/g,'')).filter(line=>line.includes('›')||line.includes('emulator-browser.spec.mjs:')||/^\s*(?:Error: (?:expect|locator|page\.)|Locator:|Expected:|Received:|Timeout:)/.test(line)).join('\n');
+        console.error(`Emulator browser workflow failed with exit ${code ?? `signal ${signal}`}. Raw fixture diagnostics were suppressed.${safe?`\n${safe}`:''}`);
+      }
       resolve(code ?? (signal ? 1 : 0));
     });
   });

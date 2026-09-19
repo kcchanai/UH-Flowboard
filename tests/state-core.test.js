@@ -19,6 +19,15 @@ test('normalization safely upgrades old workspace data and rejects invalid envel
   assert.equal(State.validWorkspace({schemaVersion: 99, boards: []}), false);
 });
 
+test('cloud normalization preserves an honest empty workspace without seeding content', () => {
+  const empty = State.normalizeCloudWorkspace({schemaVersion:5, activeBoardId:'missing', boards:[], preferences:{theme:'dark'}});
+  assert.equal(empty.boards.length, 0);
+  assert.equal(empty.activeBoardId, '');
+  assert.equal(empty.preferences.theme, 'dark');
+  assert.equal(State.makeEmptyWorkspace().boards.length, 0);
+  assert.equal(State.normalizeWorkspace({schemaVersion:5, boards:[]}).boards.length, 1);
+});
+
 test('cloud normalization preserves revision metadata across board, list, and card records', () => {
   const normalized = State.normalizeBoard({id: 'board-1', title: 'Cloud', revision: 4, clientMutationId: 'board-mutation', collaboration: {members: [{id: 'owner', name: 'Owner', role: 'owner'}]}, lists: [{id: 'list-1', title: 'Ready', revision: 2, clientMutationId: 'list-mutation', cards: [{id: 'card-1', title: 'Task', revision: 7, clientMutationId: 'card-mutation'}]}]});
   assert.deepEqual({revision: normalized.revision, clientMutationId: normalized.clientMutationId}, {revision: 4, clientMutationId: 'board-mutation'});

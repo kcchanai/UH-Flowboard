@@ -9,6 +9,7 @@ import {
 import {
   collection,
   deleteDoc,
+  deleteField,
   doc,
   getDoc,
   getDocs,
@@ -142,6 +143,9 @@ test('editor can write board content but cannot manage members', async () => {
 
 test('owner can write granular migration documents while a viewer cannot forge them', async () => {
   const owner = dbFor('owner-a');
+  await assertSucceeds(setDoc(doc(owner, 'workspaces', 'alpha', 'boards', 'granular-board'), {
+    id:'granular-board', title:'Migrated board', rank:0, revision:0, clientMutationId:'mutation-identifier-board-0001'
+  }));
   await assertSucceeds(setDoc(doc(owner, 'workspaces', 'alpha', 'boards', 'granular-board', 'lists', 'list-1'), {
     id:'list-1', title:'Migrated list', rank:0, granularVersion:1, revision:0, clientMutationId:'mutation-identifier-0001'
   }));
@@ -154,30 +158,38 @@ test('owner can write granular migration documents while a viewer cannot forge t
 });
 
 test('owner can safely resume an interrupted granular migration while viewers remain blocked', async () => {
+  const operationId='recovery-migration-operation-0001', startedAt=Timestamp.now();
   await env.withSecurityRulesDisabled(async context => {
     const db=context.firestore();
-    await setDoc(doc(db,'workspaces','interrupted-migration'),{name:'Interrupted',ownerUid:'recovery-owner',status:'migrating',migration:{state:'migrating'}});
+    await setDoc(doc(db,'workspaces','interrupted-migration'),{name:'Interrupted',ownerUid:'recovery-owner',status:'migrating',migration:{version:2,state:'migrating',operationId,counts:{boards:1,lists:1,cards:1},startedAt}});
     await setDoc(doc(db,'workspaces','interrupted-migration','members','recovery-owner'),{uid:'recovery-owner',role:'owner',emailLower:'recovery@example.com'});
     await setDoc(doc(db,'workspaces','interrupted-migration','members','recovery-viewer'),{uid:'recovery-viewer',role:'viewer',emailLower:'viewer@example.com'});
-    await setDoc(doc(db,'workspaces','interrupted-migration','boards','board-1'),{id:'board-1',title:'Legacy',rank:0,snapshot:{id:'board-1',title:'Legacy',lists:[]},revision:0,clientMutationId:'recovery-board-0001'});
-    await setDoc(doc(db,'workspaces','interrupted-migration','boards','board-1','lists','list-1'),{id:'list-1',title:'Partial list',rank:0,revision:0,clientMutationId:'recovery-list-0001'});
-    await setDoc(doc(db,'workspaces','interrupted-migration','boards','board-1','cards','card-1'),{id:'card-1',listId:'list-1',title:'Partial card',rank:0,assigneeUids:[],revision:0,clientMutationId:'recovery-card-0001'});
+    await setDoc(doc(db,'workspaces','interrupted-migration','boards','board-1'),{id:'board-1',title:'Legacy',rank:0,lifecycleState:'active',snapshot:{id:'board-1',title:'Legacy',lists:[]},revision:0,clientMutationId:'recovery-board-0001'});
+    await setDoc(doc(db,'workspaces','interrupted-migration','boards','board-1','lists','list-1'),{id:'list-1',title:'Partial list',rank:0,lifecycleState:'active',revision:0,clientMutationId:'recovery-list-0001'});
+    await setDoc(doc(db,'workspaces','interrupted-migration','boards','board-1','cards','card-1'),{id:'card-1',listId:'list-1',title:'Partial card',rank:0,lifecycleState:'active',assigneeUids:[],revision:0,clientMutationId:'recovery-card-0001'});
   });
   const owner=dbFor('recovery-owner','recovery@example.com'), viewer=dbFor('recovery-viewer','viewer@example.com');
   const board=doc(owner,'workspaces','interrupted-migration','boards','board-1');
   const list=doc(owner,'workspaces','interrupted-migration','boards','board-1','lists','list-1');
   const card=doc(owner,'workspaces','interrupted-migration','boards','board-1','cards','card-1');
-  await assertSucceeds(getDoc(board)); await assertSucceeds(getDoc(list)); await assertSucceeds(getDoc(card));
+  await assertSucceeds(getDoc(board));await assertSucceeds(getDoc(list));await assertSucceeds(getDoc(card));
   await assertFails(getDoc(doc(viewer,'workspaces','interrupted-migration','boards','board-1')));
-  await assertSucceeds(updateDoc(board,{title:'Recovered',granularVersion:1,revision:1,clientMutationId:'recovery-board-0002',updatedAt:serverTimestamp()}));
-  await assertSucceeds(updateDoc(list,{title:'Recovered list',granularVersion:1,revision:1,clientMutationId:'recovery-list-0002',updatedAt:serverTimestamp()}));
-  await assertSucceeds(updateDoc(card,{title:'Recovered card',granularVersion:1,revision:1,clientMutationId:'recovery-card-0002',updatedAt:serverTimestamp()}));
-  await assertSucceeds(updateDoc(doc(owner,'workspaces','interrupted-migration'),{status:'ready',migration:{version:1,state:'verified',counts:{boards:1,lists:1,cards:1}},updatedAt:serverTimestamp()}));
+  await assertFails(updateDoc(board,{title:'Generic edit blocked',revision:1,clientMutationId:'recovery-board-edit-0001'}));
+  await assertSucceeds(updateDoc(list,{migrationOperationId:operationId,revision:1,clientMutationId:operationId,updatedAt:serverTimestamp()}));
+  await assertSucceeds(updateDoc(card,{migrationOperationId:operationId,revision:1,clientMutationId:operationId,updatedAt:serverTimestamp()}));
+  await assertSucceeds(updateDoc(board,{snapshot:deleteField(),granularVersion:1,lastMigrationOperationId:operationId,revision:1,clientMutationId:operationId,updatedAt:serverTimestamp()}));
+  await assertSucceeds(updateDoc(doc(owner,'workspaces','interrupted-migration'),{status:'ready',migration:{version:2,state:'verified',operationId,counts:{boards:1,lists:1,cards:1},verifiedAt:serverTimestamp()},updatedAt:serverTimestamp()}));
   await assertSucceeds(getDoc(doc(viewer,'workspaces','interrupted-migration','boards','board-1')));
 });
 
 test('cloud content updates require an incremented revision and client mutation identifier', async () => {
   const editor = dbFor('editor-a'), card = doc(editor, 'workspaces', 'alpha', 'boards', 'revision-board', 'cards', 'revision-card');
+  await assertSucceeds(setDoc(doc(editor, 'workspaces', 'alpha', 'boards', 'revision-board'), {
+    id:'revision-board', title:'Revision board', rank:0, revision:0, clientMutationId:'revision-board-mutation-0001'
+  }));
+  await assertSucceeds(setDoc(doc(editor, 'workspaces', 'alpha', 'boards', 'revision-board', 'lists', 'list-a'), {
+    id:'list-a', title:'Revision list', rank:0, revision:0, clientMutationId:'revision-list-mutation-0001'
+  }));
   await assertSucceeds(setDoc(card, {id:'revision-card', listId:'list-a', title:'Initial', rank:0, assigneeUids:[], revision:0, clientMutationId:'mutation-identifier-0004'}));
   await assertFails(updateDoc(card, {title:'No revision'}));
   await assertFails(updateDoc(card, {title:'Wrong revision', revision:2, clientMutationId:'mutation-identifier-0001'}));
@@ -188,6 +200,8 @@ test('cloud content updates require an incremented revision and client mutation 
 
 test('cloud assignments are bounded, unique, member-backed, and editor-controlled', async () => {
   const owner=dbFor('owner-a'), path=['workspaces','alpha','boards','assignment-board','cards'];
+  await assertSucceeds(setDoc(doc(owner,'workspaces','alpha','boards','assignment-board'), {id:'assignment-board',title:'Assignments',rank:0,revision:0,clientMutationId:'assignment-board-0001'}));
+  await assertSucceeds(setDoc(doc(owner,'workspaces','alpha','boards','assignment-board','lists','list-a'), {id:'list-a',title:'Assignments',rank:0,revision:0,clientMutationId:'assignment-list-0001'}));
   await assertSucceeds(setDoc(doc(owner,...path,'assignment-card'), {id:'assignment-card', listId:'list-a', title:'Assigned', rank:0, assigneeUids:['editor-a','viewer-a'], revision:0, clientMutationId:'assignment-mutation-0001'}));
   await assertFails(setDoc(doc(owner,...path,'nonmember-card'), {id:'nonmember-card', listId:'list-a', title:'Forged', rank:1, assigneeUids:['not-a-member'], revision:0, clientMutationId:'assignment-mutation-0002'}));
   await assertFails(setDoc(doc(owner,...path,'duplicate-card'), {id:'duplicate-card', listId:'list-a', title:'Duplicate', rank:2, assigneeUids:['editor-a','editor-a'], revision:0, clientMutationId:'assignment-mutation-0003'}));
@@ -197,7 +211,8 @@ test('cloud assignments are bounded, unique, member-backed, and editor-controlle
 test('authenticated comments are actor-bound, activity-coupled, revisioned, and viewer read-only', async () => {
   await env.withSecurityRulesDisabled(async context => { const db=context.firestore(); await Promise.all([
     setDoc(doc(db,'workspaces','alpha','boards','revision-board'),{title:'Revision board',rank:0,revision:0,clientMutationId:'revision-board-0001'}),
-    setDoc(doc(db,'workspaces','alpha','boards','revision-board','lists','list-a'),{title:'Revision list',rank:0,revision:0,clientMutationId:'revision-list-0001'})
+    setDoc(doc(db,'workspaces','alpha','boards','revision-board','lists','list-a'),{title:'Revision list',rank:0,revision:0,clientMutationId:'revision-list-0001'}),
+    setDoc(doc(db,'workspaces','alpha','boards','revision-board','cards','revision-card'),{id:'revision-card',listId:'list-a',title:'Revision card',rank:0,assigneeUids:[],revision:0,clientMutationId:'revision-card-0001'})
   ]); });
   const editor=dbFor('editor-a'), owner=dbFor('owner-a'), viewer=dbFor('viewer-a'), outsider=dbFor('owner-b');
   const commentPath=['workspaces','alpha','boards','revision-board','cards','revision-card','comments'];
@@ -279,7 +294,7 @@ test('cloud parents cannot be hard deleted and orphaned comments fail closed', a
   }
 });
 
-test('owner bootstrap and backup-first board upload are permitted as separate verified writes', async () => {
+test('legacy initializing upload cannot bypass the personal import protocol', async () => {
   const owner = dbFor('migration-owner', 'migration@example.com');
   const bootstrap = writeBatch(owner);
   bootstrap.set(doc(owner, 'workspaces', 'migration-workspace'), {
@@ -299,8 +314,8 @@ test('owner bootstrap and backup-first board upload are permitted as separate ve
     title:'Imported board', rank:0, snapshot:{id:'board-1', title:'Imported board', lists:[]}, revision:0, clientMutationId:'mutation-identifier-0005'
   });
   upload.update(doc(owner, 'workspaces', 'migration-workspace'), {status:'ready', updatedAt:serverTimestamp()});
-  await assertSucceeds(upload.commit());
-  assert.equal((await getDoc(doc(owner, 'workspaces', 'migration-workspace', 'boards', 'board-1'))).exists(), true);
+  await assertFails(upload.commit());
+  await env.withSecurityRulesDisabled(async context => assert.equal((await getDoc(doc(context.firestore(), 'workspaces', 'migration-workspace', 'boards', 'board-1'))).exists(), false));
 });
 
 test('only a verified email addressed by an active invite can read or accept it', async () => {
@@ -361,7 +376,7 @@ test('revoked invitation becomes unreadable and cannot be accepted or reused', a
 });
 
 test('non-owner self-leave atomically removes membership and profile discovery, while owner deletion remains protected', async () => {
-  const viewer = dbFor('viewer-a'), leave = writeBatch(viewer);
+  const viewer = dbFor('viewer-a', 'viewer@example.com'), leave = writeBatch(viewer);
   leave.delete(doc(viewer, 'workspaces', 'alpha', 'members', 'viewer-a'));
   leave.set(doc(viewer, 'users', 'viewer-a'), {workspaceIds:[]}, {merge:true});
   await assertSucceeds(leave.commit());

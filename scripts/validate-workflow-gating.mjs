@@ -5,7 +5,7 @@ const [validate, deploy] = await Promise.all([
   readFile('.github/workflows/deploy-pages.yml', 'utf8')
 ]);
 const requiredValidation = [
-  'npm run validate', 'npm run test:rules', 'npx playwright test tests/browser-smoke.spec.mjs',
+  'npm run validate', 'npm run test:rules', 'npx playwright test tests/cloud-first-configured-session.spec.mjs tests/cloud-first-a11y.spec.mjs tests/browser-smoke.spec.mjs --grep="cloud-first board|Filters stays bounded"',
   'emulators:exec --only auth,firestore', 'npx lighthouse', 'node scripts/assert-lighthouse.mjs'
 ];
 for (const step of requiredValidation) if (!validate.includes(step)) throw new Error(`Validation workflow is missing ${step}.`);

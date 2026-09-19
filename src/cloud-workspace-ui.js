@@ -1,189 +1,26 @@
-const $ = selector => document.querySelector(selector);
-const on = (target, type, handler) => target.addEventListener(type, handler);
-const el = tag => document.createElement(tag);
-const countWorkspace = workspace => {
-  const boards = workspace.boards || [];
-  const lists = boards.reduce((sum, board) => sum + (board.lists?.length || 0), 0);
-  const cards = boards.reduce((sum, board) => sum + (board.lists || []).reduce((n, list) => n + (list.cards?.length || 0), 0), 0);
-  return {boards:boards.length, lists, cards, bytes:new TextEncoder().encode(JSON.stringify(workspace)).length};
-};
-const formatBytes = value => value < 1024 ? `${value} bytes` : `${(value / 1024).toFixed(1)} KB`;
-const safeStamp = () => new Date().toISOString().replace(/[:.]/g, '-');
-
-function downloadJson(workspace) {
-  const blob = new Blob([JSON.stringify(workspace, null, 2)], {type:'application/json'});
-  const url = URL.createObjectURL(blob), link = el('a');
-  link.href = url; link.download = `flowboard-before-cloud-${safeStamp()}.json`;
-  document.body.append(link); link.click(); link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
-function messageFor(error) {
-  if (error?.code === 'permission-denied') return 'Firebase denied the migration. Your local workspace was not changed.';
-  if (error?.code === 'unavailable') return 'Firebase is temporarily unavailable. Your local workspace was not changed.';
-  if (error?.code === 'EMAIL_NOT_VERIFIED') return error.message;
-  if (error?.code === 'BOARD_TOO_LARGE' || error?.code === 'WORKSPACE_TOO_LARGE') return error.message;
-  if (error?.code === 'MIGRATION_VERIFICATION_FAILED') return 'The cloud write could not be verified. A partial cloud copy may exist; your local workspace is unchanged.';
-  return 'The cloud copy could not be created. Your local workspace was not changed.';
-}
-
-export function initializeCloudWorkspaceUI({localAdapter, cloudAdapter}) {
-  const styleReady=import('./cloud-workspace-style.js');
-  const accountDialog=$('#account-dialog');
-  const open=$('#open-cloud-migration');
-  const dialog=$('#cloud-migration-dialog');
-  const close=$('#close-cloud-migration');
-  const name=$('#cloud-workspace-name');
-  const summary=$('#cloud-migration-summary');
-  const status=$('#cloud-migration-status');
-  const backup=$('#download-migration-backup');
-  const create=$('#create-cloud-workspace');
-  const workspaceButton=$('#open-cloud-workspaces');
-  const ws=$('#cloud-status');
-  const workspacesDialog=$('#cloud-workspaces-dialog');
-  const closeWorkspaces=$('#close-cloud-workspaces');
-  const workspacesList=$('#cloud-workspaces-list');
-  const workspacesStatus=$('#cloud-workspaces-status');
-  const returnLocal=$('#return-to-local-workspace');
-  const migrateCloud=$('#migrate-cloud-workspace');
-  const exportCloud=$('#export-cloud-workspace');
-  const announcer=$('#announcer');
-  let session = null, workspace = null, backupDownloaded = false, completed = false, selectedCloudEntry = null, wo = workspaceButton, so = false;
-
-  const announce = text => { status.textContent = text; announcer.textContent = ''; requestAnimationFrame(() => { announcer.textContent = text; }); };
-  const prepare = () => {
-    workspace = localAdapter.exportLocalWorkspace(localAdapter.loadWorkspace().workspace);
-    const counts = countWorkspace(workspace);
-    summary.replaceChildren(...[
-      ['Boards', counts.boards], ['Lists', counts.lists], ['Cards', counts.cards], ['JSON size', formatBytes(counts.bytes)]
-    ].flatMap(([label, value]) => {
-      const term = el('dt'), detail = el('dd');
-      term.textContent = label; detail.textContent = String(value); return [term, detail];
-    }));
-    backupDownloaded = false; completed = false; create.disabled = true; create.textContent = '2. Create cloud workspace';
-    backup.disabled = false; announce('Download a local backup before creating the cloud copy.');
-  };
-
-  on(open,'click', () => {
-    if(!session)return;
-    prepare(); accountDialog.close(); dialog.showModal(); name.focus(); name.select();
-  });
-  on(close,'click', () => dialog.close());
-  on(dialog,'cancel', event => { event.preventDefault(); dialog.close(); });
-  on(dialog,'close', () => open.focus());
-  on(backup,'click', () => {
-    localAdapter.backupWorkspace(workspace); downloadJson(workspace); backupDownloaded = true;
-    create.disabled = false; announce('Backup downloaded. Review the summary, then create the separate cloud workspace.');
-  });
-  on(create,'click', async () => {
-    if (!session || !backupDownloaded || completed) return;
-    create.disabled = true; backup.disabled = true; name.disabled = true; announce('Creating and verifying the Firebase workspace…');
-    try {
-      const result = await cloudAdapter.uploadLocalWorkspace({name:name.value, workspace});
-      completed = true; create.textContent = 'Cloud copy created';
-      announce(`Cloud workspace “${result.name}” created and verified with ${result.boardCount} board${result.boardCount === 1 ? '' : 's'}. This browser is still using the local original.`);
-      const cloudStatus = $('#cloud-status');
-      cloudStatus.textContent = 'Cloud copy · local';
-      cloudStatus.title = 'Cloud workspace created and verified. The browser-local original remains active.';
-      cloudStatus.setAttribute('aria-label', cloudStatus.title);
-    } catch (error) {
-      console.error('Flowboard cloud migration failed.', error); announce(messageFor(error));
-      create.disabled = false; backup.disabled = false; name.disabled = false;
-    }
-  });
-
-  on(workspaceButton,'click', async () => { await styleReady; wo=so?wo:workspaceButton;
-    so=false;
-    if(!session)return;
-    if (accountDialog.open) accountDialog.close(); workspacesDialog.showModal(); workspacesList.replaceChildren();
-    workspacesStatus.textContent = 'Loading cloud workspaces…';
-    returnLocal.hidden = !['cloud-preview','cloud'].includes(globalThis.FlowboardApp?.getMode().kind);
-    exportCloud.hidden = returnLocal.hidden;
-    try {
-      const entries = await cloudAdapter.listWorkspaces();
-      const {createWorkspaceLifecycleControls} = await import('./workspace-lifecycle-ui.js');
-      if (!entries.length) {
-        if (globalThis.FlowboardApp?.getMode().kind === 'cloud-preview') globalThis.FlowboardApp.returnToLocal();
-        returnLocal.hidden = true; exportCloud.hidden = true;
-        workspacesStatus.textContent = 'No cloud workspaces are available to this account yet.';
-        return;
-      }
-      workspacesStatus.textContent = 'Choose a verified workspace to open. Owners and editors can explicitly enter cloud edit mode.';
-      entries.forEach(entry=>{
-        const row=el('div'),button=el('button'),summary=el('div');
-        row.className='workspace-entry';Object.assign(button,{type:'button',className:'button button-quiet',textContent:'Open'});summary.className='workspace-board cloud-workspace-card';
-        const title=el('strong'),detail=el('span');
-        title.textContent=entry.name||'Untitled cloud workspace';button.setAttribute('aria-label',`Open ${title.textContent}`);
-        const archived=entry.status==='archived',editable=!archived&&['owner','editor'].includes(entry.role)&&entry.migration?.state==='verified';
-        detail.textContent=archived?'Cloud workspace · archived · retained':editable?`Cloud workspace · ${entry.role} · editable`:'Cloud workspace · read-only preview';
-        button.hidden=archived;summary.append(title,detail);
-        on(button,'click',async()=>{
-          button.disabled = true; workspacesStatus.textContent = editable ? 'Opening editable cloud workspace…' : 'Opening read-only cloud preview…';
-          try {
-            const cloudWorkspace = await cloudAdapter.fetchWorkspace(entry.id);
-            if (editable) globalThis.FlowboardApp.openCloudWorkspace(cloudWorkspace, entry);
-            else globalThis.FlowboardApp.openCloudPreview(cloudWorkspace, entry);
-            selectedCloudEntry = entry; window.dispatchEvent(new CustomEvent('flowboard:cloud-selection', {detail:entry})); returnLocal.hidden = false; exportCloud.hidden = editable;
-            migrateCloud.hidden = entry.ownerUid !== session.uid || entry.migration?.state === 'verified';
-            workspacesStatus.textContent = editable ? `Editing “${entry.name || 'Untitled cloud workspace'}” in cloud mode. Local data is unchanged.` : `Viewing “${entry.name || 'Untitled cloud workspace'}” as a read-only preview. Local data is unchanged.`;
-          } catch (error) {
-            console.error('Flowboard could not open cloud workspace preview.', error);
-            if (entry.ownerUid === session.uid && entry.status === 'migrating') {
-              selectedCloudEntry = entry; migrateCloud.hidden = false;
-              workspacesStatus.textContent = 'This migration was interrupted. Retry the verified cloud-format migration; your local workspace is unchanged.';
-            } else workspacesStatus.textContent = 'This cloud workspace could not be opened. Your local workspace is unchanged.';
-          } finally { button.disabled = false; }
-        });
-        const actions = createWorkspaceLifecycleControls({entry, session, cloudAdapter, openButton:button, title, detail, lifecycleStatus:workspacesStatus, onArchived:archivedEntry => {
-          if (selectedCloudEntry?.id !== archivedEntry.id) return;
-          globalThis.FlowboardApp.returnToLocal(); selectedCloudEntry = null; window.dispatchEvent(new CustomEvent('flowboard:cloud-selection')); returnLocal.hidden = true; exportCloud.hidden = true;
-        }}); row.append(summary, actions);
-        workspacesList.append(row);
-      });
-    } catch (error) {
-      console.error('Flowboard could not list cloud workspaces.', error);
-      workspacesStatus.textContent = 'Cloud workspaces could not be loaded. Your local workspace is unchanged.';
-    }
-  });
-  if(ws) on(ws,'click', () => { if(session){wo=ws;so=true;workspaceButton.click();} });
-  on(closeWorkspaces,'click', () => workspacesDialog.close());
-  on(workspacesDialog,'cancel', event => { event.preventDefault(); workspacesDialog.close(); });
-  on(workspacesDialog,'close', () => wo?.focus());
-  on(returnLocal,'click', () => {
-    globalThis.FlowboardApp.returnToLocal(); selectedCloudEntry = null; window.dispatchEvent(new CustomEvent('flowboard:cloud-selection')); returnLocal.hidden = true; exportCloud.hidden = true;
-    workspacesStatus.textContent = 'Returned to the browser-local workspace.';
-  });
-  on(migrateCloud,'click', async () => {
-    if (!selectedCloudEntry || selectedCloudEntry.ownerUid !== session?.uid) return;
-    migrateCloud.disabled = true; workspacesStatus.textContent = 'Migrating and verifying granular cloud documents. Legacy snapshots are preserved.';
-    try {
-      const result = await cloudAdapter.migrateWorkspaceToGranular(selectedCloudEntry.id);
-      const cloudWorkspace = await cloudAdapter.fetchWorkspace(selectedCloudEntry.id);
-      globalThis.FlowboardApp.openCloudPreview(cloudWorkspace, selectedCloudEntry);
-      migrateCloud.hidden = true;
-      workspacesStatus.textContent = result.alreadyMigrated ? 'This workspace was already verified in the granular cloud format.' : `Granular migration verified: ${result.boards} boards, ${result.lists} lists, and ${result.cards} cards. Legacy snapshots remain available.`;
-      workspacesDialog.close(); workspaceButton.click();
-    } catch (error) { console.error('Flowboard granular migration failed.', error); workspacesStatus.textContent = 'Granular migration could not be verified. Legacy cloud snapshots remain available.'; }
-    finally { migrateCloud.disabled = false; }
-  });
-  on(exportCloud,'click', () => {
-    try { globalThis.FlowboardApp.exportCloudPreview(); workspacesStatus.textContent = 'Cloud preview JSON export downloaded.'; }
-    catch (error) { workspacesStatus.textContent = 'Open a cloud preview before exporting it.'; }
-  });
-
-  window.addEventListener('flowboard:cloud-preview-change', () => {
-    const mode = globalThis.FlowboardApp?.getMode().kind, cloudMode = ['cloud-preview','cloud'].includes(mode);
-    returnLocal.hidden = !cloudMode; exportCloud.hidden = !cloudMode; migrateCloud.hidden = true;
-    if (!cloudMode) { selectedCloudEntry = null; window.dispatchEvent(new CustomEvent('flowboard:cloud-selection')); }
-    if (!cloudMode && workspacesDialog.open) { workspacesList.replaceChildren(); workspacesStatus.textContent = 'Workspace access ended. Your browser-local workspace is active.'; }
-  });
-
-  return {
-    setSession(next) {
-      session = next;
-      if (!session && dialog.open) dialog.close();
-      open.hidden = !session;
-      if(ws){ws.disabled=!session;ws.setAttribute('aria-label',`${ws.textContent}. ${session?'Open':'Sign in to open'} workspace chooser`);}
-    }
-  };
+import {createWorkspaceLifecycleControls} from './workspace-lifecycle-ui.js';
+import {createBoardLifecycleActions} from './board-lifecycle-ui.js';
+import {initializeLegacyImportUI} from './legacy-import-ui.js';
+const $=selector=>document.querySelector(selector),on=(target,type,handler)=>target?.addEventListener(type,handler),el=tag=>document.createElement(tag),mode=()=>globalThis.FlowboardApp?.getMode?.()||{};
+function downloadJson(value){const url=URL.createObjectURL(new Blob([JSON.stringify(value,null,2)],{type:'application/json'})),link=el('a');link.href=url;link.download=`flowboard-cloud-backup-${new Date().toISOString().replace(/[:.]/g,'-')}.json`;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+export function initializeCloudWorkspaceUI({localAdapter,cloudAdapter}){
+  const account=$('#account-dialog'),accountWorkspace=$('#open-cloud-workspaces'),boardsButton=$('#boards-button'),cloudStatus=$('#cloud-status'),dialog=$('#workspace-dialog'),close=$('#close-workspace-dialog'),activeList=$('#workspace-board-list'),archivedSection=$('#archived-board-section'),archivedList=$('#archived-board-list'),spacesList=$('#legacy-spaces-list'),search=$('#workspace-search'),status=$('#cloud-workspaces-status'),form=$('#new-board-form'),upgrade=$('#migrate-cloud-workspace'),exportCloud=$('#export-cloud-workspace'),legacyUI=initializeLegacyImportUI({localAdapter,cloudAdapter});
+  let session,selected,directory=[],rows=[],opener=accountWorkspace,backupWorkspaceId='',generation=0;
+  const scopeLabel=space=>{const name=space.name||'My workspace',matches=directory.filter(item=>(item.name||'My workspace')===name);return matches.length>1?`${name} · Scope ${matches.indexOf(space)+1} of ${matches.length}`:name;};
+  const personalScope=()=>directory.find(entry=>entry.personal===true&&entry.ownerUid===session?.uid&&entry.status==='ready'&&entry.migration?.state==='verified');
+  const setSelected=entry=>{selected=entry||null;window.dispatchEvent(new CustomEvent('flowboard:cloud-selection',{detail:selected||undefined}));backupWorkspaceId='';const owner=selected&&selected.ownerUid===session?.uid,canUpgrade=owner&&selected.status!=='archived'&&selected.migration?.state!=='verified';upgrade.hidden=!canUpgrade;upgrade.disabled=true;exportCloud.hidden=!owner||selected.status==='archived';exportCloud.textContent=canUpgrade?'Download complete backup':'Download cloud backup';};
+  async function refreshBoardScope(space){if(mode().id===space.id){const workspace=await cloudAdapter.fetchWorkspace(space.id);globalThis.FlowboardApp.openCloudWorkspace(workspace,space);}await loadDirectory();}
+  function boardRow(space,board){const row=el('div'),summary=el('div'),title=el('strong'),detail=el('span'),button=el('button'),scope=scopeLabel(space),current=mode().id===space.id&&globalThis.FlowboardApp.getActiveBoardId()===board.id;row.className='workspace-entry';summary.className='workspace-board cloud-workspace-card';title.textContent=board.title;detail.textContent=`${scope} · ${space.role}${space.role==='viewer'?' · read-only':''} · Position ${(Number(board.rank)||0)+1}${current?' · Active':board.archived?' · Archived · retained':''}`;summary.append(title,detail);button.type='button';button.className=board.archived?'button button-quiet':'button button-primary';button.textContent=board.archived?'Archived':'Open';button.disabled=board.archived;button.dataset.row=String(rows.length);button.setAttribute('aria-label',`${button.textContent} ${board.title} in ${scope}, position ${(Number(board.rank)||0)+1}`);rows.push({space,board});row.append(summary,button,...createBoardLifecycleActions({space,board,cloudAdapter,status,refresh:refreshBoardScope}));return row;}
+  function renderBoards(){const query=search.value.trim().toLowerCase(),active=[],archived=[],pages=[];rows=[];for(const space of directory){for(const board of space.boards||[]){if(query&&!board.title.toLowerCase().includes(query)&&!String(space.name||'').toLowerCase().includes(query))continue;(board.archived?archived:active).push(boardRow(space,board));}if(space.hasMore){const more=el('button');Object.assign(more,{type:'button',className:'button button-quiet',textContent:'Load more boards'});more.setAttribute('aria-label',`Load more boards from ${space.name||'this workspace'}`);on(more,'click',()=>loadMore(space,more));pages.push(more);}}activeList.replaceChildren(...(active.length?active:[Object.assign(el('p'),{className:'empty',textContent:query?'No active boards match your search.':'No active boards yet.'})]),...pages);archivedList.replaceChildren(...archived);archivedSection.hidden=!archived.length;}
+  async function openSpace(space,boardId=''){const request=++generation;status.textContent='Opening board...';try{const workspace=await cloudAdapter.fetchWorkspace(space.id);if(request!==generation)return;const editable=space.status==='ready'&&space.migration?.state==='verified'&&['owner','editor'].includes(space.role);editable?globalThis.FlowboardApp.openCloudWorkspace(workspace,space):globalThis.FlowboardApp.openCloudPreview(workspace,space);if(boardId)globalThis.FlowboardApp.selectBoard(boardId);setSelected(space);dialog.close();}catch(error){if(request!==generation)return;console.error('Board open failed.',error?.code||'unknown');status.textContent='Board unavailable. Refresh and retry.';}}
+  async function loadMore(entry,button){const request=++generation;button.disabled=true;status.textContent=`Loading more boards from ${entry.name||'this workspace'}...`;try{const [page]=await cloudAdapter.listBoardDirectory({workspaceId:entry.id,cursor:entry.cursor,pageSize:25});if(request!==generation)return;if(!page)throw Object.assign(new Error('Workspace access changed.'),{code:'WORKSPACE_NOT_FOUND'});const current=directory.find(item=>item.id===entry.id),seen=new Set(current.boards.map(board=>board.id));current.boards.push(...page.boards.filter(board=>!seen.has(board.id)));current.boards.sort((a,b)=>a.rank-b.rank||a.title.localeCompare(b.title));current.cursor=page.cursor;current.hasMore=page.hasMore;current.unavailable=page.unavailable;renderBoards();renderSpaces();status.textContent=directory.some(item=>item.hasMore)?'More boards are available.':'All board metadata is synchronized.';}catch(error){if(request!==generation)return;console.error('Board page load failed.',error?.code||'unknown');status.textContent='More boards could not be loaded.';}finally{if(request===generation&&button.isConnected)button.disabled=false;}}
+  function renderSpaces(){spacesList.replaceChildren();if(!dialog.open)return;for(const entry of directory){const row=el('div'),summary=el('div'),title=el('strong'),detail=el('span'),openButton=el('button'),scope=scopeLabel(entry);row.className='workspace-entry';summary.className='workspace-board cloud-workspace-card';title.textContent=scope;detail.textContent=entry.unavailable?`${scope} · Workspace container · unavailable`:entry.status==='archived'?`${scope} · Workspace container · archived · retained`:entry.migration?.state==='verified'?`${scope} · Workspace container · ${entry.role}`:`${scope} · Workspace container · upgrade needed`;summary.append(title,detail);Object.assign(openButton,{type:'button',className:'button button-quiet',textContent:'Open',hidden:entry.status==='archived'||entry.unavailable});openButton.setAttribute('aria-label',`Open ${scope}`);on(openButton,'click',()=>openSpace(entry));const actions=createWorkspaceLifecycleControls({entry,session,cloudAdapter,openButton,title,detail,lifecycleStatus:status,onArchived:value=>{if(mode().id===value.id)globalThis.FlowboardApp.handleCloudAccessRemoved?.('This cloud workspace was archived.');setSelected(null);renderBoards();}});row.append(summary,actions);spacesList.append(row);}}
+  async function loadDirectory(){const request=++generation;if(!session)return;if(account?.open)account.close();if(!dialog.open)dialog.showModal();status.textContent='Loading My workspace...';activeList.replaceChildren();archivedList.replaceChildren();spacesList.replaceChildren();try{directory=await cloudAdapter.listBoardDirectory({pageSize:25});if(request!==generation)return;renderBoards();renderSpaces();const current=directory.find(entry=>entry.id===mode().id);setSelected(current);form.hidden=!personalScope();status.textContent=directory.some(entry=>entry.hasMore)?'More boards are available.':'All board metadata is synchronized.';}catch(error){if(request!==generation)return;console.error('Workspace load failed.',error?.code||'unknown');status.textContent='My workspace could not be loaded.';}}
+  const openManager=trigger=>{opener=trigger===accountWorkspace?$('#account-button'):trigger;loadDirectory();requestAnimationFrame(()=>search.focus());};on(accountWorkspace,'click',()=>openManager(accountWorkspace));on(boardsButton,'click',()=>openManager(boardsButton));on(cloudStatus,'click',()=>session&&openManager(cloudStatus));on(close,'click',()=>dialog.close());on(dialog,'cancel',event=>{event.preventDefault();dialog.close();});on(dialog,'close',()=>{generation+=1;opener?.focus();});on(search,'input',renderBoards);
+  on(activeList,'click',event=>{const index=Number(event.target.closest('[data-row]')?.dataset.row);if(Number.isInteger(index)&&rows[index])openSpace(rows[index].space,rows[index].board.id);});
+  on(form,'submit',async event=>{event.preventDefault();const title=$('#new-board-title').value.trim(),button=form.querySelector('[type="submit"]'),destination=personalScope();if(!title)return $('#new-board-title').focus();if(!destination)return status.textContent='Personal workspace unavailable. Refresh and retry.';button.disabled=true;try{if(mode().id!==destination.id){const request=++generation,workspace=await cloudAdapter.fetchWorkspace(destination.id);if(request!==generation)return;globalThis.FlowboardApp.openCloudWorkspace(workspace,destination);setSelected(destination);}const started=globalThis.FlowboardApp.createBoard(title,$('#board-template').value,{success:()=>{button.disabled=false;form.reset();loadDirectory();},failure:()=>{button.disabled=false;status.textContent='Board creation failed. Retry.';}});if(started===false)button.disabled=false;}catch(error){console.error('Personal workspace open failed.',error?.code||'unknown');button.disabled=false;status.textContent='Board creation failed.';}});
+  on(exportCloud,'click',async()=>{if(!selected)return;exportCloud.disabled=true;status.textContent='Building complete backup...';try{downloadJson(await cloudAdapter.exportCloudBackup(selected.id));backupWorkspaceId=selected.id;if(!upgrade.hidden)upgrade.disabled=false;status.textContent='Complete backup downloaded. Control metadata is excluded.';}catch(error){console.error('Cloud backup failed.',error?.code||'unknown');status.textContent='Cloud backup could not be verified.';}finally{exportCloud.disabled=false;}});
+  on(upgrade,'click',async()=>{const entry=selected;if(!entry||entry.ownerUid!==session?.uid||backupWorkspaceId!==entry.id)return;const request=++generation;upgrade.disabled=true;exportCloud.disabled=true;status.textContent='Upgrading and verifying. Keep this tab open.';try{const result=await cloudAdapter.migrateWorkspaceToGranular(entry.id),workspace=await cloudAdapter.fetchWorkspace(entry.id);if(request!==generation)return;const metadata={...entry,migration:{version:2,state:'verified'},status:'ready'};globalThis.FlowboardApp.openCloudWorkspace(workspace,metadata);setSelected(metadata);status.textContent=result.alreadyMigrated?'This workspace was already verified in the current format.':`Upgrade verified: ${result.boards} boards, ${result.lists} lists and ${result.cards} cards. Duplicate snapshots were scrubbed.`;}catch(error){if(request!==generation)return;console.error('Cloud upgrade failed.',error?.code||'unknown');status.textContent='Upgrade verification paused. The downloaded backup is unchanged and retry uses the same operation.';}finally{upgrade.disabled=false;exportCloud.disabled=false;}});
+  on(window,'flowboard:cloud-preview-change',()=>{if(!['cloud','cloud-preview'].includes(mode().kind))setSelected(null);});
+  return{setSession(next){const changed=session?.uid!==next?.uid;session=next;generation+=1;backupWorkspaceId='';legacyUI.setSession(next);if(changed){directory=[];rows=[];activeList.replaceChildren();archivedList.replaceChildren();spacesList.replaceChildren();dialog.open&&dialog.close();setSelected(null);}if(cloudStatus){cloudStatus.disabled=!session;cloudStatus.setAttribute('aria-label',`${cloudStatus.textContent}. ${session?'Open':'Sign in to open'} My workspace`);}}};
 }

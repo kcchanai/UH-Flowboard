@@ -10,15 +10,15 @@ export function granularizeBoard(snapshot, rank) {
     if (!validId(list?.id) || listIds.has(list.id) || !Array.isArray(list.cards)) throw new Error('This cloud board has invalid or duplicate list identifiers.');
     listIds.add(list.id);
     const {cards: listCards, ...listData} = list;
-    lists.push({id:list.id, rank:listRank, ...listData});
+    lists.push({...listData, id:list.id, rank:listRank, lifecycleState:'active'});
     listCards.forEach((card, cardRank) => {
       if (!validId(card?.id) || cardIds.has(card.id)) throw new Error('This cloud board has invalid or duplicate card identifiers.');
       cardIds.add(card.id);
-      cards.push({id:card.id, listId:list.id, rank:cardRank, ...card});
+      cards.push({...card, id:card.id, listId:list.id, rank:cardRank, lifecycleState:'active'});
     });
   });
   const {lists: ignored, ...metadata} = board;
-  return {board:{id:board.id, rank, ...metadata}, lists, cards};
+  return {board:{...metadata, id:board.id, rank, lifecycleState:'active'}, lists, cards};
 }
 
 export function rehydrateGranularWorkspace(metadata, boardRecords) {

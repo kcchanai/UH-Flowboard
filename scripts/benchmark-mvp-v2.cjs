@@ -1,63 +1,6 @@
-const fs = require('node:fs');
-const path = require('node:path');
-const {chromium} = require('playwright');
-
-const url = process.env.MVP_BENCHMARK_URL || 'http://127.0.0.1:4191/UH-Flowboard/';
-const output = path.resolve(process.env.MVP_BENCHMARK_OUTPUT || 'artifacts/mvp-v2/step-2/benchmark.json');
-const executablePath = process.env.PLAYWRIGHT_EXECUTABLE_PATH || 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
-const listCount = Math.max(1, Number.parseInt(process.env.MVP_BENCHMARK_LISTS || '10', 10));
-const cardsPerList = Math.max(1, Number.parseInt(process.env.MVP_BENCHMARK_CARDS_PER_LIST || '20', 10));
-fs.mkdirSync(path.dirname(output), {recursive: true});
-
-(async () => {
-  const browser = await chromium.launch({headless: true, executablePath});
-  const context = await browser.newContext({serviceWorkers: 'block', viewport: {width: 1440, height: 900}});
-  const page = await context.newPage();
-  const consoleErrors = [];
-  const pageErrors = [];
-  page.on('console', message => { if (message.type() === 'error') consoleErrors.push(message.text().slice(0, 120)); });
-  page.on('pageerror', error => pageErrors.push(error.name));
-  await page.addInitScript(() => { globalThis.__mvpBenchmarkStart = performance.now(); });
-
-  await page.goto(url, {waitUntil: 'networkidle'});
-  await page.locator('.card-open').first().waitFor();
-  const seeded = await page.evaluate(({listCount, cardsPerList}) => {
-    const workspace = FlowboardState.makeWorkspace();
-    const board = FlowboardState.makeBoard('blank');
-    board.title = 'Synthetic benchmark board';
-    board.lists = Array.from({length: listCount}, (_, listIndex) => FlowboardState.makeList(`Benchmark list ${listIndex + 1}`, Array.from({length: cardsPerList}, (_, cardIndex) => FlowboardState.makeCard(`Benchmark card ${listIndex * cardsPerList + cardIndex + 1}`))));
-    workspace.boards = [board];
-    workspace.activeBoardId = board.id;
-    localStorage.setItem('flowboard-workspace', JSON.stringify(workspace));
-    return {lists: board.lists.length, cards: board.lists.reduce((sum, list) => sum + list.cards.length, 0)};
-  }, {listCount, cardsPerList});
-  const reloadStart = Date.now();
-  await page.reload({waitUntil: 'networkidle'});
-  await page.waitForFunction(expected => document.querySelectorAll('.card-open').length === expected, listCount * cardsPerList);
-  const browserNavigationToUsableMs = Date.now() - reloadStart;
-  const inPageRenderToUsableMs = await page.evaluate(() => performance.now() - globalThis.__mvpBenchmarkStart);
-  const filterStart = await page.evaluate(() => performance.now());
-  await page.locator('#search').fill('Benchmark card 199');
-  await page.waitForFunction(() => document.querySelectorAll('.card-open').length === 1);
-  const filterMs = await page.evaluate(startTime => performance.now() - startTime, filterStart);
-  const afterFilter = await page.evaluate(() => ({cards: document.querySelectorAll('.card-open').length, documentWidth: document.documentElement.scrollWidth, boardScrollWidth: document.querySelector('#board').scrollWidth}));
-  const report = {
-    url,
-    fixture: seeded,
-    viewport: {width: 1440, height: 900},
-    initialBoardRenderMs: Number(inPageRenderToUsableMs.toFixed(2)),
-    browserNavigationToUsableMs,
-    singleTermFilterMs: Number(filterMs.toFixed(2)),
-    afterFilter,
-    consoleErrorCount: consoleErrors.length,
-    pageErrorCount: pageErrors.length,
-    dataBoundary: 'Synthetic local benchmark only. No sign-in, cloud workspace, production fixture, raw storage, or credentials accessed.'
-  };
-  fs.writeFileSync(output, `${JSON.stringify(report, null, 2)}\n`);
-  console.log(JSON.stringify(report, null, 2));
-  await context.close();
-  await browser.close();
-})().catch(error => {
-  console.error(`Benchmark failed: ${error.stack || error}`);
-  process.exitCode = 1;
-});
+const fs=require('node:fs'),path=require('node:path'),{chromium}=require('playwright');
+const url=process.env.MVP_BENCHMARK_URL||'http://127.0.0.1:4191/UH-Flowboard/',output=path.resolve(process.env.MVP_BENCHMARK_OUTPUT||'artifacts/cloud-first/step-12/benchmark.json'),executablePath=process.env.PLAYWRIGHT_EXECUTABLE_PATH||'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',listCount=Math.max(1,Number.parseInt(process.env.MVP_BENCHMARK_LISTS||'10',10)),cardsPerList=Math.max(1,Number.parseInt(process.env.MVP_BENCHMARK_CARDS_PER_LIST||'100',10)),samples=Math.max(3,Number.parseInt(process.env.MVP_BENCHMARK_SAMPLES||'3',10));
+fs.mkdirSync(path.dirname(output),{recursive:true});
+const summary=values=>{const sorted=[...values].sort((a,b)=>a-b);return{median:Number(sorted[Math.floor(sorted.length/2)].toFixed(2)),max:Number(Math.max(...values).toFixed(2))};};
+(async()=>{const browser=await chromium.launch({headless:true,executablePath}),context=await browser.newContext({serviceWorkers:'block',viewport:{width:1440,height:900}}),page=await context.newPage(),consoleErrors=[],pageErrors=[];page.on('console',message=>{if(message.type()==='error')consoleErrors.push(message.text().slice(0,120));});page.on('pageerror',error=>pageErrors.push(error.name));const navigationStart=Date.now();await page.goto(url,{waitUntil:'networkidle'});await page.waitForFunction(()=>globalThis.FlowboardApp&&globalThis.FlowboardState);const navigationMs=Date.now()-navigationStart,runs=[];for(let sample=0;sample<samples;sample++){const renderMs=await page.evaluate(async({listCount,cardsPerList,sample})=>{const workspace=FlowboardState.makeEmptyWorkspace(),board=FlowboardState.makeBoard('blank');board.title=`Synthetic benchmark ${sample+1}`;board.lists=Array.from({length:listCount},(_,listIndex)=>FlowboardState.makeList(`Benchmark list ${listIndex+1}`,Array.from({length:cardsPerList},(_,cardIndex)=>FlowboardState.makeCard(`Benchmark card ${listIndex*cardsPerList+cardIndex+1}`))));workspace.boards=[board];workspace.activeBoardId=board.id;const start=performance.now();FlowboardApp.openCloudWorkspace(workspace,{id:`benchmark-${sample}`,name:'Synthetic benchmark',role:'owner'});await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));return performance.now()-start;},{listCount,cardsPerList,sample});await page.waitForFunction(expected=>document.querySelectorAll('.card-open').length===expected,listCount*cardsPerList);const filterStart=await page.evaluate(()=>performance.now());await page.locator('#search').fill('Benchmark card 999');await page.waitForFunction(()=>document.querySelectorAll('.card-open').length===1);const filterMs=await page.evaluate(start=>performance.now()-start,filterStart);runs.push({renderMs,filterMs});await page.locator('#clear-search').click();}
+const geometry=await page.evaluate(()=>({documentWidth:document.documentElement.scrollWidth,viewportWidth:document.documentElement.clientWidth,boardScrollWidth:document.querySelector('#board').scrollWidth,boardClientWidth:document.querySelector('#board').clientWidth})),report={url,fixture:{lists:listCount,cards:listCount*cardsPerList},viewport:{width:1440,height:900},samples,runs:runs.map(run=>({renderMs:Number(run.renderMs.toFixed(2)),filterMs:Number(run.filterMs.toFixed(2))})),render:summary(runs.map(run=>run.renderMs)),filter:summary(runs.map(run=>run.filterMs)),navigationMs,geometry,consoleErrorCount:consoleErrors.length,pageErrorCount:pageErrors.length,dataBoundary:'Synthetic in-memory cloud workspace only. No sign-in, production fixture, browser storage payload, or credentials accessed.'};fs.writeFileSync(output,`${JSON.stringify(report,null,2)}\n`);console.log(JSON.stringify(report,null,2));await context.close();await browser.close();})().catch(error=>{console.error(`Benchmark failed: ${error.stack||error}`);process.exitCode=1;});

@@ -11,9 +11,8 @@ let cloudAdapter = createUnavailableCloudAdapter();
 let cloudInitializationError = null;
 const localAdapter = createLocalWorkspaceAdapter({
   validWorkspace: State.validWorkspace,
-  normalizeWorkspace: State.normalizeWorkspace,
+  normalizeWorkspace: State.normalizeCloudWorkspace,
   migrateLegacy: State.migrateLegacy,
-  makeWorkspace: State.makeWorkspace,
   clone: State.clone
 });
 if (cloudConfigured) {

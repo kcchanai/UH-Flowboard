@@ -4,14 +4,14 @@ export {personInitials, safePhotoURL, renderPersonBadge} from './person-badges.j
 function messageFor(error) {
   const code = error?.code || '';
   if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') return 'Google sign-in was cancelled.';
-  if (code === 'auth/popup-blocked') return 'Your browser blocked the Google sign-in window. Allow popups for this site and try again.';
-  if (code === 'auth/unauthorized-domain') return 'This site is not authorized for Google sign-in. Check Firebase authorized domains.';
-  if (code === 'auth/operation-not-allowed') return 'Google sign-in is not enabled for this Firebase project.';
-  if (code === 'auth/network-request-failed') return 'Google sign-in could not reach the network. Check your connection and try again.';
-  return 'Google sign-in could not be completed. Your local workspace was not changed.';
+  if (code === 'auth/popup-blocked') return 'Allow popups, then try again.';
+  if (code === 'auth/unauthorized-domain') return 'This site is not authorized for sign-in.';
+  if (code === 'auth/operation-not-allowed') return 'Google sign-in is not enabled.';
+  if (code === 'auth/network-request-failed') return 'Check your connection and retry.';
+  return 'Google sign-in could not be completed. Existing legacy browser data was not changed.';
 }
 
-const currentMode = () => globalThis.FlowboardApp?.getMode?.() || {kind:'local'};
+const currentMode = () => globalThis.FlowboardApp?.getMode?.() || {kind:'auth-loading'};
 const remoteMode = mode => ['cloud','cloud-preview'].includes(mode.kind);
 
 export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
@@ -21,7 +21,6 @@ export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
   const close = document.querySelector('#close-account-dialog');
   const signIn = document.querySelector('#google-sign-in');
   const signOut = document.querySelector('#account-sign-out');
-  const migrate = document.querySelector('#open-cloud-migration');
   const workspaces = document.querySelector('#open-cloud-workspaces');
   const appearance = document.querySelector('#account-open-appearance');
   const name = document.querySelector('#account-name');
@@ -46,8 +45,8 @@ export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
     const mode = currentMode();
     workspaceSection.hidden = !signedIn;
     if (!signedIn) {
-      workspaceName.textContent = 'Browser-local workspace';
-      workspaceDetail.textContent = 'Sign in to browse cloud workspaces. Your local data remains in this browser.';
+      workspaceName.textContent = 'My workspace';
+      workspaceDetail.textContent = 'Sign in to access synchronized boards. Legacy browser data is not uploaded automatically.';
       return;
     }
     if (remoteMode(mode)) {
@@ -55,12 +54,12 @@ export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
       workspaceName.textContent = mode.name || 'Cloud workspace';
       workspaceDetail.textContent = `${preview ? 'Read-only cloud preview' : 'Cloud workspace'} · ${mode.role || 'member'} · ${mode.syncStatus || 'Connecting'}`;
       cloudStatus.textContent = preview ? `Cloud preview · read-only · ${mode.syncStatus || 'Connecting'}` : `Cloud workspace · ${mode.role || 'member'} · ${mode.syncStatus || 'Connecting'}`;
-      cloudStatus.title = preview ? `Viewing ${mode.name || 'this cloud workspace'} in read-only mode. Your browser-local workspace is unchanged.` : `Editing ${mode.name || 'this cloud workspace'}. Your browser-local workspace is unchanged.`;
+      cloudStatus.title = preview ? `Viewing ${mode.name || 'this cloud workspace'} in read-only mode.` : `Editing ${mode.name || 'this cloud workspace'}.`;
     } else {
-      workspaceName.textContent = 'Browser-local workspace';
-      workspaceDetail.textContent = 'Open a cloud workspace to share your photo with its members.';
-      cloudStatus.textContent = 'Signed in · local workspace';
-      cloudStatus.title = 'Signed in with Google. This browser-local workspace has not been uploaded or synchronized.';
+      workspaceName.textContent = 'My workspace';
+      workspaceDetail.textContent = mode.kind === 'loading' ? 'Loading synchronized boards...' : 'Choose or recover My workspace.';
+      cloudStatus.textContent = mode.kind === 'loading' ? 'Loading workspace' : 'Workspace selection needed';
+      cloudStatus.title = workspaceDetail.textContent;
     }
   };
   const render = (session, notify = true) => {
@@ -74,13 +73,12 @@ export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
     heading.textContent = signedIn ? 'Account' : 'Sign in';
     if (eyebrow) eyebrow.textContent = signedIn ? 'Flowboard account' : 'Google sign-in';
     name.textContent = signedIn ? (session.displayName || 'Google account') : 'Not signed in';
-    email.textContent = signedIn ? session.email : 'Your local workspace remains available without an account.';
+    email.textContent = signedIn ? session.email : 'Sign in to access synchronized boards.';
     signIn.hidden = signedIn;
     signOut.hidden = !signedIn;
-    migrate.hidden = !signedIn || remoteMode(mode);
     workspaces.hidden = !signedIn;
     renderContext(signedIn);
-    if (!signedIn && !remoteMode(mode)) cloudStatus.textContent = 'Google sign-in available';
+    if (!signedIn && !remoteMode(mode)) cloudStatus.textContent = 'Sign in required';
     if (notify) onSessionChange(session);
   };
 
@@ -91,19 +89,19 @@ export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
   signIn.addEventListener('click', async () => {
     signIn.disabled = true;
     announce('Opening Google sign-in…');
-    try { await adapter.signInWithGoogle(); announce('Signed in with Google. Your local workspace was not uploaded.'); }
+    try { await adapter.signInWithGoogle(); announce('Signed in with Google. Loading your workspace...'); }
     catch (error) { console.error('Flowboard Google sign-in failed.', error); announce(messageFor(error)); }
     finally { signIn.disabled = false; }
   });
   signOut.addEventListener('click', async () => {
     signOut.disabled = true;
-    try { await adapter.signOut(); announce('Signed out. Your local workspace remains in this browser.'); }
-    catch (error) { console.error('Flowboard sign-out failed.', error); announce('Sign-out could not be completed. Try again.'); }
+    try { await adapter.signOut(); announce('Signed out. Synced boards are no longer visible.'); }
+    catch (error) { console.error('Flowboard sign-out failed.', error); announce('Sign-out failed. Try again.'); }
     finally { signOut.disabled = false; }
   });
   appearance?.addEventListener('click', () => {
     dialog.close();
-    import('./appearance-ui.js').then(({openAppearance}) => openAppearance(appearance)).catch(error => { console.error('Flowboard appearance settings failed.', error); announce('Appearance settings could not be loaded.'); });
+    import('./appearance-ui.js').then(({openAppearance}) => openAppearance(appearance)).catch(error => { console.error('Flowboard appearance settings failed.', error); announce('Appearance could not load.'); });
   });
   ['flowboard:appearance-change','flowboard:cloud-preview-change','flowboard:cloud-selection'].forEach(eventName => window.addEventListener(eventName, () => render(currentSession, false)));
   render(null, false);
