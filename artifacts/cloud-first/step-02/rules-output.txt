@@ -1,0 +1,36 @@
+ok 1 - card deletion lock is coupled, role-bound, resumable after early completion, and handles multiple comment pages
+ok 2 - list deletion covers active and archived sibling cards without touching another list
+ok 3 - board owner may delete parent first while durable control keeps leftovers hidden and cleanable
+ok 4 - standalone, stale, cross-scope, same-batch bypass, and mutable-control attempts are denied
+ok 5 - legacy snapshot boards must be converted before card or list deletion, while whole-board deletion remains valid
+ok 6 - revoking an initiating editor stops cleanup while the owner can safely take over
+ok 7 - anonymous and cross-workspace reads are denied
+ok 8 - owner can add editor/viewer members, but viewer cannot escalate or write board content
+ok 9 - editor can write board content but cannot manage members
+ok 10 - owner can write granular migration documents while a viewer cannot forge them
+ok 11 - owner can safely resume an interrupted granular migration while viewers remain blocked
+ok 12 - cloud content updates require an incremented revision and client mutation identifier
+ok 13 - cloud assignments are bounded, unique, member-backed, and editor-controlled
+ok 14 - authenticated comments are actor-bound, activity-coupled, revisioned, and viewer read-only
+ok 15 - cloud parents cannot be hard deleted and orphaned comments fail closed
+ok 16 - owner bootstrap and backup-first board upload are permitted as separate verified writes
+ok 17 - only a verified email addressed by an active invite can read or accept it
+ok 18 - invite acceptance cannot be completed without the matching membership write
+ok 19 - invite acceptance must atomically add the workspace to the accepting user profile
+ok 20 - expired invitations deny read and acceptance
+ok 21 - owner-created invitations enforce editor/viewer role and seven-day expiry
+ok 22 - owner may change a non-owner role but cannot change protected member identity data
+ok 23 - invitee cannot tamper with the invited role during atomic acceptance
+ok 24 - revoked invitation becomes unreadable and cannot be accepted or reused
+ok 25 - non-owner self-leave atomically removes membership and profile discovery, while owner deletion remains protected
+ok 26 - former-member assignments permit unrelated edits but must be cleared when assignments change
+ok 27 - ownership transfer rejects partial changes and only permits a complete atomic transfer
+ok 28 - activity is member-readable, immutable, actor-bound, and shape-bound
+ok 29 - only owners can rename, archive, and restore retained cloud workspaces
+ok 30 - member profile photo sharing is self-only, allowlisted, and blocked when archived
+# tests 30
+# pass 30
+# fail 0
+# todo 0
+# duration_ms 11768.3266
+[32m[1m+ [22m[39m Script exited successfully (code 0)
