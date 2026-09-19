@@ -23,13 +23,17 @@
 - [x] Step 10 of 13 - viewport-bounded board and persistent horizontal scrolling
 - [x] Step 11 of 13 - remove Start here and finish Filters behavior
 - [x] Step 12 of 13 - full local qualification and security regression
-- [ ] Step 13 of 13 - package verified local release candidate and stop **(active)**
+- [x] Step 13 of 13 - package verified local release candidate and stop
 
 ## Evidence contract
 
 Each completed step records its exact commit, checks, sanitized counts, budget status, and blockers under `artifacts/cloud-first/step-NN/`. A checkbox is marked only after its checkpoint passes. Historical results are not reused as current final evidence.
 
 ## Latest verified checkpoint
+
+- Local release candidate: `artifacts/cloud-first/release-candidate/`.
+- Implementation commit: `9880959fc25fcd3925ab7e5ff1096e546eea3d3d`.
+- Evidence/package commit: `c076a925e6882d40dbdf062a3301044968a937d1`.
 
 - Step 4 evidence: `artifacts/cloud-first/step-04/README.md`
 - Step 5 evidence: `artifacts/cloud-first/step-05/README.md`
