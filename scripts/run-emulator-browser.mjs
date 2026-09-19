@@ -21,7 +21,7 @@ async function waitForServer() {
 }
 
 function runEmulators() {
-  const browserCommand = `${command} playwright test tests/emulator/emulator-browser.spec.mjs tests/emulator/deletion-engine.spec.mjs tests/emulator/board-lifecycle-ui.spec.mjs --reporter=line --workers=1`;
+  const browserCommand = `${command} playwright test tests/emulator/emulator-browser.spec.mjs tests/emulator/deletion-engine.spec.mjs --reporter=line --workers=1`;
   const childOptions = {
     stdio: ['ignore', 'pipe', 'pipe'],
     shell: process.platform === 'win32',

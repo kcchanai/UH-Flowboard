@@ -143,7 +143,7 @@
     getActiveBoardId: () => state.activeBoardId,
         getActiveBoardSnapshot: () => board() ? clone(board()) : null,
         selectBoard: id => { if(!state.boards.some(item=>item.id===id))return false;contextGeneration+=1;pendingCommand='';cmp=false;state.activeBoardId=id;render();window.dispatchEvent(new Event('flowboard:active-board-change'));say('Board opened');return true; },
-        createBoard: (title,template,hooks={}) => { const clean=String(title||'').trim();if(!clean)return false;const created=makeBoard(template);created.title=clean;return mutate('New board created',()=>{state.boards.push(created);state.activeBoardId=created.id;},'New board created',hooks); },
+        createBoard: (title,template,hooks={}) => { const clean=String(title||'').trim();if(!clean)return false;const created=makeBoard(template);created.title=clean;return mutate('New board created',()=>{state.boards.push(created);state.activeBoardId=created.id;},'New board created',{success:workspace=>{state.activeBoardId=created.id;render();hooks.success?.(workspace);},failure:hooks.failure}); },
         openCardById: (id, trigger) => { if (findCard(id)) openCard(id, trigger); },
         quickAddCard: (title, listId, hooks = {}) => { const list = findList(listId); if (!list || !title?.trim()) return false; const card = makeCard(title.trim()); const result = mutate('Card added', () => list.cards.push(card), 'Card added', {success:() => hooks.success?.(card.id), failure:hooks.failure}); return result; },
     setSession: activateSession,
