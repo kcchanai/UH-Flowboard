@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test tests/state-core.test.js tests/local-workspace-adapter.test.mjs tests/ui-preferences.test.mjs tests/board-view-model.test.mjs tests/granular-workspace.test.mjs tests/cloud-sync-controller.test.mjs tests/workspace-lifecycle.test.mjs tests/local-storage-lifecycle-acceptance.test.mjs tests/repository-path.test.mjs tests/adapter-contract.test.mjs tests/person-badges.test.mjs",
+    "test": "node --test tests/state-core.test.js tests/local-workspace-adapter.test.mjs tests/ui-preferences.test.mjs tests/board-view-model.test.mjs tests/granular-workspace.test.mjs tests/cloud-sync-controller.test.mjs tests/workspace-lifecycle.test.mjs tests/local-storage-lifecycle-acceptance.test.mjs tests/repository-path.test.mjs tests/adapter-contract.test.mjs tests/person-badges.test.mjs tests/cloud-first-regressions.test.mjs",
     "test:rules": "npx --yes firebase-tools@15.25.1 emulators:exec --only firestore --project demo-flowboard-rules \"node --test tests/firestore-rules.test.mjs\"",
     "test:emulator-browser": "node scripts/run-emulator-browser.mjs",
     "measure:mvp-v2": "node scripts/measure-mvp-v2-budgets.mjs",
