@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "baselineCommit": "a68d4da741496b344ae6d01ee1761967ebf6c350",
+  "branch": "fix/legacy-profile-bootstrap",
+  "implementationCommit": "bdf9b9152003ef1775d0cda3fde7e7cc8e0179e7",
+  "rulesBlob": "296b595276122918f521d3f86ee6820a5cc876b7",
+  "indexesBlob": "79fc192e9b71eb3c18b7fd504b77fc9b07bcd18a",
+  "rootCause": {
+    "codeDefectProven": true,
+    "affectedAccountConfirmedByDataInspection": false,
+    "historicalWriterCommit": "5dad247",
+    "historicalFields": ["displayName", "updatedAt"],
+    "failure": "profile merge retained retired fields that current Rules rejected"
+  },
+  "validation": {
+    "baselineFocusedPassed": 9,
+    "baselineFocusedFailed": 1,
+    "candidateFocusedRulesPassed": 10,
+    "unitPassed": 43,
+    "fullRulesPassed": 46,
+    "packagedEmulatorPassed": 20,
+    "configuredCiStyleEmulatorPassed": 19,
+    "realAdapterLegacyProfilePassed": 1,
+    "sourceStaticBuildIsolation": "passed",
+    "diffCheck": "passed"
+  },
+  "budgets": {
+    "sourceBytes": 299999,
+    "sourceCap": 300000,
+    "sourceHeadroom": 1
+  },
+  "production": {
+    "clientPushed": false,
+    "pagesDeployed": false,
+    "rulesPublished": false,
+    "indexesPublished": false,
+    "productionDataInspected": false,
+    "dataMigration": false,
+    "realAccountAcceptance": false
+  }
+}

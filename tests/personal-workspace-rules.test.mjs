@@ -2,7 +2,7 @@ import test, {after, before} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {assertFails, assertSucceeds, initializeTestEnvironment} from '@firebase/rules-unit-testing';
-import {arrayUnion, collection, deleteField, doc, getDoc, getDocs, query, runTransaction, serverTimestamp, setDoc, updateDoc, where} from 'firebase/firestore';
+import {arrayUnion, collection, deleteField, doc, getDoc, getDocs, query, runTransaction, serverTimestamp, setDoc, Timestamp, updateDoc, where} from 'firebase/firestore';
 
 const projectId='demo-flowboard-rules';
 let env;
@@ -81,6 +81,23 @@ test('existing lowercase profile remains usable when provider token email casing
   const result=await ensurePersonal(db,uid,'legacy-case-personal');
   assert.equal(result.state,'created');
   assert.deepEqual((await getDoc(doc(db,'users',uid))).data().workspaceIds,['retained-hint','legacy-case-personal']);
+});
+
+test('legacy profile metadata remains inert while personal bootstrap adds a canonical home',async()=>{
+  const uid='personal-legacy-metadata',updatedAt=Timestamp.fromMillis(1);
+  await env.withSecurityRulesDisabled(async context=>setDoc(doc(context.firestore(),'users',uid),{uid,emailLower:`${uid}@example.com`,workspaceIds:['retained-hint'],displayName:'Legacy profile name',updatedAt}));
+  const db=dbFor(uid),result=await ensurePersonal(db,uid,'legacy-metadata-personal'),profile=await getDoc(doc(db,'users',uid));
+  assert.equal(result.state,'created');
+  assert.equal(profile.data().personalWorkspaceId,'legacy-metadata-personal');
+  assert.deepEqual(profile.data().workspaceIds,['retained-hint','legacy-metadata-personal']);
+  assert.equal(profile.data().displayName,'Legacy profile name');
+  assert.equal(profile.data().updatedAt.toMillis(),updatedAt.toMillis());
+  await assertFails(updateDoc(doc(db,'users',uid),{displayName:'Changed legacy name'}));
+});
+
+test('new profiles cannot introduce retired profile metadata',async()=>{
+  const uid='personal-retired-metadata',db=dbFor(uid);
+  await assertFails(setDoc(doc(db,'users',uid),{uid,emailLower:`${uid}@example.com`,workspaceIds:[],displayName:'New legacy field'}));
 });
 
 test('explicit recovery replaces an invalid canonical pointer and retains its hint',async()=>{
