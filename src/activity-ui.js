@@ -1,7 +1,7 @@
 const actions = Object.freeze({
   'board-created':'created a board', 'board-updated':'updated a board',
   'card-created':'created a card', 'card-updated':'updated a card', 'card-moved':'moved a card', 'card-assigned':'updated card assignments', 'comment-created':'commented on a card', 'comment-updated':'edited a card comment', 'comment-deleted':'removed a card comment',
-  'list-created':'created a list', 'list-updated':'updated a list', 'workspace-updated':'updated the workspace'
+  'list-created':'created a list', 'list-updated':'updated a list', 'workspace-updated':'updated shared board access'
 });
 
 const formatTime = value => {
@@ -28,7 +28,7 @@ export function initializeActivityUI(cloudAdapter) {
       if (token !== generation || workspace !== targetWorkspace || session !== targetSession || !dialog.open) return;
       page.entries.forEach(entry => {
         const item = document.createElement('li'), text = document.createElement('span'), time = document.createElement('time');
-        text.textContent = `${entry.actorUid === targetSession.uid ? 'You' : 'A workspace member'} ${actions[entry.action] || 'updated the workspace'}.`;
+        text.textContent = `${entry.actorUid === targetSession.uid ? 'You' : 'Another board member'} ${actions[entry.action] || 'updated shared board access'}.`;
         time.textContent = formatTime(entry.createdAt); time.dateTime = entry.createdAt?.toDate?.().toISOString?.() || '';
         item.append(text, time); list.append(item);
       });

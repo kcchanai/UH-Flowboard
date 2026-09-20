@@ -5,7 +5,7 @@ export function initializeAssignmentUI(adapter) {
   const memberName=member=>member.displayName || member.emailLower || member.uid;
   const updateSelection=()=>{
     const checked=[...options.querySelectorAll('input:checked')];
-    if (checked.length>8) { checked.at(-1).checked=false; status.textContent='Choose no more than eight workspace members.'; return; }
+    if (checked.length>8) { checked.at(-1).checked=false; status.textContent='Choose no more than eight people with board access.'; return; }
     uidInput.value=checked.map(input=>input.value).join(',');
     namesInput.value=checked.map(input=>members.find(member=>member.uid===input.value)).filter(Boolean).map(memberName).join(', ');
     uidInput.dataset.touched='true';
@@ -14,7 +14,7 @@ export function initializeAssignmentUI(adapter) {
     const token=++generation, active=mode(), cardId=dialog.dataset.cardId, cloud=['cloud','cloud-preview'].includes(active.kind);
     localField.hidden=cloud; cloudField.hidden=!cloud;
     if (!cloud || !dialog.open || !session) return;
-    status.textContent='Loading workspace members...'; options.replaceChildren();
+    status.textContent='Loading people with board access...'; options.replaceChildren();
     try {
       members=await adapter.listMembers(active.id);
       if (token!==generation || !dialog.open || !session || dialog.dataset.cardId!==cardId || mode().kind!==active.kind || mode().id!==active.id) return;
@@ -25,10 +25,10 @@ export function initializeAssignmentUI(adapter) {
         label.className='assignee-option'; input.type='checkbox'; input.value=member.uid; input.checked=selected.includes(member.uid); input.disabled=active.kind==='cloud-preview'; text.textContent=`${memberName(member)}${member.role ? ` (${member.role})` : ''}`;
         input.addEventListener('change', updateSelection); label.append(input,text); options.append(label);
       });
-      if (legacy.length) status.textContent=`Legacy labels: ${legacy.join(', ')}. Select workspace members to map them.`;
+      if (legacy.length) status.textContent=`Legacy labels: ${legacy.join(', ')}. Select people with board access to map them.`;
       else if (former.length) status.textContent='This card includes a former member. Remove that assignment before changing other assignees.';
-      else status.textContent=active.kind==='cloud-preview' ? 'Assignments are read only.' : 'Choose up to eight members.';
-    } catch (error) { if (token!==generation) return; console.error('Member load failed.',error); status.textContent='Members could not load.'; }
+      else status.textContent=active.kind==='cloud-preview' ? 'Assignments are read only.' : 'choose no more than eight people with board access.';
+    } catch (error) { if (token!==generation) return; console.error('Member load failed.',error); status.textContent='People with board access could not load.'; }
   };
   new MutationObserver(()=>render()).observe(dialog,{attributes:true,attributeFilter:['open']});
   ['flowboard:cloud-preview-change','flowboard:profile-change'].forEach(name=>window.addEventListener(name,()=>{members=[];render();}));

@@ -1,0 +1,142 @@
+{
+  "plan": "FLOWBOARD_BOARD_FIRST_COPY_SIMPLIFICATION_PLAN.md",
+  "status": "locally-qualified-stop-before-deployment",
+  "branch": "fix/board-first-copy-simplification",
+  "baselineSha": "88477363bac20cea90b8bfe78f0fb5b53964c16e",
+  "implementationSha": "a3bb3052c7491c87184b8319ccfd421bd03883f9",
+  "evidenceSourceSha": "a3bb3052c7491c87184b8319ccfd421bd03883f9",
+  "rulesBlob": "296b595276122918f521d3f86ee6820a5cc876b7",
+  "indexesBlob": "79fc192e9b71eb3c18b7fd504b77fc9b07bcd18a",
+  "authorization": {
+    "scope": "local repository and synthetic Auth/Firestore Emulator validation only",
+    "productionAccount": false,
+    "productionData": false,
+    "protectedWorkspace": false,
+    "rulesPublication": false,
+    "indexesPublication": false,
+    "deployment": false,
+    "pushOrPullRequest": false
+  },
+  "configuration": {
+    "browser": "system Chrome at C:/Program Files (x86)/Google/Chrome/Application/chrome.exe",
+    "configuredFirebase": "synthetic non-production public web configuration; exact values intentionally omitted",
+    "preview": "http://127.0.0.1:4173/UH-Flowboard/"
+  },
+  "checks": [
+    {
+      "name": "npm.cmd run validate",
+      "status": "passed",
+      "exitCode": 0,
+      "unitTests": 43,
+      "productionIsolationAssets": 17,
+      "sourceBytes": 297945,
+      "sourceCapBytes": 300000,
+      "headroomBytes": 2055
+    },
+    {
+      "name": "npm.cmd run test:rules",
+      "status": "passed",
+      "exitCode": 0,
+      "rulesTests": 46,
+      "project": "demo-flowboard-rules",
+      "negativeProbeDiagnostics": "expected permission-denied diagnostics only"
+    },
+    {
+      "name": "configured CI browser selection",
+      "status": "passed",
+      "exitCode": 0,
+      "tests": 10,
+      "selection": "board-first-copy, configured session, accessibility, browser smoke, and single-workspace board UX with CI grep"
+    },
+    {
+      "name": "board-first required-width regression",
+      "status": "passed",
+      "exitCode": 0,
+      "tests": 1,
+      "viewports": ["1440x900", "1900x700", "960x720", "390x720", "320x720"]
+    },
+    {
+      "name": "npm.cmd run test:emulator-browser",
+      "status": "passed",
+      "exitCode": 0,
+      "tests": 20,
+      "services": ["Auth Emulator", "Firestore Emulator"],
+      "project": "demo-flowboard-browser"
+    },
+    {
+      "name": "Lighthouse accessibility",
+      "status": "passed",
+      "exitCode": 0,
+      "score": 1,
+      "failedAudits": 0
+    },
+    {
+      "name": "final synthetic visual capture",
+      "status": "passed",
+      "exitCode": 0,
+      "surfaces": 5,
+      "httpStatuses": [200, 200, 200, 200, 200],
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "documentWidthOverflow": false,
+      "receipt": "final/capture-report.json"
+    }
+  ],
+  "budgets": {
+    "configured": {
+      "sourceBytes": 297945,
+      "sourceCapBytes": 300000,
+      "headroomBytes": 2055,
+      "initialShellGzipBytes": 25872,
+      "initialShellGzipCapBytes": 26250,
+      "firstPartyLazyGzipBytes": 58360,
+      "firstPartyLazyGzipCapBytes": 60000,
+      "documentGzipBytes": 5342
+    },
+    "unconfigured": {
+      "sourceBytes": 297945,
+      "sourceCapBytes": 300000,
+      "headroomBytes": 2055,
+      "initialShellGzipBytes": 25817,
+      "firstPartyLazyGzipBytes": 58360,
+      "documentGzipBytes": 5339
+    },
+    "capIncrease": false,
+    "configuredReceipt": "budget-configured.json",
+    "unconfiguredReceipt": "budget-unconfigured.json"
+  },
+  "remainingWorkspaceTerminology": [
+    {
+      "surface": "owner-only lifecycle dialogs",
+      "examples": ["Workspace name", "Rename cloud workspace", "Archive cloud workspace?", "Archive workspace"],
+      "reason": "These actions change the authorization container and affect all boards, people, invitations, and retained descendants."
+    },
+    {
+      "surface": "Data recovery retained-source metadata",
+      "examples": ["Cloud workspace · owner · editable"],
+      "reason": "Recovery is a separate retained-source workflow where the scope and access state remain decision-relevant."
+    },
+    {
+      "surface": "technical diagnostics and compatibility",
+      "examples": ["Cloud workspaces are not configured", "legacy workspace", "workspace owner"],
+      "reason": "These identify internal adapter, migration, or authorization boundaries and are not normal board navigation."
+    },
+    {
+      "surface": "internal identifiers and fixtures",
+      "examples": ["workspaceId", "personalWorkspaceId", "workspaces collection", "workspace-dialog"],
+      "reason": "Stored identity, Firestore paths, Rules contracts, adapter methods, hidden selectors, and synthetic fixtures remain unchanged for compatibility."
+    }
+  ],
+  "evidence": {
+    "readme": "README.md",
+    "screenshotIndex": "SCREENSHOT_INDEX.md",
+    "captureReport": "final/capture-report.json",
+    "screenshots": [
+      "final/account-signed-in-1440x900.png",
+      "final/boards-personal-1440x900.png",
+      "final/boards-shared-read-only-1440x900.png",
+      "final/data-recovery-retained-sources-1440x900.png",
+      "final/boards-narrow-320x720.png"
+    ]
+  }
+}

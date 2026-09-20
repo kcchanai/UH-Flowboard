@@ -31,7 +31,7 @@ export function initializeInviteUI(adapter) {
     accept.disabled = true; status.textContent = 'Checking and accepting invitation…';
     try {
       await adapter.acceptInvite(invitation);
-      status.textContent = 'Invitation accepted. This browser-local workspace was not changed.';
+      status.textContent = 'This browser’s local data was not changed.';
       accept.hidden = true;
       const url = new URL(window.location.href); url.searchParams.delete('workspace'); url.searchParams.delete('invite'); history.replaceState({}, '', url);
     } catch (error) {

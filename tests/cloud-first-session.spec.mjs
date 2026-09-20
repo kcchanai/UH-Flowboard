@@ -9,7 +9,7 @@ test('unconfigured build is honestly unavailable and never activates or rewrites
   await page.addInitScript(({current,older})=>{localStorage.setItem('flowboard-workspace',current);localStorage.setItem('flowboard-data',older);},{current,older});
   await page.goto(basePath);
   await page.waitForFunction(()=>globalThis.FlowboardApp?.getMode?.().kind==='unavailable');
-  await expect(page.locator('#board').getByRole('heading',{name:'Cloud workspace unavailable'})).toBeVisible();
+  await expect(page.locator('#board').getByRole('heading',{name:'Boards unavailable'})).toBeVisible();
   await expect(page.locator('.list')).toHaveCount(0);
   await expect(page.locator('.card')).toHaveCount(0);
   await expect(page.getByText('Start here',{exact:true})).toHaveCount(0);
@@ -26,7 +26,7 @@ test('cloud normalization renders a genuine empty workspace without a sample boa
   await page.goto(basePath);
   await page.waitForFunction(()=>globalThis.FlowboardApp&&globalThis.FlowboardState);
   await page.evaluate(()=>FlowboardApp.openCloudWorkspace(FlowboardState.makeEmptyWorkspace(),{id:'synthetic-empty',name:'My workspace',role:'owner'}));
-  await expect(page.locator('#board').getByRole('heading',{name:'Your workspace is ready'})).toBeVisible();
+  await expect(page.locator('#board').getByRole('heading',{name:'Your boards are ready'})).toBeVisible();
   await expect(page.locator('.list')).toHaveCount(0);
   expect(await page.evaluate(()=>FlowboardApp.getActiveBoardSnapshot())).toBeNull();
 });

@@ -213,7 +213,7 @@ test('Google account dialog preserves an explicit local-only boundary', async ({
   await expect(account).toBeFocused();
 });
 
-test('account panel is a first-level workspace and profile hub without session fanout', async ({page}) => {
+test('account panel is a first-level account and profile hub without session fanout', async ({page}) => {
   await openReady(page);
   await page.route('https://lh3.googleusercontent.com/**', route => route.fulfill({status:200, contentType:'image/svg+xml', body:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2 2"><path d="M0 0h2v2H0z" fill="rebeccapurple"/></svg>'}));
   const before = await page.evaluate(() => { document.querySelector('#account-button').hidden = false; return localStorage.getItem('flowboard-workspace'); });
@@ -238,8 +238,9 @@ test('account panel is a first-level workspace and profile hub without session f
   await page.locator('#account-button').click();
   const account = page.getByRole('dialog', {name:'Account'});
   await expect(account).toBeVisible();
-  await expect(account.locator('#account-workspace-name')).toHaveText('Synthetic workspace');
-  await expect(account.locator('#account-workspace-detail')).toContainText('Cloud workspace · owner · Synced');
+  await expect(account.locator('#account-workspace-section')).toHaveCount(0);
+  await expect(account.locator('#workspace-profile-section')).toContainText('Profile photo');
+  await expect(account.locator('#workspace-profile-status')).toContainText('people who can access your boards');
   await expect(account.getByRole('button', {name:'Share Google profile photo'})).toBeVisible();
   await expect(page.locator('#account-button')).toHaveAttribute('aria-label', 'Account: Synthetic owner');
   await expect(page.locator('#account-button img')).toHaveCount(1);
@@ -254,7 +255,7 @@ test('account panel is a first-level workspace and profile hub without session f
   expect(await page.evaluate(() => localStorage.getItem('flowboard-workspace'))).toBe(before);
 });
 
-test('Boards is the sole top-level My workspace manager control', async ({page}) => {
+test('Boards is the sole top-level Boards manager control', async ({page}) => {
   await openReady(page);
   await page.evaluate(async asset => {
     await new Promise(resolve => setTimeout(resolve, 50));
@@ -268,7 +269,7 @@ test('Boards is the sole top-level My workspace manager control', async ({page})
   await expect(page.locator('#cloud-status')).toBeHidden();
   await page.locator('#boards-button').click();
   await expect(page.getByRole('dialog', {name:'Your boards'})).toBeVisible();
-  await page.getByRole('button', {name:'Close My workspace'}).click();
+  await page.getByRole('button', {name:'Close boards'}).click();
   await expect(page.locator('#boards-button')).toBeFocused();
 });
 
@@ -278,12 +279,12 @@ test('hidden cloud status feedback preserves local data scope', async ({page}) =
   await page.evaluate(() => FlowboardApp.openCloudWorkspace(FlowboardState.makeWorkspace(), {id:'status-fixture',name:'Status fixture',role:'editor'}));
   for (const status of ['Connecting','Saving','Synced','Offline','Conflict','Error']) {
     await page.evaluate(value => FlowboardApp.setCloudSyncStatus(value, `${value} status`), status);
-    await expect(page.locator('#cloud-status')).toHaveText(`Cloud workspace · editor · ${status}`);
+    await expect(page.locator('#cloud-status')).toHaveText(`Boards · editor · ${status}`);
     await expect(page.locator('#cloud-status')).toHaveAttribute('title', `${status} status`);
   }
   await page.getByRole('button',{name:'Open appearance settings'}).click();
   await page.getByRole('button',{name:'Close appearance'}).click();
-  await expect(page.locator('#cloud-status')).toHaveText('Cloud workspace · editor · Error');
+  await expect(page.locator('#cloud-status')).toHaveText('Boards · editor · Error');
   await expect(page.locator('#cloud-status')).toBeHidden();
   expect(await page.evaluate(expected => localStorage.getItem('flowboard-workspace') === expected, before)).toBe(true);
 });
@@ -344,7 +345,7 @@ test('rich dialogs keep close actions reachable across office and compatibility 
     await expect(appearanceButton).toBeFocused();
     const boardsButton=page.getByRole('button',{name:'Boards'});
     await boardsButton.click();
-    await check(page.getByRole('dialog',{name:'Your boards'}),page.getByRole('button',{name:'Close My workspace'}));
+    await check(page.getByRole('dialog',{name:'Your boards'}),page.getByRole('button',{name:'Close boards'}));
     await expect(boardsButton).toBeFocused();
   }
 });
@@ -407,7 +408,7 @@ test('owner workspace lifecycle dialog renames, archives, restores, and returns 
 test('cloud collaboration access explains roles and invitation lifecycle', async ({page}) => {
   await openReady(page);
   await page.evaluate(async asset => {
-    document.body.innerHTML = `<button id="open-workspace-members">Manage members</button><dialog id="workspace-members-dialog" aria-labelledby="workspace-members-heading"><h2 id="workspace-members-heading">Members and invitations</h2><button id="close-workspace-members">Close</button><p id="workspace-members-status"></p><form id="create-invite-form" hidden><input id="invite-email"><select id="invite-role"><option value="editor">Editor</option></select><button type="submit">Create invitation</button></form><p id="invite-link-status"></p><div id="workspace-members-list"></div><section id="workspace-invites-section" hidden><h3>Pending invitations</h3><div id="workspace-invites-list"></div></section><form id="transfer-ownership-form" hidden><select id="ownership-successor"></select><select id="former-owner-role"><option value="editor">Editor</option></select><button type="submit">Transfer ownership</button></form></dialog>`;
+    document.body.innerHTML = `<button id="open-workspace-members">Manage members</button><dialog id="workspace-members-dialog" aria-labelledby="workspace-members-heading"><h2 id="workspace-members-heading">People and invitations</h2><button id="close-workspace-members">Close</button><p id="workspace-members-status"></p><form id="create-invite-form" hidden><input id="invite-email"><select id="invite-role"><option value="editor">Editor</option></select><button type="submit">Create invitation</button></form><p id="invite-link-status"></p><div id="workspace-members-list"></div><section id="workspace-invites-section" hidden><h3>Pending invitations</h3><div id="workspace-invites-list"></div></section><form id="transfer-ownership-form" hidden><select id="ownership-successor"></select><select id="former-owner-role"><option value="editor">Editor</option></select><button type="submit">Transfer ownership</button></form></dialog>`;
     globalThis.FlowboardApp = {getMode:() => ({kind:'cloud', id:'collaboration-fixture', role:'owner'})};
     const now = Date.now(), stamp = value => ({toDate:() => new Date(value)});
     const invites = [
@@ -424,7 +425,7 @@ test('cloud collaboration access explains roles and invitation lifecycle', async
     initializeMembersUI(adapter).setSession({uid:'owner'});
   }, builtMembersAsset());
   await page.getByRole('button', {name:'Manage members'}).click();
-  const dialog = page.getByRole('dialog', {name:'Members and invitations'});
+  const dialog = page.getByRole('dialog', {name:'People and invitations'});
   await expect(dialog).toBeVisible();
   await expect(dialog.locator('#workspace-members-list')).toContainText('Owner');
   await expect(dialog.locator('#workspace-members-list')).toContainText('Editor');
@@ -445,7 +446,7 @@ test('cloud collaboration access explains roles and invitation lifecycle', async
 test('viewer collaboration access stays read-only with an explicit leave action', async ({page}) => {
   await openReady(page);
   await page.evaluate(async asset => {
-    document.body.innerHTML = `<button id="open-workspace-members">Manage members</button><dialog id="workspace-members-dialog" aria-labelledby="workspace-members-heading"><h2 id="workspace-members-heading">Members and invitations</h2><button id="close-workspace-members">Close</button><p id="workspace-members-status"></p><form id="create-invite-form" hidden><input id="invite-email"><select id="invite-role"><option value="viewer">Viewer</option></select><button type="submit">Create invitation</button></form><p id="invite-link-status"></p><div id="workspace-members-list"></div><section id="workspace-invites-section" hidden><div id="workspace-invites-list"></div></section><form id="transfer-ownership-form" hidden><select id="ownership-successor"></select><select id="former-owner-role"><option value="editor">Editor</option></select><button type="submit">Transfer ownership</button></form></dialog>`;
+    document.body.innerHTML = `<button id="open-workspace-members">Manage members</button><dialog id="workspace-members-dialog" aria-labelledby="workspace-members-heading"><h2 id="workspace-members-heading">People and invitations</h2><button id="close-workspace-members">Close</button><p id="workspace-members-status"></p><form id="create-invite-form" hidden><input id="invite-email"><select id="invite-role"><option value="viewer">Viewer</option></select><button type="submit">Create invitation</button></form><p id="invite-link-status"></p><div id="workspace-members-list"></div><section id="workspace-invites-section" hidden><div id="workspace-invites-list"></div></section><form id="transfer-ownership-form" hidden><select id="ownership-successor"></select><select id="former-owner-role"><option value="editor">Editor</option></select><button type="submit">Transfer ownership</button></form></dialog>`;
     globalThis.FlowboardApp = {getMode:() => ({kind:'cloud-preview', id:'collaboration-fixture', role:'viewer'})};
     const adapter = {
       listMembers:async() => [{uid:'owner', displayName:'Owner', role:'owner'}, {uid:'viewer', displayName:'Viewer', role:'viewer'}],
@@ -456,14 +457,14 @@ test('viewer collaboration access stays read-only with an explicit leave action'
     initializeMembersUI(adapter).setSession({uid:'viewer'});
   }, builtMembersAsset());
   await page.getByRole('button', {name:'Manage members'}).click();
-  const dialog = page.getByRole('dialog', {name:'Members and invitations'});
+  const dialog = page.getByRole('dialog', {name:'People and invitations'});
   await expect(dialog).toBeVisible();
   await expect(dialog).toContainText('You have viewer access.');
   await expect(dialog.locator('#create-invite-form')).toBeHidden();
   await expect(dialog.locator('#workspace-invites-section')).toBeHidden();
   await expect(dialog.locator('#transfer-ownership-form')).toBeHidden();
   await expect(dialog.locator('#workspace-members-list select')).toHaveCount(0);
-  await expect(dialog.getByRole('button', {name:'Leave workspace'})).toBeVisible();
+  await expect(dialog.getByRole('button', {name:'Leave shared boards'})).toBeVisible();
   await page.screenshot({path:'artifacts/mvp-v2/step-9/members-viewer.png', fullPage:true});
 });
 
@@ -1218,7 +1219,7 @@ test('person badges validate photos and preserve initials-only fallback', async 
 test('member profile controls share and stop the current account photo', async ({page}) => {
   await openReady(page);
   await page.evaluate(async asset => {
-    document.body.innerHTML = `<button id="open-workspace-members">Manage members</button><dialog id="workspace-members-dialog" aria-labelledby="workspace-members-heading"><h2 id="workspace-members-heading">Members and invitations</h2><button id="close-workspace-members">Close</button><p id="workspace-members-status"></p><section id="workspace-profile-section"><h3>My profile</h3><p id="workspace-profile-status"></p><div><button id="share-profile-photo">Share Google profile photo</button><button id="refresh-profile-photo">Refresh shared photo</button><button id="stop-profile-photo">Stop sharing photo</button></div></section><form id="create-invite-form" hidden><input id="invite-email"><select id="invite-role"><option value="editor">Editor</option></select><button type="submit">Create invitation</button></form><p id="invite-link-status"></p><div id="workspace-members-list"></div><section id="workspace-invites-section" hidden><div id="workspace-invites-list"></div></section><form id="transfer-ownership-form" hidden><select id="ownership-successor"></select><select id="former-owner-role"><option value="editor">Editor</option></select><button type="submit">Transfer ownership</button></form></dialog>`;
+    document.body.innerHTML = `<button id="open-workspace-members">Manage members</button><dialog id="workspace-members-dialog" aria-labelledby="workspace-members-heading"><h2 id="workspace-members-heading">People and invitations</h2><button id="close-workspace-members">Close</button><p id="workspace-members-status"></p><section id="workspace-profile-section"><h3>My profile</h3><p id="workspace-profile-status"></p><div><button id="share-profile-photo">Share Google profile photo</button><button id="refresh-profile-photo">Refresh shared photo</button><button id="stop-profile-photo">Stop sharing photo</button></div></section><form id="create-invite-form" hidden><input id="invite-email"><select id="invite-role"><option value="editor">Editor</option></select><button type="submit">Create invitation</button></form><p id="invite-link-status"></p><div id="workspace-members-list"></div><section id="workspace-invites-section" hidden><div id="workspace-invites-list"></div></section><form id="transfer-ownership-form" hidden><select id="ownership-successor"></select><select id="former-owner-role"><option value="editor">Editor</option></select><button type="submit">Transfer ownership</button></form></dialog>`;
     globalThis.FlowboardApp = {getMode:() => ({kind:'cloud',id:'profile-fixture',role:'owner'})};
     let member={uid:'owner',displayName:'Owner',role:'owner',emailLower:'owner@example.test',photoURL:''};
     globalThis.profileWrites=[];
@@ -1241,7 +1242,7 @@ test('member profile controls share and stop the current account photo', async (
 test('profile sharing reports readback failure without claiming success', async ({page}) => {
   await openReady(page);
   await page.evaluate(async asset => {
-    document.body.innerHTML = `<button id="open-workspace-members">Manage members</button><dialog id="workspace-members-dialog" aria-labelledby="workspace-members-heading"><h2 id="workspace-members-heading">Members and invitations</h2><button id="close-workspace-members">Close</button><p id="workspace-members-status"></p><section id="workspace-profile-section"><h3>Your photo</h3><p id="workspace-profile-status"></p><div><button id="share-profile-photo">Share Google profile photo</button><button id="refresh-profile-photo">Refresh shared photo</button><button id="stop-profile-photo">Stop sharing photo</button><button id="retry-profile-photo">Retry</button></div></section><form id="create-invite-form" hidden><input id="invite-email"><select id="invite-role"><option value="editor">Editor</option></select><button type="submit">Create invitation</button></form><p id="invite-link-status"></p><div id="workspace-members-list"></div><section id="workspace-invites-section" hidden><div id="workspace-invites-list"></div></section><form id="transfer-ownership-form" hidden><select id="ownership-successor"></select><select id="former-owner-role"><option value="editor">Editor</option></select><button type="submit">Transfer ownership</button></form></dialog>`;
+    document.body.innerHTML = `<button id="open-workspace-members">Manage members</button><dialog id="workspace-members-dialog" aria-labelledby="workspace-members-heading"><h2 id="workspace-members-heading">People and invitations</h2><button id="close-workspace-members">Close</button><p id="workspace-members-status"></p><section id="workspace-profile-section"><h3>Your photo</h3><p id="workspace-profile-status"></p><div><button id="share-profile-photo">Share Google profile photo</button><button id="refresh-profile-photo">Refresh shared photo</button><button id="stop-profile-photo">Stop sharing photo</button><button id="retry-profile-photo">Retry</button></div></section><form id="create-invite-form" hidden><input id="invite-email"><select id="invite-role"><option value="editor">Editor</option></select><button type="submit">Create invitation</button></form><p id="invite-link-status"></p><div id="workspace-members-list"></div><section id="workspace-invites-section" hidden><div id="workspace-invites-list"></div></section><form id="transfer-ownership-form" hidden><select id="ownership-successor"></select><select id="former-owner-role"><option value="editor">Editor</option></select><button type="submit">Transfer ownership</button></form></dialog>`;
     globalThis.FlowboardApp = {getMode:() => ({kind:'cloud',id:'readback-fixture',name:'Readback workspace',role:'owner'})};
     globalThis.profileWrites=[];
     const member={uid:'owner',displayName:'Owner',role:'owner',emailLower:'owner@example.test',photoURL:''};
