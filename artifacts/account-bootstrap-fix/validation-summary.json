@@ -1,0 +1,30 @@
+{
+  "baselineRules": {
+    "passed": 5,
+    "failed": 2,
+    "failures": "mixed-case token profile authorization: permission-denied"
+  },
+  "unitPassed": 43,
+  "rulesPassed": 43,
+  "packagedEmulatorBrowserPassed": 18,
+  "ciEmulatorTestsSelected": 17,
+  "preview": {
+    "unconfigured": {
+      "source": 299004,
+      "cap": 300000,
+      "initialShellGzip": 25903,
+      "lazyGzip": 58707
+    },
+    "configured": {
+      "source": 299004,
+      "cap": 300000,
+      "initialShellGzip": 25943,
+      "lazyGzip": 58707
+    },
+    "ciBrowserPassed": 8,
+    "failureDialogAxeViolations": 0,
+    "pageErrors": 0,
+    "lighthouseAccessibility": 1,
+    "lighthouseFailedAudits": 0
+  }
+}
