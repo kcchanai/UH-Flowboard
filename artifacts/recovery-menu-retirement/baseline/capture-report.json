@@ -1,0 +1,96 @@
+{
+  "generatedAt": "2026-09-20T12:47:39.572Z",
+  "baseURL": "http://127.0.0.1:4174/UH-Flowboard/",
+  "browser": "isolated anonymous system Chrome",
+  "boundary": "Synthetic fixtures only; no real account, protected workspace, token, cookie, or production document.",
+  "results": [
+    {
+      "name": "account-signed-in-1440x900",
+      "httpStatus": 200,
+      "consoleErrorCount": 0,
+      "pageErrorCount": 0,
+      "metrics": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "documentWidth": 1440,
+        "documentHeight": 900,
+        "openDialogs": [
+          "account-dialog"
+        ],
+        "visibleText": "Skip to board\nFlowboard\nBoards\nAppearance\nSign in to access your boards\nSign in to access your boards\n\nYour boards are synchronized to your account. Existing browser-only data is never uploaded without review.\n\nFLOWBOARD ACCOUNT\n\nAccount\nSynthetic owner\nowner@example.test\nProfile photo\n\nPhoto not shared with people who can access your boards.\n\nShare Google profile photo\n\nCloud-synced by default. Signing in loads your authorized boards. Existing browser-only data is never uploaded without a separate review and confirmation.\n\nAppearance\nSign out\nBoards\nData recovery"
+      }
+    },
+    {
+      "name": "boards-normal-1440x900",
+      "httpStatus": 200,
+      "consoleErrorCount": 0,
+      "pageErrorCount": 0,
+      "metrics": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "documentWidth": 1440,
+        "documentHeight": 900,
+        "openDialogs": [
+          "workspace-dialog"
+        ],
+        "visibleText": "Skip to board\nFlowboard\nBoards\nAppearance\nSign in\nSign in to access your boards\nSign in to access your boards\n\nYour boards are synchronized to your account. Existing browser-only data is never uploaded without review.\n\nBOARDS\n\nYour boards\n+ New board\n\nBoards load after cloud access is verified. Archived boards are retained until restored. Older data is available in Data recovery.\n\nMetadata synchronized.\n\nFind a board\nActive boards\nPersonal board\nPosition 1 · Active\nOpen\nMore\nShared board\nShared · read-only · Position 1 · Active\nOpen\nNew board\nStart from\nBlank board\nWebsite launch\nPersonal tasks\nCreate board"
+      }
+    },
+    {
+      "name": "data-recovery-1440x900",
+      "httpStatus": 200,
+      "consoleErrorCount": 0,
+      "pageErrorCount": 0,
+      "metrics": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "documentWidth": 1440,
+        "documentHeight": 900,
+        "openDialogs": [
+          "workspace-dialog"
+        ],
+        "visibleText": "Skip to board\nFlowboard\nBoards\nAppearance\nSign in\nSign in to access your boards\nSign in to access your boards\n\nYour boards are synchronized to your account. Existing browser-only data is never uploaded without review.\n\nBOARDS\n\nData recovery\n\nBoards load after cloud access is verified. Archived boards are retained until restored. Older data is available in Data recovery.\n\nReview retained data and recovery.\n\nOlder data and recovery\nOlder data\nCloud workspace · owner · editable\nOpen\nRename\nArchive\nShared source\nCloud workspace · read-only preview\nOpen\nOlder data\nCloud workspace · owner · editable\nOpen\nRename\nArchive\nDownload cloud backup"
+      }
+    },
+    {
+      "name": "legacy-recovery-1440x900",
+      "httpStatus": 200,
+      "consoleErrorCount": 0,
+      "pageErrorCount": 0,
+      "metrics": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "documentWidth": 1440,
+        "documentHeight": 900,
+        "openDialogs": [
+          "cloud-migration-dialog"
+        ],
+        "visibleText": "Skip to board\nFlowboard\nBoards\nAppearance\nSign in\nSign in to access your boards\nSign in to access your boards\n\nYour boards are synchronized to your account. Existing browser-only data is never uploaded without review.\n\nLEGACY RECOVERY\n\nImport legacy boards\n\nThe original browser data stays unchanged. Review the counts and destination, download the exact original backup, then explicitly import legacy boards into your personal boards. Existing cloud boards are never replaced.\n\nBoards\n2\nLists\n5\nCards\n10\nArchived boards\n0\nArchived cards\n0\nDestination\nYour boards\n\nDownload the exact backup, review, then import.\n\n1. Download original backup\n2. Import boards"
+      }
+    },
+    {
+      "name": "setup-unavailable-960x720",
+      "httpStatus": 200,
+      "consoleErrorCount": 0,
+      "pageErrorCount": 0,
+      "metrics": {
+        "viewport": {
+          "width": 960,
+          "height": 720
+        },
+        "documentWidth": 960,
+        "documentHeight": 720,
+        "openDialogs": [],
+        "visibleText": "Skip to board\nFlowboard\nBoards\nAppearance\nSign in\nBoards unavailable\nBoards unavailable\n\nSynthetic setup baseline."
+      }
+    }
+  ]
+}
