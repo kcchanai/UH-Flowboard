@@ -49,6 +49,15 @@ test('fresh account bootstraps one empty personal cloud workspace across context
   } finally { await Promise.all([firstContext.close(),secondContext.close()]); }
 });
 
+test('existing workspace hints bootstrap a separate personal home without a workspace choice', async ({page}) => {
+  await page.goto(`${baseURL}/tests/emulator/index.html?personal=1`);
+  await page.waitForFunction(() => globalThis.__flowboardEmulatorTest?.ready === true);
+  const result = await page.evaluate(() => globalThis.__flowboardEmulatorTest.existingHintsContext());
+  expect(result).toEqual({state:'created',hasPointer:true,hintPreserved:true,workspacePersonal:true,workspaceReady:true,role:'owner'});
+  await expect.poll(() => page.evaluate(() => globalThis.FlowboardApp.getMode().kind), {timeout:15000}).toBe('cloud');
+  await expect(page.locator('#board').getByRole('heading',{name:'Your workspace is ready'})).toBeVisible();
+});
+
 test('unified My workspace creates the first cloud board and opens it across contexts',async({browser})=>{
   const firstContext=await browser.newContext(),secondContext=await browser.newContext(),first=await firstContext.newPage(),second=await secondContext.newPage();
   try{

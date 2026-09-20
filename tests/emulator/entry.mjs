@@ -101,6 +101,16 @@ async function signInFreshPersonal() {
   else{const detail=await created.json();if(!String(detail?.error?.message||'').includes('EMAIL_EXISTS'))throw new Error('The Auth Emulator could not create the synthetic personal account.');}
   const credential=await signInWithEmailAndPassword(auth,account.email,account.password);if(!credential.user.displayName)await updateProfile(credential.user,{displayName:'Personal emulator user'});return credential.user;
 }
+async function signInFreshHints() {
+  const account={email:'hints@flowboard.test',password:'Flowboard-hints-123!'};
+  if(auth.currentUser?.email!==account.email)await signOut(auth);
+  const created=await fetch(`${AUTH_EMULATOR}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=${CONFIG.apiKey}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email:account.email,password:account.password,returnSecureToken:true})});
+  if(created.ok){const {localId}=await created.json(),verified=await fetch(`${AUTH_EMULATOR}/identitytoolkit.googleapis.com/v1/projects/${CONFIG.projectId}/accounts:update?key=${CONFIG.apiKey}`,{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer owner'},body:JSON.stringify({localId,emailVerified:true})});if(!verified.ok)throw new Error('The Auth Emulator could not verify the synthetic hints account.');}
+  else{const detail=await created.json();if(!String(detail?.error?.message||'').includes('EMAIL_EXISTS'))throw new Error('The Auth Emulator could not create the synthetic hints account.');}
+  const credential=await signInWithEmailAndPassword(auth,account.email,account.password),user=await verifyEmail(credential.user,account.password);
+  await setDoc(doc(db,'users',user.uid),{uid:user.uid,emailLower:account.email,workspaceIds:['synthetic-legacy-hint']});
+  return user;
+}
 
 let seedStage='start';async function seedFixture() {
   const owner = await signInRole('owner');
@@ -202,6 +212,7 @@ const testApi = {
     return cloudAdapter.restoreWorkspace({workspaceId: FIXTURE.workspaceId, expectedRevision: workspace.data()?.lifecycleRevision ?? 0});
   },
   async signInFreshPersonal(){const user=await signInFreshPersonal();return{uid:user.uid};},
+  async existingHintsContext(){const user=await signInFreshHints(),choice=await cloudAdapter.ensurePersonalWorkspace(),profile=await getDoc(doc(db,'users',user.uid)),workspace=await getDoc(doc(db,'workspaces',choice.workspaceId));return{state:choice.state,hasPointer:typeof profile.data()?.personalWorkspaceId==='string',hintPreserved:profile.data()?.workspaceIds?.includes('synthetic-legacy-hint')===true,workspacePersonal:workspace.data()?.personal===true,workspaceReady:workspace.data()?.status==='ready',role:choice.entry?.role||''};},
   async signInExistingPersonal(){const user=(await signInWithEmailAndPassword(auth,'personal@flowboard.test','Flowboard-personal-123!')).user;return{uid:user.uid};},
 
   async personalContext(){const user=await signInFreshPersonal(),choice=await cloudAdapter.ensurePersonalWorkspace();return{uid:user.uid,workspaceId:choice.workspaceId};},
@@ -227,7 +238,7 @@ const testApi = {
 
 const personalMode=new URLSearchParams(location.search).get('personal')==='1';
 const params=new URLSearchParams(location.search),commandRace=params.get('commandRace')==='1',verificationPending=params.get('verificationPending')==='1',staleRetry=params.get('staleRetry')==='1',mutationFailure=params.get('mutationFailure')==='1';let applyCount=0;const runtimeBase=mutationFailure?Object.freeze({...cloudAdapter,applyWorkspaceMutation:async()=>{throw Object.assign(new Error('Revision conflict.'),{code:'REVISION_CONFLICT'});}}):staleRetry?Object.freeze({...cloudAdapter,applyWorkspaceMutation:async options=>{const workspace=await cloudAdapter.applyWorkspaceMutation(options);if(!applyCount++)throw Object.assign(new Error('Verification pending.'),{code:'VERIFICATION_PENDING'});return workspace;}}):verificationPending?Object.freeze({...cloudAdapter,applyWorkspaceMutation:async()=>{throw Object.assign(new Error('Verification pending.'),{code:'VERIFICATION_PENDING'});}}):commandRace?Object.freeze({...cloudAdapter,applyWorkspaceMutation:async options=>{await new Promise(resolve=>setTimeout(resolve,120));return cloudAdapter.applyWorkspaceMutation(options);}}):cloudAdapter;
-const runtimeCloudAdapter=personalMode?runtimeBase:Object.freeze({...runtimeBase,ensurePersonalWorkspace:async()=>({state:'needs-selection',workspaceIds:[FIXTURE.workspaceId]})});
+const runtimeCloudAdapter=personalMode?runtimeBase:Object.freeze({...runtimeBase,ensurePersonalWorkspace:async()=>({state:'needs-recovery',workspaceId:FIXTURE.workspaceId})});
 
 await bootstrapFlowboard({
   cloudConfig: CONFIG,

@@ -13,8 +13,8 @@ Production: unchanged. No push, PR, merge, deployment, Rules publication, migrat
 | --- | --- | --- | --- | --- |
 | 1 | Pin current release and reproduce failures | complete | pending commit | `artifacts/single-workspace/step-01/` |
 | 2 | Lock account-home contract and budget | complete | pending commit | `artifacts/single-workspace/step-02/` |
-| 3 | Implement automatic account-home setup | in_progress | pending | `artifacts/single-workspace/step-03/` |
-| 4 | Board-only discovery and secondary recovery | not_started | pending | `artifacts/single-workspace/step-04/` |
+| 3 | Implement automatic account-home setup | complete | pending commit | `artifacts/single-workspace/step-03/` |
+| 4 | Board-only discovery and secondary recovery | in_progress | pending | `artifacts/single-workspace/step-04/` |
 | 5 | Visible, reliable New board | not_started | pending | `artifacts/single-workspace/step-05/` |
 | 6 | Archived-board Restore and Delete permanently | not_started | pending | `artifacts/single-workspace/step-06/` |
 | 7 | Session, realtime, and recovery edge cases | not_started | pending | `artifacts/single-workspace/step-07/` |

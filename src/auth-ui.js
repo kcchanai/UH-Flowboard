@@ -57,8 +57,9 @@ export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
       cloudStatus.title = preview ? `Viewing ${mode.name || 'this cloud workspace'} in read-only mode.` : `Editing ${mode.name || 'this cloud workspace'}.`;
     } else {
       workspaceName.textContent = 'My workspace';
-      workspaceDetail.textContent = mode.kind === 'loading' ? 'Loading synchronized boards...' : 'Choose or recover My workspace.';
-      cloudStatus.textContent = mode.kind === 'loading' ? 'Loading workspace' : 'Workspace selection needed';
+      const recovery = mode.kind === 'needs-recovery';
+      workspaceDetail.textContent = mode.kind === 'loading' ? 'Loading synchronized boards...' : recovery ? 'Account setup needs attention. Retry or open recovery.' : 'Boards are ready.';
+      cloudStatus.textContent = mode.kind === 'loading' ? 'Loading boards' : recovery ? 'Account setup needed' : 'Boards unavailable';
       cloudStatus.title = workspaceDetail.textContent;
     }
   };
