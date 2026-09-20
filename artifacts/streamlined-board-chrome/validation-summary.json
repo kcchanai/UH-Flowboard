@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "baselineCommit": "0d2a90ae71161cf71592f17cc57c55635738d870",
+  "branch": "fix/streamline-board-chrome",
+  "validation": {
+    "unitPassed": 43,
+    "rulesPassed": 46,
+    "packagedEmulatorPassed": 20,
+    "affectedBrowserPassed": 7,
+    "configuredCiBrowserPassed": 9,
+    "lighthouseAccessibilityScore": 1,
+    "lighthouseFailedAudits": 0,
+    "visualInspection": "passed"
+  },
+  "budgets": {
+    "sourceBytes": 299316,
+    "sourceCap": 300000,
+    "initialShellGzip": 25908,
+    "initialShellGzipCap": 26250,
+    "firstPartyLazyGzip": 58386,
+    "firstPartyLazyGzipCap": 60000
+  },
+  "production": {
+    "clientPushed": false,
+    "pagesDeployed": false,
+    "rulesPublished": false,
+    "indexesPublished": false,
+    "dataMigration": false
+  }
+}
