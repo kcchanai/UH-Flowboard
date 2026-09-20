@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "candidateType": "local-release-candidate",
+  "status": "ready-for-owner-review",
+  "branch": "luna/single-workspace-board-ux",
+  "baselineCommit": "2e86332133b1387c484e17fcfefe56455c163153",
+  "implementationCommit": "289d15abe15547b69480cfee62698279d0b5ba9b",
+  "rulesBlob": "0d73c6e9317dfdc949b1f8d2320fb232b3e6fbe0",
+  "indexesBlob": "79fc192e9b71eb3c18b7fd504b77fc9b07bcd18a",
+  "production": {
+    "pagesDeployment": "unchanged",
+    "rulesPublication": "unchanged",
+    "dataMigration": "not performed",
+    "realAccountAcceptance": "not performed",
+    "protectedFixtures": "untouched"
+  },
+  "outcomes": [
+    "One automatic personal workspace per authenticated account when the canonical pointer is absent",
+    "Board-only normal navigation with workspace containers moved to Data recovery",
+    "Visible New board action backed by the existing cloud command path",
+    "Direct Restore and Delete permanently actions for archived owner boards",
+    "Existing legacy/shared scopes, memberships, invitations, and browser-local data preserved"
+  ],
+  "validation": {
+    "unitDomainAdapterPassed": 43,
+    "rulesPassed": 41,
+    "emulatorBrowserPassed": 15,
+    "ciBrowserSelectionPassed": 8,
+    "focusedStep5And6BrowserPassed": 5,
+    "lighthouseAccessibilityScore": 1,
+    "lighthouseFailedAudits": 0,
+    "loadedDialogAxeViolations": 0
+  },
+  "budgetEnvelopes": {
+    "rawSourceCap": 300000,
+    "initialShellGzipCap": 26250,
+    "firstPartyLazyGzipCap": 60000,
+    "cloudWorkspaceFileCap": 14000,
+    "authorizationNote": "First-party lazy and cloud-workspace-file transitions were explicitly authorized and measured during implementation."
+  },
+  "artifacts": [
+    "README.md",
+    "SCREENSHOT_INDEX.md",
+    "RELEASE_CHECKLIST.md",
+    "ATTESTATION.md",
+    "boards-archived-actions.png",
+    "new-board-empty-state.png",
+    "data-recovery.png",
+    "capture-report.json",
+    "lighthouse-report.json"
+  ],
+  "packageCommit": "Recorded in ATTESTATION.md after the package commit."
+}
