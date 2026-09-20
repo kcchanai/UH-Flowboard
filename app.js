@@ -49,7 +49,7 @@
     'signed-out':['Sign in to access your boards','Your boards are synchronized to your account. Existing browser-only data is never uploaded without review.'],
     'unavailable':['Boards unavailable','Flowboard cannot connect to cloud boards in this build. Your browser-only legacy data has not been changed.'],
     'loading':['Loading your boards','Flowboard is verifying your account and board access.'],
-    'needs-recovery':['Account setup needs attention','Retry account setup or open Data recovery. Flowboard did not switch to local task data.'],
+    'needs-recovery':['Account setup needs attention','Retry setup or repair account setup. Flowboard did not switch to local task data.'],
     'offline':['You are offline','Reconnect to load or edit your synchronized boards. No local task changes were accepted.'],
     'access-lost':['Board access ended','These synchronized boards are no longer available to this account.'],
     'error':['Boards could not be loaded','Try again. Flowboard did not switch to local task data.'],
@@ -139,14 +139,14 @@
     if(!session)return setCloudState('signed-out');setCloudState('loading');
     try{
       const choice=await globalThis.FlowboardRuntime.cloudAdapter.ensurePersonalWorkspace({recover});if(generation!==sessionGeneration)return;
-      if(choice.state==='needs-recovery')return setCloudState('needs-recovery','Your account setup could not be verified. Retry setup or open Data recovery. Flowboard did not switch to local task data.');
+      if(choice.state==='needs-recovery')return setCloudState('needs-recovery','Your account setup could not be verified. Retry setup or repair account setup. Flowboard did not switch to local task data.');
       const entry=choice.entry,workspace=await globalThis.FlowboardRuntime.cloudAdapter.fetchWorkspace(entry.id);if(generation!==sessionGeneration)return;
       if(entry.status!=='ready'||entry.migration?.state!=='verified')return setCloudState('needs-recovery','Your account setup needs owner recovery before boards can open.');
       personalWorkspaceId=entry.id;state=normalizeCloudWorkspace(workspace);activeWorkspace={kind:'cloud',id:entry.id,name:entry.name&&entry.name!=='My workspace'?entry.name:'Boards',role:entry.role,syncStatus:'Connecting'};render();window.dispatchEvent(new Event('flowboard:cloud-preview-change'));
     }catch(error){
       if(generation!==sessionGeneration)return;
       const code=['permission-denied','failed-precondition','unavailable','auth/network-request-failed','EMAIL_NOT_VERIFIED','AUTH_REQUIRED'].includes(error?.code)?error.code:'unexpected-error',stage=error?.stage||'session',offline=['unavailable','auth/network-request-failed'].includes(code)||!navigator.onLine;
-      console.error('Flowboard cloud session failed.',code,stage);setCloudState(offline?'offline':'error',`Cloud unavailable (${code} at ${stage}). Retry setup or open Data recovery.`,{errorCode:code,errorStage:stage});
+      console.error('Flowboard cloud session failed.',code,stage);setCloudState(offline?'offline':'error',`Cloud unavailable (${code} at ${stage}). Retry setup or repair account setup.`,{errorCode:code,errorStage:stage});
     }
   }
 

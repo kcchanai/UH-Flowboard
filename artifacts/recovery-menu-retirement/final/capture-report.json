@@ -1,0 +1,112 @@
+{
+  "generatedAt": "2026-09-20T13:52:17.437Z",
+  "baseURL": "http://127.0.0.1:4178/UH-Flowboard/",
+  "browser": "isolated anonymous system Chrome contexts",
+  "boundary": "Synthetic fixtures only; no real account, protected workspace, token, cookie, or production document.",
+  "results": [
+    {
+      "name": "account-signed-in-1440x900",
+      "httpStatus": 200,
+      "consoleErrorCount": 0,
+      "pageErrorCount": 0,
+      "failedRequestCount": 0,
+      "metrics": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "documentWidth": 1440,
+        "documentHeight": 900,
+        "openDialogs": [
+          "account-dialog"
+        ],
+        "visibleRecoveryText": 0,
+        "visibleLegacyControls": 0,
+        "text": "Skip to board\nFlowboard\nBoards\nAppearance\nSign in to access your boards\nSign in to access your boards\n\nYour boards are synchronized to your account. Existing browser-only data is never uploaded without review.\n\nFLOWBOARD ACCOUNT\n\nAccount\nSynthetic owner\nowner@example.test\nProfile photo\n\nPhoto not shared with people who can access your boards.\n\nShare Google profile photo\n\nCloud-synced by default. Signing in loads your authorized boards. Browser-only legacy data stays on this device and is not imported into your boards.\n\nAppearance\nSign out\nBoards"
+      }
+    },
+    {
+      "name": "boards-personal-shared-1440x900",
+      "httpStatus": 200,
+      "consoleErrorCount": 0,
+      "pageErrorCount": 0,
+      "failedRequestCount": 0,
+      "metrics": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "documentWidth": 1440,
+        "documentHeight": 900,
+        "openDialogs": [
+          "workspace-dialog"
+        ],
+        "visibleRecoveryText": 0,
+        "visibleLegacyControls": 0,
+        "text": "Skip to board\nFlowboard\nBoards\nAppearance\nSign in\nSign in to access your boards\nSign in to access your boards\n\nYour boards are synchronized to your account. Existing browser-only data is never uploaded without review.\n\nBOARDS\n\nYour boards\n+ New board\n\nBoards load after cloud access is verified. Archived boards are retained until restored.\n\nMetadata synchronized.\n\nFind a board\nActive boards\nActive board\nPosition 1 · Active\nOpen\nMore\nShared board\nShared · read-only · Position 1 · Active\nOpen\nArchived boards\nArchived board\nPosition 2 · Archived · retained\nRestore\nDelete permanently\nNew board\nStart from\nBlank board\nWebsite launch\nPersonal tasks\nCreate board"
+      }
+    },
+    {
+      "name": "boards-narrow-320x720",
+      "httpStatus": 200,
+      "consoleErrorCount": 0,
+      "pageErrorCount": 0,
+      "failedRequestCount": 0,
+      "metrics": {
+        "viewport": {
+          "width": 320,
+          "height": 720
+        },
+        "documentWidth": 320,
+        "documentHeight": 720,
+        "openDialogs": [
+          "workspace-dialog"
+        ],
+        "visibleRecoveryText": 0,
+        "visibleLegacyControls": 0,
+        "text": "Skip to board\nBoards\nAppearance\nSign in\nSign in to access your boards\nSign in to access your boards\n\nYour boards are synchronized to your account. Existing browser-only data is never uploaded without review.\n\nBOARDS\n\nYour boards\n+ New board\n\nBoards load after cloud access is verified. Archived boards are retained until restored.\n\nMetadata synchronized.\n\nFind a board\nActive boards\nActive board\nPosition 1 · Active\nOpen\nMore\nShared board\nShared · read-only · Position 1 · Active\nOpen\nArchived boards\nArchived board\nPosition 2 · Archived · retained\nRestore\nDelete permanently\nNew board\nStart from\nBlank board\nWebsite launch\nPersonal tasks\nCreate board"
+      }
+    },
+    {
+      "name": "setup-retry-960x720",
+      "httpStatus": 200,
+      "consoleErrorCount": 0,
+      "pageErrorCount": 0,
+      "failedRequestCount": 0,
+      "metrics": {
+        "viewport": {
+          "width": 960,
+          "height": 720
+        },
+        "documentWidth": 960,
+        "documentHeight": 720,
+        "openDialogs": [],
+        "visibleRecoveryText": 0,
+        "visibleLegacyControls": 0,
+        "text": "Skip to board\nFlowboard\nBoards\nAppearance\nSign in\nBoard access ended\nBoard access ended\n\nSynthetic permission-denied at session.\n\nRetry setup\nBoard access ended.\nBoard access ended."
+      }
+    },
+    {
+      "name": "setup-repair-confirmation-960x720",
+      "httpStatus": 200,
+      "consoleErrorCount": 0,
+      "pageErrorCount": 0,
+      "failedRequestCount": 0,
+      "metrics": {
+        "viewport": {
+          "width": 960,
+          "height": 720
+        },
+        "documentWidth": 960,
+        "documentHeight": 720,
+        "openDialogs": [
+          "workspace-dialog",
+          ""
+        ],
+        "visibleRecoveryText": 0,
+        "visibleLegacyControls": 0,
+        "text": "Skip to board\nFlowboard\nBoards\nAppearance\nSign in\nSign in to access your boards\nSign in to access your boards\n\nYour boards are synchronized to your account. Existing browser-only data is never uploaded without review.\n\nBOARDS\n\nYour boards\n+ New board\n\nBoards load after cloud access is verified. Archived boards are retained until restored.\n\nAccount setup needs attention.\nRepair account setup\n\nFind a board\nActive boards\n\nBoards cannot be listed until account setup is verified.\n\nRepair account setup?\n\nFlowboard will create a new empty destination for your personal boards. Earlier inaccessible data stays unchanged and is not imported.\n\nCancel\nRepair account setup"
+      }
+    }
+  ]
+}

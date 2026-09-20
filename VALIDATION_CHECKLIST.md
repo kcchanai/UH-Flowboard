@@ -58,26 +58,23 @@ Run these checks before publishing a Flowboard change.
 - [ ] Separate real Google accounts verify owner/editor/viewer/non-member direct Firestore access after each production rule publication.
 - [ ] Keep `COLLABORATION_ARCHITECTURE.md` and `TERRA_NEXT_PHASES_PLAN.md` current; client UI is never treated as authorization.
 
-## Cloud workspace lifecycle
+## Recovery-menu retirement and protected maintenance
 
-- [x] Application lifecycle presentation tests pass for owner, editor, viewer, active, and archived states.
-- [x] Firestore Emulator tests pass for owner-only rename/archive/restore, invalid lifecycle denial, archived content denial, frozen member/invitation mutations, migration compatibility, and continued hard-delete denial.
-- [x] Browser tests cover rename, retained-data archive confirmation, Escape cancellation, focus return, archived non-openability, restore, and non-owner control absence.
-- [x] At mobile width, archived rows retain their visible workspace name and `archived · retained` status with Restore associated to the same row while Open, Rename, and Archive remain absent.
-- [x] Restoring an archived row immediately restores its Open, Rename, and Archive controls without hiding the workspace identity.
-- [x] Full local validation passes with 20 application/tooling tests, 23 Rules tests, 10 browser checks, syntax/static checks, production build, and 209,453 of 210,000 source bytes.
-- [x] Built lifecycle-dialog regression displays the exact stale-session message, leaves the dialog recoverable, and proves the losing name is not applied.
-- [x] Sync-controller regressions prove workspace-root rename propagation and archived-root handling that stops listeners exactly once, returns to local mode, ignores late callbacks, and does not reconnect on the next online event.
-- [x] Interrupted granular migration recovery is owner-readable, viewer-denied, revision-safe for partial writes, and Emulator-tested without direct Console data repair.
-- [x] Publish and production-test the interrupted-migration recovery release, then retry the retained lifecycle fixture to `ready` before archive/restore acceptance.
-- [x] Publish the source-controlled Rules only after release approval and record the deployed Rules source revision.
-- [x] Verify owner archive, automatic local fallback, retained archived presentation, owner Restore, restored cloud descendants, and visual return to the unchanged local baseline using only `Lifecycle acceptance renamed`.
-- [ ] Verify production owner rename convergence in an independent authenticated browser context without refresh, then prove a stale lifecycle mutation returns `REVISION_CONFLICT` without writing.
-- [ ] Verify an owner archive in one context stops the other context's listeners, returns it to unchanged local data, and causes no reconnect loop.
-- [ ] Verify editor/viewer/non-member/former-member/revoked-member lifecycle denial through production Rules, not only hidden controls.
-- [x] Verify archive and restore leave `flowboard-workspace` and `flowboard-data` byte-for-byte unchanged. Production evidence retained `flowboard-workspace` at exactly 8,539 bytes and retained `flowboard-data` as absent.
-- [ ] Restore the production workspace and remove or archive any acceptance fixtures through supported lifecycle operations.
+- [x] Account has no Data recovery or Review legacy browser data action in the customer UI.
+- [x] Boards has no retained workspace rows, recovery dialog mode, workspace lifecycle controls, cloud backup, or legacy-format upgrade controls.
+- [x] Account/Boards opening, Retry setup, Repair account setup, and Board actions Local recovery leave legacy browser keys byte-for-byte unchanged.
+- [x] Repair account setup remains explicit, confirmed, pointer-safe, and tested against invalid canonical pointers.
+- [x] Board archive/restore/Delete permanently confirmations remain accessible and focus-safe.
+- [x] Protected adapter/Rules migration and archived-root maintenance remain covered without ordinary Account/Boards routes.
+- [x] Rules and indexes remain byte-identical for this UI-retirement release.
+- [ ] Separately inventory production archived roots, interrupted migrations, invalid pointers, and browser-data support obligations before decommissioning protected maintenance code or Rules.
 
+## Cloud workspace lifecycle compatibility
+
+- [x] Rules tests still cover owner-only rename/archive/restore, invalid lifecycle denial, archived content denial, frozen member/invitation mutations, migration compatibility, and hard-delete denial.
+- [x] Emulator maintenance fixtures remain available for interrupted migration and retained-root behavior.
+- [x] Customer navigation exposes board-level archive/restore/delete, not workspace-container lifecycle rows.
+- [ ] Perform separate authorized production direct-authorization acceptance for any future maintenance-route release.
 ## Phase H production release and privacy
 
 - [x] Run sanitized direct probes from authenticated browser sessions plus the anonymous REST harness; never copy or retain tokens, credentials, emails, UIDs, opaque document identifiers, or full payloads.

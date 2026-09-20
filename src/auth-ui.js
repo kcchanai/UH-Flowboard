@@ -8,18 +8,16 @@ function messageFor(error) {
   if (code === 'auth/unauthorized-domain') return 'This site is not authorized for sign-in.';
   if (code === 'auth/operation-not-allowed') return 'Google sign-in is not enabled.';
   if (code === 'auth/network-request-failed') return 'Check your connection and retry.';
-  return 'Google sign-in could not be completed. Existing legacy browser data was not changed.';
+  return 'Google sign-in could not be completed. Browser-only data was not changed.';
 }
 
 const currentMode = () => globalThis.FlowboardApp?.getMode?.() || {kind:'auth-loading'};
 const remoteMode = mode => ['cloud','cloud-preview'].includes(mode.kind);
 
-export function accountSetupActions(retry,recovery,label='Retry setup'){
+export function accountSetupActions(retry,label='Retry setup'){
   const group=document.createElement('span');group.className='dialog-actions';group.dataset.setupActions='';
-  for(const [text,action] of [[label,retry],['Data recovery',recovery]]){
-    const button=document.createElement('button');Object.assign(button,{type:'button',className:'button button-quiet',textContent:text});
-    button.addEventListener('click',action);group.append(button);
-  }
+  const button=document.createElement('button');Object.assign(button,{type:'button',className:'button button-quiet',textContent:label});
+  button.addEventListener('click',event=>retry(event.currentTarget));group.append(button);
   return group;
 }
 
@@ -31,7 +29,6 @@ export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
   const signIn = document.querySelector('#google-sign-in');
   const signOut = document.querySelector('#account-sign-out');
   const workspaces = document.querySelector('#open-cloud-workspaces');
-  const recovery = document.querySelector('#open-cloud-recovery');
   const appearance = document.querySelector('#account-open-appearance');
   const name = document.querySelector('#account-name');
   const email = document.querySelector('#account-email');
@@ -62,7 +59,7 @@ export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
     } else {
       const recovery = mode.kind === 'needs-recovery';
       cloudStatus.textContent = mode.kind === 'loading' ? 'Loading boards' : recovery ? 'Account setup needed' : 'Boards unavailable';
-      cloudStatus.title = mode.message || 'Account setup needs attention. Retry or Data recovery.'
+      cloudStatus.title = mode.message || 'Account setup needs attention. Retry setup or repair account setup.'
     }
   };
   const render = (session, notify = true) => {
@@ -80,7 +77,6 @@ export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
     signIn.hidden = signedIn;
     signOut.hidden = !signedIn;
     workspaces.hidden = !signedIn;
-    if (recovery) recovery.hidden = !signedIn;
     renderContext(signedIn);
     if (!signedIn && !remoteMode(mode)) cloudStatus.textContent = 'Sign in required';
     if (notify) onSessionChange(session);

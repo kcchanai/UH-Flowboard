@@ -10,9 +10,9 @@ This document describes the current product behavior. It is not a promise that F
 
 ## Local data
 
-- The browser-local workspace is stored under `flowboard-workspace`. Older `flowboard-data` content is migrated locally.
+- The browser-local workspace is stored under `flowboard-workspace`. Older `flowboard-data` content and any legacy receipt remain untouched and are not imported by the current customer UI.
 - Signing in does not upload, merge, replace, synchronize, or delete browser-local data.
-- Creating a cloud copy is explicit, previewed, backup-first, and verified. The local original remains available.
+- Board actions Local recovery remains the supported browser-local snapshot route. It is separate from cloud workspace maintenance.
 - Up to five rotating recovery snapshots may be retained in the same browser storage. Undo history is session-only.
 - Clearing browser storage, using private browsing, device loss, or browser policy can remove local data. Downloaded exports are the user’s responsibility after download.
 - Returning from cloud mode reloads the browser-local workspace rather than retaining cloud content as local state.
@@ -64,8 +64,9 @@ A removed member loses direct reads, writes, and listeners. On reconnect, Flowbo
 
 - Comment removal is soft removal. The active body is cleared, while a minimal tombstone and matching activity evidence remain.
 - Cloud cards are archived rather than hard-deleted.
-- A workspace owner may archive and later restore a cloud workspace. Archive retains workspace content, memberships, invitations, and audit records; it blocks content access and lifecycle mutations until restoration and is not permanent deletion.
-- Client hard deletion of workspaces, boards, lists, cards, comments, invitations, and activity records is denied. Firestore does not cascade descendant deletion, so allowing parent deletion could strand inaccessible child records.
+- A workspace owner remains an owner in the authorization model, but workspace rename/archive/restore is no longer customer-facing normal navigation. Protected adapter/Rules maintenance remains for retained historical roots until a separate inventory authorizes decommission.
+- Archive retains workspace content, memberships, invitations, and audit records; it blocks content access and lifecycle mutations until restoration. Ordinary Boards navigation exposes board-level archive/restore/delete actions instead.
+- Cloud parent hard deletion remains denied. Firestore does not cascade descendant deletion, and Flowboard has no privileged recursive-deletion backend on the Spark plan.
 - Revoked and accepted invitation state may remain as lifecycle evidence.
 - Activity records are append-only and cannot be edited or deleted by clients.
 - Member removal and self-leave revoke access. Ownership must be transferred before an owner can cease being the owner.
@@ -74,7 +75,7 @@ A removed member loses direct reads, writes, and listeners. On reconnect, Flowbo
 
 ## Export behavior
 
-Flowboard supports browser-local workspace and board JSON exports and board CSV export. Cloud workspace export is explicit and does not silently merge into browser-local state. Export files can contain personal or project content and are outside Flowboard’s control after download. Store and share them appropriately.
+Customer-facing export/recovery remains board-scoped: Board actions provide CSV export and Local recovery provides browser-local snapshot inspection/restore. Cloud-workspace backup and legacy import/export remain protected maintenance capabilities, not Account or Boards navigation. Export files can contain personal or project content and are outside Flowboard’s control after download. Store and share them appropriately.
 
 ## Offline and cache behavior
 

@@ -2,7 +2,7 @@
 
 ## Status
 
-Flowboard is a GitHub Pages-hosted, local-first application with real Firebase Google Authentication and authenticated shared Firestore workspaces. Core Phase H production authorization, privacy, revocation, conflict, convergence, accessibility, quota, deployment, and cleanup gates are complete. Owner-only cloud workspace rename and recoverable archive/restore are deployed. Owner archive/Restore, retained-content recovery, and exact browser-local byte equality passed in production; independent-context convergence, lifecycle-specific role denials, listener shutdown, and final fixture closeout remain pending.
+Flowboard is a GitHub Pages-hosted, local-first application with real Firebase Google Authentication and authenticated shared Firestore workspaces. Core production authorization, privacy, revocation, conflict, convergence, accessibility, quota, deployment, and cleanup gates are complete. Workspace-container recovery and lifecycle controls are no longer customer-facing normal navigation. Owner-only adapter/Rules maintenance remains for archived or interrupted historical roots until a separate production inventory authorizes decommission.
 
 The complete, current order of work is [`TERRA_NEXT_PHASES_PLAN.md`](TERRA_NEXT_PHASES_PLAN.md). This document records the selected architecture and the constraints future work must preserve.
 
@@ -36,10 +36,10 @@ A project-level Google Cloud/Firebase Owner is distinct from a Flowboard workspa
 
 ### Workspace lifecycle
 
-- Only the current workspace owner may rename, archive, or restore a cloud workspace. Firestore Rules enforce this independently of the UI.
-- Rename changes only the bounded workspace name and server timestamp.
+- Only the current workspace owner may rename, archive, or restore a cloud workspace. Firestore Rules and protected adapter maintenance enforce this independently of the UI.
+- Normal Account and Boards navigation no longer exposes workspace-container identity or lifecycle controls. Ordinary board archive/restore/delete remains board-scoped.
 - Archive sets explicit lifecycle metadata. The workspace document, boards, lists, cards, comments, activity, members, and invitations are retained.
-- Archived workspace metadata remains discoverable to members so the owner can restore it, but workspace content cannot be opened or edited while archived.
+- Archived workspace metadata and interrupted migration maintenance remain protected for authorized support/decommission workflows; they are not ordinary board choices.
 - Membership and invitation mutations are frozen while archived. Restoration re-enables the retained workspace under the existing membership state.
 - Archiving an active cloud workspace returns that browser to its independent local workspace and causes other active content listeners to fail closed under Rules.
 - Cloud parent hard deletion remains denied. Firestore does not cascade-delete subcollections, and Flowboard has no privileged recursive-deletion backend on the Spark plan.
@@ -81,22 +81,15 @@ The current Phase H runbook is [`PHASE_H_RELEASE_VALIDATION.md`](PHASE_H_RELEASE
 
 Client controls are usability only. Production authorization evidence must come from authenticated direct Firestore requests and the published Rules revision. Hard deletion of cloud parents and comments is denied; cloud cards are archived and comments are soft-removed so nested comment records do not become unauthorized orphan data.
 
-## Local/cloud boundary and migration
+## Local/cloud boundary and historical maintenance
 
-`flowboard-workspace` and its browser recovery/export tooling remain the local source of truth unless a person explicitly selects a cloud action.
+`flowboard-workspace` remains the local source of truth for browser-local data. Older `flowboard-data` bytes and any legacy receipt remain inert in ordinary customer flows.
 
-The cloud-copy migration is intentionally two-stage:
+The customer UI does not provide legacy browser import, cloud-workspace backup, or workspace-container recovery. Protected adapter/Rules maintenance retains the prior backup/import/migration contracts for separately authorized support or decommission workflows.
 
-1. Preview local board/list/card counts and serialized size.
-2. Require a timestamped local JSON download before writes are enabled.
-3. Bootstrap workspace, authenticated owner membership, and the owner's profile reference in one authorized batch.
-4. Upload content in a separate bounded batch after membership exists.
-5. Read back workspace metadata and board IDs/counts before reporting success.
-6. Leave the browser-local original active. The compact status **Cloud copy · local** means the cloud copy was verified while local persistence remains active.
+Normal cloud discovery, granular editing, and active-surface realtime synchronization remain board-first. There is no implicit migration and no automatic local/cloud merge.
 
-Cloud workspace discovery, explicit switching, granular editing, and active-surface realtime synchronization are deployed. There is no implicit migration and no automatic local/cloud merge.
-
-Granular migration is owner-only, revision-aware, and retryable after interruption. While status is `migrating`, Rules allow only the owner to read retained board/list/card documents needed for verification and recovery; editors, viewers, and outsiders remain denied. A retry reads all existing granular documents before writing, creates missing documents at revision 0, increments revisions on existing partial documents, verifies counts, and only then returns the workspace to `ready`. Recovery never requires direct Console data mutation.
+Granular migration remains owner-only, revision-aware, and retryable after interruption. While status is `migrating`, Rules allow only the owner to read retained board/list/card documents needed for verification and recovery; editors, viewers, and outsiders remain denied. A retry reads all existing granular documents before writing, creates missing documents at revision 0, increments revisions on existing partial documents, verifies counts, and only then returns the workspace to `ready`. Recovery never requires direct Console data mutation.
 
 ## Realtime, conflicts, and revocation
 

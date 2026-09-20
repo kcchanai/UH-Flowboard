@@ -1,0 +1,62 @@
+{
+  "candidate": "Flowboard recovery-menu retirement",
+  "repository": "kcchanai/UH-Flowboard",
+  "branch": "fix/remove-recovery-menus",
+  "baselineMain": "8d3a66750885cccb3b6a5ac3136ecc1b9e2c5f9e",
+  "sourceCommit": "50d913cb61fe71f4d49b4e2caf75581c05522e09",
+  "rulesBlob": "296b595276122918f521d3f86ee6820a5cc876b7",
+  "indexesBlob": "79fc192e9b71eb3c18b7fd504b77fc9b07bcd18a",
+  "packageCommit": "9227712779025b519e14968068c72e31b2b5a06c",
+  "validation": {
+    "unitTests": {"passed": 41, "failed": 0},
+    "rulesTests": {"passed": 46, "failed": 0},
+    "packagedEmulatorBrowser": {"passed": 19, "failed": 0},
+    "configuredBrowserSelection": {"passed": 11, "failed": 0},
+    "lighthouse": {"accessibilityScore": 1, "failedAudits": 0},
+    "productionAssetIsolation": {"passedAssets": 17, "failedAssets": 0},
+    "finalSyntheticCapture": {
+      "surfaces": 5,
+      "http200": 5,
+      "consoleErrors": 0,
+      "pageErrors": 0,
+      "failedRequests": 0,
+      "overflowSurfaces": 0,
+      "surfacesWithVisibleRetiredText": 0
+    }
+  },
+  "budgets": {
+    "rawSourceBytes": 284258,
+    "rawSourceCapBytes": 300000,
+    "rawSourceHeadroomBytes": 15742,
+    "configuredInitialShellGzipBytes": 25868,
+    "configuredInitialShellGzipCapBytes": 26250,
+    "configuredFirstPartyLazyGzipBytes": 55568,
+    "configuredFirstPartyLazyGzipCapBytes": 60000,
+    "configuredDocumentGzipBytes": 4989,
+    "unconfiguredInitialShellGzipBytes": 25813,
+    "unconfiguredFirstPartyLazyGzipBytes": 55568,
+    "unconfiguredDocumentGzipBytes": 4987,
+    "capsChanged": false
+  },
+  "evidence": {
+    "finalCaptureReport": "artifacts/recovery-menu-retirement/final/capture-report.json",
+    "screenshotIndex": "artifacts/recovery-menu-retirement/SCREENSHOT_INDEX.md",
+    "budgetConfigured": "artifacts/recovery-menu-retirement/budget-configured.json",
+    "budgetUnconfigured": "artifacts/recovery-menu-retirement/budget-unconfigured.json"
+  },
+  "productionBoundary": {
+    "clientPagesDeploymentAuthorized": true,
+    "firestoreRulesPublication": false,
+    "firestoreIndexesPublication": false,
+    "realAccountAcceptance": false,
+    "productionDataAccess": false,
+    "protectedMaintenanceRemoved": false
+  },
+  "deployment": {
+    "status": "pending",
+    "mainSha": null,
+    "pagesWorkflowRunId": null,
+    "pagesDeploymentSha": null,
+    "liveUrl": "https://kcchanai.github.io/UH-Flowboard/"
+  }
+}

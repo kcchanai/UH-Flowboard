@@ -1,4 +1,4 @@
-import {requestLifecycleConfirmation as ask} from './workspace-lifecycle-ui.js';
+import {requestConfirmation as ask} from './confirmation-dialog-ui.js';
 const el=t=>document.createElement(t),button=(text,css='button button-quiet')=>Object.assign(el('button'),{type:'button',className:css,textContent:text});
 export function createBoardLifecycleActions({space:s,board:b,cloudAdapter:a,status,refresh}){
   if(s.role!=='owner')return[];

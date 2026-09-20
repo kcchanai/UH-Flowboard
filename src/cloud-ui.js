@@ -1,4 +1,4 @@
-export {initializeAuthUI} from './auth-ui.js';
+export {initializeAuthUI, accountSetupActions} from './auth-ui.js';
 export {initializeCloudWorkspaceUI} from './cloud-workspace-ui.js';
 export {initializeInviteUI} from './invite-ui.js';
 export {initializeMembersUI} from './members-ui.js';
