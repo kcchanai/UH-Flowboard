@@ -1,0 +1,151 @@
+{
+  "generatedAt": "2026-09-20T11:33:46.103Z",
+  "baseURL": "http://127.0.0.1:4173/UH-Flowboard/",
+  "browser": "isolated anonymous system Chrome contexts",
+  "dataBoundary": "Synthetic fixtures only. No real account, production document, protected workspace, token, cookie, or raw payload accessed.",
+  "results": [
+    {
+      "name": "account-signed-in-1440x900",
+      "httpStatus": 200,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "metrics": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "documentWidth": 1440,
+        "documentHeight": 900,
+        "openDialogs": [
+          "account-heading"
+        ],
+        "visibleButtons": [
+          "Boards",
+          "Appearance",
+          "Share Google profile photo",
+          "Appearance",
+          "Sign out",
+          "Boards",
+          "Data recovery"
+        ]
+      }
+    },
+    {
+      "name": "boards-personal-1440x900",
+      "httpStatus": 200,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "metrics": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "documentWidth": 1440,
+        "documentHeight": 900,
+        "openDialogs": [
+          "workspace-heading"
+        ],
+        "visibleButtons": [
+          "Boards",
+          "Appearance",
+          "Sign in",
+          "+ New board",
+          "Open",
+          "Archive",
+          "Delete permanently",
+          "Open",
+          "Archive",
+          "Delete permanently",
+          "Create board"
+        ]
+      }
+    },
+    {
+      "name": "boards-shared-read-only-1440x900",
+      "httpStatus": 200,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "metrics": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "documentWidth": 1440,
+        "documentHeight": 900,
+        "openDialogs": [
+          "workspace-heading"
+        ],
+        "visibleButtons": [
+          "Boards",
+          "Appearance",
+          "Sign in",
+          "+ New board",
+          "Open",
+          "Archive",
+          "Delete permanently",
+          "Open",
+          "Archive",
+          "Delete permanently",
+          "Open",
+          "Create board"
+        ]
+      }
+    },
+    {
+      "name": "data-recovery-retained-sources-1440x900",
+      "httpStatus": 200,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "metrics": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "documentWidth": 1440,
+        "documentHeight": 900,
+        "openDialogs": [
+          "workspace-heading"
+        ],
+        "visibleButtons": [
+          "Boards",
+          "Appearance",
+          "Sign in",
+          "Open",
+          "Rename",
+          "Archive"
+        ]
+      }
+    },
+    {
+      "name": "boards-narrow-320x720",
+      "httpStatus": 200,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "metrics": {
+        "viewport": {
+          "width": 320,
+          "height": 720
+        },
+        "documentWidth": 320,
+        "documentHeight": 720,
+        "openDialogs": [
+          "workspace-heading"
+        ],
+        "visibleButtons": [
+          "Boards",
+          "Appearance",
+          "Sign in",
+          "+ New board",
+          "Open",
+          "Archive",
+          "Delete permanently",
+          "Open",
+          "Archive",
+          "Delete permanently",
+          "Open",
+          "Create board"
+        ]
+      }
+    }
+  ]
+}
