@@ -213,7 +213,7 @@ test('Google account dialog preserves an explicit local-only boundary', async ({
   await expect(account).toBeFocused();
 });
 
-test('account panel is a first-level workspace and profile hub without session fanout', async ({page}) => {
+test('account panel is a first-level account and profile hub without session fanout', async ({page}) => {
   await openReady(page);
   await page.route('https://lh3.googleusercontent.com/**', route => route.fulfill({status:200, contentType:'image/svg+xml', body:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2 2"><path d="M0 0h2v2H0z" fill="rebeccapurple"/></svg>'}));
   const before = await page.evaluate(() => { document.querySelector('#account-button').hidden = false; return localStorage.getItem('flowboard-workspace'); });
@@ -238,8 +238,9 @@ test('account panel is a first-level workspace and profile hub without session f
   await page.locator('#account-button').click();
   const account = page.getByRole('dialog', {name:'Account'});
   await expect(account).toBeVisible();
-  await expect(account.locator('#account-workspace-name')).toHaveText('Synthetic workspace');
-  await expect(account.locator('#account-workspace-detail')).toContainText('Cloud workspace · owner · Synced');
+  await expect(account.locator('#account-workspace-section')).toHaveCount(0);
+  await expect(account.locator('#workspace-profile-section')).toContainText('Profile photo');
+  await expect(account.locator('#workspace-profile-status')).toContainText('people who can access your boards');
   await expect(account.getByRole('button', {name:'Share Google profile photo'})).toBeVisible();
   await expect(page.locator('#account-button')).toHaveAttribute('aria-label', 'Account: Synthetic owner');
   await expect(page.locator('#account-button img')).toHaveCount(1);
