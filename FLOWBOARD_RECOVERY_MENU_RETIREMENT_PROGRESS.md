@@ -14,8 +14,8 @@
 - [complete] Step 4 of 8: make account repair self-contained and preserve board safeguards
 - [complete] Step 5 of 8: detach obsolete customer UI graph and tighten contracts
 - [complete] Step 6 of 8: reconcile tests, CI, fixtures, and current documentation
-- [in_progress] Step 7 of 8: run full configured, Emulator, accessibility, and budget qualification
-- [pending] Step 8 of 8: package the Luna candidate and stop before deployment
+- [complete] Step 7 of 8: run full configured, Emulator, accessibility, and budget qualification
+- [in_progress] Step 8 of 8: package the Luna candidate and stop before deployment
 
 ## Evidence ledger
 

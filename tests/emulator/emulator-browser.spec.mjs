@@ -98,6 +98,9 @@ test('broken established pointer can be explicitly repaired without adopting the
   const manager=page.locator('#workspace-dialog');
   await expect(manager.getByRole('button',{name:'+ New board'})).toBeDisabled();
   await manager.getByRole('button',{name:'Repair account setup'}).click();
+  const repairConfirmation=page.getByRole('dialog',{name:'Repair account setup?'});
+  await expect(repairConfirmation).toBeVisible();
+  await repairConfirmation.getByRole('button',{name:'Repair account setup',exact:true}).click();
   await expect.poll(()=>page.evaluate(()=>FlowboardApp.getMode().kind),{timeout:15000}).toBe('cloud');
   await expect.poll(()=>page.evaluate(id=>FlowboardApp.getMode().personalWorkspaceId!==id,legacy)).toBe(true);
   await expect(manager.getByRole('button',{name:'+ New board'})).toBeEnabled();
