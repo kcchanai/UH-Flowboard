@@ -63,3 +63,27 @@ test('access activity invitation assignment and recovery surfaces use board-firs
   await expect(page.locator('#cloud-migration-safety')).not.toContainText('My workspace');
   await expect(page.locator('#create-cloud-workspace')).toHaveText('2. Import boards');
 });
+
+test('board manager keeps board-first copy and close control at required widths',async({page})=>{
+  await openReady(page);
+  await installDirectoryFixture(page);
+  const sizes=[{width:1440,height:900},{width:1900,height:700},{width:960,height:720},{width:390,height:720},{width:320,height:720}];
+  for(const size of sizes){
+    await page.setViewportSize(size);
+    const opener=page.locator('#boards-button');
+    await opener.click();
+    const manager=page.getByRole('dialog',{name:'Your boards'});
+    await expect(manager).toBeVisible();
+    await expect(manager.getByRole('button',{name:'Close boards'})).toBeVisible();
+    await expect(manager.locator('[aria-label*="workspace"]:visible')).toHaveCount(0);
+    const metrics=await manager.evaluate(dialog=>{const box=dialog.getBoundingClientRect(),close=dialog.querySelector('.dialog-close').getBoundingClientRect();return {top:box.top,bottom:box.bottom,right:box.right,closeBottom:close.bottom,closeRight:close.right,width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth};});
+    expect(metrics.top).toBeGreaterThanOrEqual(0);
+    expect(metrics.bottom).toBeLessThanOrEqual(metrics.height);
+    expect(metrics.right).toBeLessThanOrEqual(metrics.width);
+    expect(metrics.closeBottom).toBeLessThanOrEqual(metrics.height);
+    expect(metrics.closeRight).toBeLessThanOrEqual(metrics.width);
+    expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.width);
+    await manager.getByRole('button',{name:'Close boards'}).click();
+    await expect(opener).toBeFocused();
+  }
+});
