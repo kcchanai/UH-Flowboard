@@ -18,7 +18,7 @@ async function openFixture(page) {
   await page.locator('#account-button').click();
   const account = page.locator('#account-dialog');
   await expect(account).toBeVisible();
-  await account.getByRole('button', {name: 'My workspace'}).click();
+  await account.getByRole('button', {name: 'Boards'}).click();
   const picker = page.locator('#workspace-dialog');
   const row = picker.locator('#workspace-board-list .workspace-entry').filter({hasText: 'Emulator board'});
   await expect(row).toBeVisible();
@@ -191,7 +191,7 @@ test('Auth and Firestore Emulator workflow proves discovery, convergence, denial
     await owner.evaluate(() => globalThis.__flowboardEmulatorTest.restoreWorkspace());
 
     await owner.locator('#account-button').click();
-    await owner.locator('#account-dialog').getByRole('button', {name: 'My workspace'}).click();
+    await owner.locator('#account-dialog').getByRole('button', {name: 'Boards'}).click();
     const restoredRow = owner.locator('#workspace-board-list .workspace-entry').filter({hasText:'Emulator board'});
     await expect(restoredRow).toContainText('owner');
     await restoredRow.getByRole('button', {name:/Open Emulator board/}).click();

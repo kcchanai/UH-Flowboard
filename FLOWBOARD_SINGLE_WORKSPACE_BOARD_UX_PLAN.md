@@ -203,13 +203,13 @@ Fresh source observation during planning:
 - Enumerated raw production source: **295,374 / 300,000 bytes**.
 - Raw headroom: **4,626 bytes**; maintainability warning remains **210,000**.
 - Unbudgeted reachable modules: none.
-- Existing `dist` measurement: initial shell **26,150 / 26,250 gzip**, first-party lazy **57,982 / 58,000 gzip**, document **5,385 gzip**, vendor **139,809 gzip**.
+- Existing `dist` measurement: initial shell **26,150 / 26,250 gzip**, first-party lazy **57,982 / 58,000 gzip**, document **5,385 gzip**, vendor **139,809 gzip**. The later Step 4 recovery-route measurement established a separately authorized first-party-lazy transition to **60,000 gzip bytes**; the initial shell, raw source, warning, and per-file caps remain unchanged.
 
 The `dist` directory was not rebuilt for planning. These are artifact observations, not a qualified configured-build budget. The historical cloud-first package recorded configured-shell headroom of only 6 gzip bytes. Rebuild both configured and unconfigured variants before planning new allocations.
 
 Prefer removing the obsolete workspace-choice/redundant workspace-row UI and centralizing account-home resolution over adding another parallel controller. Keep recovery reachable via lazy UI. Do not delete privacy, error, accessibility, rollback, or recovery behavior to obtain space. Register every new reachable source/style module.
 
-No cap increase is approved by this request. If tested semantic recovery cannot fund the scope, stop at the budget gate with actual raw/per-file/shell/lazy deltas, a maintenance reserve proposal, and one explicit reduced-scope or cap-transition decision. Do not repeatedly code-golf source, silently raise caps, or count checkout line-ending changes as feature headroom.
+No cap increase was assumed before implementation. Aaron subsequently authorized a narrow, measured first-party-lazy cap transition from 58,000 to 60,000 bytes for this recovery route. If later scope cannot fit within the current raw, initial-shell, lazy, and per-file envelopes, stop with actual deltas and a new explicit decision. Do not count checkout line-ending changes as feature headroom.
 
 ## 7. Ten-step Luna execution plan
 

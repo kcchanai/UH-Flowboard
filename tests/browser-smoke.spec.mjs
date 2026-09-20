@@ -568,7 +568,9 @@ test('owner can retry an interrupted migration and the workspace list refreshes 
     initializeCloudWorkspaceUI({localAdapter:{inspectLegacyWorkspace:()=>({status:'none',counts:{boards:0}})},cloudAdapter}).setSession({uid:'owner'});
     document.querySelector('#boards-button').disabled=false;
   }, builtCloudWorkspaceAsset());
-  await page.locator('#boards-button').click();
+  await page.locator('#account-dialog').evaluate(dialog=>dialog.showModal());
+  await page.locator('#open-cloud-recovery').evaluate(button=>{button.hidden=false;});
+  await page.locator('#open-cloud-recovery').click();
   await page.locator('#legacy-spaces-section').evaluate(section=>{section.open=true;});
   const archivedRow=page.locator('.workspace-entry').filter({hasText:'Archived fixture'});
   await expect(archivedRow).toContainText('archived · retained');

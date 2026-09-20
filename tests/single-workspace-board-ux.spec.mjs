@@ -19,8 +19,7 @@ function directoryFixture() {
   };
 }
 
-// Step 1 reproduction. These assertions intentionally describe the pre-fix behavior.
-test('baseline existing workspace hints expose a workspace chooser and hide New board', async ({page}) => {
+test('board manager shows boards and keeps legacy recovery rows out of normal navigation', async ({page}) => {
   await openShell(page);
   await page.evaluate(async ({asset, fixture}) => {
     globalThis.FlowboardApp = {
@@ -38,10 +37,33 @@ test('baseline existing workspace hints expose a workspace chooser and hide New 
   await page.getByRole('button', {name: 'Boards'}).click();
   const dialog = page.getByRole('dialog', {name: 'Your boards'});
   await expect(dialog).toBeVisible();
-  await expect(dialog.locator('#legacy-spaces-list')).toContainText('Cloud workspace');
+  await expect(dialog.locator('#legacy-spaces-section')).toBeHidden();
   await expect(dialog.locator('#workspace-board-list')).toContainText('Synthetic active board');
   await expect(dialog.locator('#new-board-form')).toBeHidden();
   await page.screenshot({path: 'artifacts/single-workspace/step-01/baseline-workspace-rows.png', fullPage: true});
+});
+
+test('Data recovery route exposes retained workspace rows separately', async ({page}) => {
+  await openShell(page);
+  await page.evaluate(async ({asset, fixture}) => {
+    globalThis.FlowboardApp = {
+      getMode: () => ({kind: 'cloud', id: '', role: 'owner'}),
+      getActiveBoardId: () => '', openCloudWorkspace: () => {}, openCloudPreview: () => {}, selectBoard: () => {},
+      createBoard: () => false
+    };
+    const {initializeCloudWorkspaceUI} = await import(asset);
+    initializeCloudWorkspaceUI({
+      localAdapter: {inspectLegacyWorkspace: () => ({status: 'none', counts: {boards: 0}})},
+      cloudAdapter: {listBoardDirectory: async () => [fixture]}
+    }).setSession({uid: 'synthetic-owner'});
+    document.querySelector('#account-dialog').showModal();
+  }, {asset: builtCloudAsset(), fixture: directoryFixture()});
+  await page.locator('#open-cloud-recovery').click();
+  const dialog = page.getByRole('dialog', {name: 'Data recovery'});
+  await expect(dialog).toBeVisible();
+  await expect(dialog.locator('#legacy-spaces-section')).toBeVisible();
+  await expect(dialog.locator('#legacy-spaces-list')).toContainText('Cloud workspace');
+  await expect(dialog.locator('#workspace-board-list')).toBeHidden();
 });
 
 test('baseline archived board exposes disabled Archived and More instead of two direct actions', async ({page}) => {

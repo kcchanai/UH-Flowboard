@@ -61,6 +61,11 @@ test('existing workspace hints create a new personal scope without changing the 
   await assertSucceeds(getDoc(doc(db,'workspaces','must-not-create')));
 });
 
+test('verified accounts may create a hints-only profile before personal bootstrap',async()=>{
+  const uid='personal-hints-create',db=dbFor(uid);
+  await assertSucceeds(setDoc(doc(db,'users',uid),{uid,emailLower:`${uid}@example.com`,workspaceIds:['synthetic-hint']}));
+});
+
 test('unverified accounts cannot bootstrap a personal workspace',async()=>{
   await assert.rejects(ensurePersonal(dbFor('personal-unverified',false),'personal-unverified','unverified-workspace'));
 });

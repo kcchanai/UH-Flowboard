@@ -22,6 +22,7 @@ export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
   const signIn = document.querySelector('#google-sign-in');
   const signOut = document.querySelector('#account-sign-out');
   const workspaces = document.querySelector('#open-cloud-workspaces');
+  const recovery = document.querySelector('#open-cloud-recovery');
   const appearance = document.querySelector('#account-open-appearance');
   const name = document.querySelector('#account-name');
   const email = document.querySelector('#account-email');
@@ -78,6 +79,7 @@ export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
     signIn.hidden = signedIn;
     signOut.hidden = !signedIn;
     workspaces.hidden = !signedIn;
+    if (recovery) recovery.hidden = !signedIn;
     renderContext(signedIn);
     if (!signedIn && !remoteMode(mode)) cloudStatus.textContent = 'Sign in required';
     if (notify) onSessionChange(session);
