@@ -17,7 +17,7 @@ const remoteMode = mode => ['cloud','cloud-preview'].includes(mode.kind);
 export function accountSetupActions(retry,label='Retry setup'){
   const group=document.createElement('span');group.className='dialog-actions';group.dataset.setupActions='';
   const button=document.createElement('button');Object.assign(button,{type:'button',className:'button button-quiet',textContent:label});
-  button.addEventListener('click',retry);group.append(button);
+  button.addEventListener('click',event=>retry(event.currentTarget));group.append(button);
   return group;
 }
 

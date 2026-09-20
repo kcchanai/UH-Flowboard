@@ -11,8 +11,8 @@
 - [complete] Step 1 of 8: pin baseline and inventory recovery dependencies
 - [complete] Step 2 of 8: add failing-before retirement and safety contract
 - [complete] Step 3 of 8: remove Account and Boards recovery surfaces
-- [in_progress] Step 4 of 8: make account repair self-contained and preserve board safeguards
-- [pending] Step 5 of 8: detach obsolete customer UI graph and tighten contracts
+- [complete] Step 4 of 8: make account repair self-contained and preserve board safeguards
+- [in_progress] Step 5 of 8: detach obsolete customer UI graph and tighten contracts
 - [pending] Step 6 of 8: reconcile tests, CI, fixtures, and current documentation
 - [pending] Step 7 of 8: run full configured, Emulator, accessibility, and budget qualification
 - [pending] Step 8 of 8: package the Luna candidate and stop before deployment
@@ -24,7 +24,7 @@
 - Step 2 retirement contract: `artifacts/recovery-menu-retirement/STEP-02-RETIREMENT-CONTRACT.md`, 2/2 expected baseline failures and synchronized CI grep.
 - Retirement contract: complete in `artifacts/recovery-menu-retirement/STEP-02-RETIREMENT-CONTRACT.md`.
 - Account/Boards implementation: `artifacts/recovery-menu-retirement/STEP-03-UI-RETIREMENT.md`, board-first 6/6, static/check passed, raw source 291725 bytes.
-- Repair and board-safety implementation: in progress.
-- Customer-UI graph detachment: pending Step 5
+- Repair and board-safety implementation: `artifacts/recovery-menu-retirement/STEP-04-REPAIR-CONFIRMATION.md`, board-first 7/7, repair/archive confirmation and focus checks passed, raw source 294687 bytes.
+- Customer-UI graph detachment: in progress.
 - Test/docs/CI reconciliation: pending Step 6
 - Final validation package: pending Step 8
