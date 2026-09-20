@@ -1,0 +1,35 @@
+{
+  "scope": "Step 1 baseline on unchanged application source, synthetic UI data only",
+  "branch": "fix/blank-boards-and-confirmations",
+  "baselineHead": "72fc0912589a945937d49c08fc816e3248b031da",
+  "recordedOriginMain": "be2c4c74a4ff7e56625df821bb1135464a3522bb",
+  "rulesBlob": "296b595276122918f521d3f86ee6820a5cc876b7",
+  "indexesBlob": "79fc192e9b71eb3c18b7fd504b77fc9b07bcd18a",
+  "commands": [
+    {"command": "node artifacts/board-creation-dialog-plan/probe-baseline.mjs", "exitCode": 0},
+    {"command": "npm.cmd run build", "exitCode": 0},
+    {"command": "npm.cmd run measure:mvp-v2", "exitCode": 0},
+    {"command": "npm.cmd run check", "exitCode": 0}
+  ],
+  "diagnostic": {
+    "archive": {"dialogWidth": 440, "gridColumns": "40px 338px", "bodyWidth": 40, "reopenedCancelDisabled": true, "pointerCancelWorks": false},
+    "restore": {"dialogWidth": 440, "gridColumns": "40px 338px", "bodyWidth": 40, "reopenedCancelDisabled": true, "pointerCancelWorks": false},
+    "delete": {"dialogWidth": 440, "gridColumns": "40px 338px", "bodyWidth": 40, "inputWidth": 40, "reopenedCancelDisabled": true, "pointerCancelWorks": false},
+    "documentWidth": 1440,
+    "viewportWidth": 1440,
+    "errors": 0,
+    "failedRequests": 0
+  },
+  "budget": {
+    "rawSourceBytes": 284258,
+    "rawCapBytes": 300000,
+    "initialShellGzipBytes": 25813,
+    "initialShellGzipCapBytes": 26250,
+    "firstPartyLazyGzipBytes": 55568,
+    "firstPartyLazyGzipCapBytes": 60000,
+    "documentGzipBytes": 4987,
+    "confirmationModuleBytes": 2508
+  },
+  "productionChanges": 0,
+  "rulesOrIndexesChanged": false
+}
