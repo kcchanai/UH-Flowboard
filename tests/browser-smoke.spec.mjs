@@ -254,7 +254,7 @@ test('account panel is a first-level workspace and profile hub without session f
   expect(await page.evaluate(() => localStorage.getItem('flowboard-workspace'))).toBe(before);
 });
 
-test('Workspace status and Boards open the same My workspace manager', async ({page}) => {
+test('Boards is the sole top-level My workspace manager control', async ({page}) => {
   await openReady(page);
   await page.evaluate(async asset => {
     await new Promise(resolve => setTimeout(resolve, 50));
@@ -265,23 +265,17 @@ test('Workspace status and Boards open the same My workspace manager', async ({p
     document.querySelector('#boards-button').disabled=false;
   }, builtCloudWorkspaceAsset());
   await expect(page.locator('#boards-button')).toHaveText('Boards');
-  await expect(page.locator('#cloud-status')).toBeEnabled();
-  await expect(page.locator('#cloud-status')).toHaveAccessibleName(/Open My workspace/);
-  await page.locator('#cloud-status').click();
-  await expect(page.getByRole('dialog', {name:'Your boards'})).toBeVisible();
-  await page.getByRole('button', {name:'Close My workspace'}).click();
-  await expect(page.locator('#cloud-status')).toBeFocused();
+  await expect(page.locator('#cloud-status')).toBeHidden();
   await page.locator('#boards-button').click();
   await expect(page.getByRole('dialog', {name:'Your boards'})).toBeVisible();
   await page.getByRole('button', {name:'Close My workspace'}).click();
   await expect(page.locator('#boards-button')).toBeFocused();
 });
 
-test('cloud status feedback stays distinct and preserves local data scope', async ({page}) => {
+test('hidden cloud status feedback preserves local data scope', async ({page}) => {
   await openReady(page);
   const before = await page.evaluate(() => localStorage.getItem('flowboard-workspace'));
   await page.evaluate(() => FlowboardApp.openCloudWorkspace(FlowboardState.makeWorkspace(), {id:'status-fixture',name:'Status fixture',role:'editor'}));
-  await page.locator('#cloud-status').evaluate(node => { node.disabled = false; });
   for (const status of ['Connecting','Saving','Synced','Offline','Conflict','Error']) {
     await page.evaluate(value => FlowboardApp.setCloudSyncStatus(value, `${value} status`), status);
     await expect(page.locator('#cloud-status')).toHaveText(`Cloud workspace · editor · ${status}`);
@@ -290,8 +284,7 @@ test('cloud status feedback stays distinct and preserves local data scope', asyn
   await page.getByRole('button',{name:'Open appearance settings'}).click();
   await page.getByRole('button',{name:'Close appearance'}).click();
   await expect(page.locator('#cloud-status')).toHaveText('Cloud workspace · editor · Error');
-  await page.evaluate(() => FlowboardApp.returnToLocal());
-  await expect(page.locator('#collaboration-summary')).toHaveText('Browser-local workspace · editable');
+  await expect(page.locator('#cloud-status')).toBeHidden();
   expect(await page.evaluate(expected => localStorage.getItem('flowboard-workspace') === expected, before)).toBe(true);
 });
 
@@ -353,10 +346,6 @@ test('rich dialogs keep close actions reachable across office and compatibility 
     await boardsButton.click();
     await check(page.getByRole('dialog',{name:'Your boards'}),page.getByRole('button',{name:'Close My workspace'}));
     await expect(boardsButton).toBeFocused();
-    const workspaceButton=page.locator('#cloud-status');
-    await workspaceButton.click();
-    await check(page.getByRole('dialog',{name:'Your boards'}),page.getByRole('button',{name:'Close My workspace'}));
-    await expect(workspaceButton).toBeFocused();
   }
 });
 
@@ -943,17 +932,16 @@ test('list actions reorder locally, validate titles, and retain cloud lists', as
   await expect(cloudList.getByRole('menuitem', {name:/Delete list unavailable/})).toBeDisabled();
 });
 
-test('compact cloud-copy status fits the responsive top bar', async ({page}) => {
+test('responsive top bar omits redundant cloud status without overflow', async ({page}) => {
   await page.setViewportSize({width: 573, height: 500});
   await openReady(page);
-  const status = page.locator('#cloud-status');
-  await status.evaluate(element => { element.textContent = 'Cloud copy · local'; });
-  const dimensions = await status.evaluate(element => ({clientWidth:element.clientWidth, scrollWidth:element.scrollWidth}));
-  expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
+  await expect(page.locator('#cloud-status')).toBeHidden();
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth)).toBe(true);
 });
 
 test('desktop board structure keeps navigation separate and controls reachable', async ({page}) => {
   await openReady(page);
+  await page.evaluate(()=>FlowboardApp.openCloudWorkspace(FlowboardState.makeWorkspace(),{id:'desktop-structure',name:'My workspace',role:'owner'}));
   for (const width of [1280, 1440, 1920, 960]) {
     await page.setViewportSize({width, height:720});
     const layout = await page.evaluate(() => {
@@ -974,38 +962,30 @@ test('desktop board structure keeps navigation separate and controls reachable',
   }
 });
 
-test('board header actions align and Start here disclosure stays bounded', async ({page}) => {
+test('board header actions stay aligned and bounded', async ({page}) => {
   await openReady(page);
+  await page.evaluate(()=>FlowboardApp.openCloudWorkspace(FlowboardState.makeWorkspace(),{id:'header-bounds',name:'My workspace',role:'owner'}));
   for (const width of [1440, 960, 390, 320]) {
     await page.setViewportSize({width, height:720});
     const layout = await page.evaluate(() => {
       const actions = document.querySelector('.board-actions').getBoundingClientRect();
-      const guide = document.querySelector('details.collaboration-notice').getBoundingClientRect();
-      return {pageFits:document.documentElement.scrollWidth <= document.documentElement.clientWidth, actions:{top:actions.top,bottom:actions.bottom,center:actions.top + actions.height / 2}, guide:{top:guide.top,bottom:guide.bottom,center:guide.top + guide.height / 2}};
+      const view = document.querySelector('#view-toggle').getBoundingClientRect();
+      return {pageFits:document.documentElement.scrollWidth <= document.documentElement.clientWidth, actions:{top:actions.top,bottom:actions.bottom,center:actions.top + actions.height / 2}, view:{top:view.top,bottom:view.bottom,center:view.top + view.height / 2}};
     });
     expect(layout.pageFits, `header page overflow at ${width}px`).toBe(true);
-    if (width >= 960) expect(Math.abs(layout.actions.center - layout.guide.center), `header centerline at ${width}px`).toBeLessThanOrEqual(1);
-    else expect(layout.guide.top, `stacked disclosure at ${width}px`).toBeGreaterThanOrEqual(layout.actions.bottom - 1);
-    await page.locator('details.collaboration-notice summary').click();
-    await expect(page.locator('#start-here-copy')).toBeVisible();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
-    await page.locator('details.collaboration-notice summary').click();
+    if (width >= 1440) expect(Math.abs(layout.actions.center - layout.view.center), `header centerline at ${width}px`).toBeLessThanOrEqual(1);
+    else expect(layout.actions.top, `wrapped actions at ${width}px`).toBeGreaterThanOrEqual(layout.view.top);
   }
 });
 
-test('density toggle is browser-local and preserves workspace bytes', async ({page}) => {
-  await openReady(page);
-  const before = await page.evaluate(() => localStorage.getItem('flowboard-workspace'));
-  const toggle = page.locator('#density-toggle');
-  await toggle.click();
-  await expect(toggle).toHaveText('Compact');
-  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.density)).toBe('compact');
-  const compact = await page.evaluate(() => ({workspace:localStorage.getItem('flowboard-workspace'),preference:JSON.parse(localStorage.getItem('flowboard-ui-preferences'))}));
-  expect(compact.workspace).toBe(before);
-  expect(compact.preference.density).toBe('compact');
-  await toggle.click();
-  await expect(toggle).toHaveText('Comfortable');
-  await expect.poll(() => page.evaluate(() => document.documentElement.dataset.density)).toBe('comfortable');
+test('streamlined chrome keeps Board actions beside List view', async ({page}) => {
+  await openReady(page);await page.setViewportSize({width:1900,height:720});
+  await page.evaluate(()=>FlowboardApp.openCloudWorkspace(FlowboardState.makeWorkspace(),{id:'streamlined-header',name:'My workspace',role:'owner'}));
+  await expect(page.locator('.brand')).toBeVisible();await expect(page.getByRole('link',{name:'Flowboard'})).toHaveCount(0);
+  await expect(page.locator('#cloud-status')).toBeHidden();await expect(page.locator('#collaboration-summary')).toBeHidden();await expect(page.locator('#density-toggle')).toHaveCount(0);
+  const layout=await page.evaluate(()=>{const view=document.querySelector('#view-toggle').getBoundingClientRect(),menu=document.querySelector('#board-menu').getBoundingClientRect();return{sameRow:Math.abs(view.top-menu.top)<=1,ordered:menu.left>=view.right,density:document.documentElement.dataset.density||'comfortable'};});
+  expect(layout).toEqual({sameRow:true,ordered:true,density:'comfortable'});
+  await page.locator('#board-menu').click();await expect(page.locator('#board-menu-panel')).toBeVisible();
 });
 
 test('List view lazy-loads with parity, sorting, pagination, and card focus return', async ({page}) => {
