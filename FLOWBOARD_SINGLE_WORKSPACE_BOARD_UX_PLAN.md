@@ -203,7 +203,7 @@ Fresh source observation during planning:
 - Enumerated raw production source: **295,374 / 300,000 bytes**.
 - Raw headroom: **4,626 bytes**; maintainability warning remains **210,000**.
 - Unbudgeted reachable modules: none.
-- Existing `dist` measurement: initial shell **26,150 / 26,250 gzip**, first-party lazy **57,982 / 58,000 gzip**, document **5,385 gzip**, vendor **139,809 gzip**. The later Step 4 recovery-route measurement established a separately authorized first-party-lazy transition to **60,000 gzip bytes**; the initial shell, raw source, warning, and per-file caps remain unchanged.
+- Existing `dist` measurement: initial shell **26,150 / 26,250 gzip**, first-party lazy **57,982 / 58,000 gzip**, document **5,385 gzip**, vendor **139,809 gzip**. The later Step 4 recovery-route measurement established a separately authorized first-party-lazy transition to **60,000 gzip bytes**. Step 5 also established a narrowly authorized `src/cloud-workspace-ui.js` per-file cap of **14,000 bytes**; the raw source, initial shell, warning, and all other per-file caps remain unchanged.
 
 The `dist` directory was not rebuilt for planning. These are artifact observations, not a qualified configured-build budget. The historical cloud-first package recorded configured-shell headroom of only 6 gzip bytes. Rebuild both configured and unconfigured variants before planning new allocations.
 
