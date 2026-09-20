@@ -1,0 +1,15 @@
+{
+  "scope": "Anonymous isolated browser only. No account or workspace accessed.",
+  "httpStatus": 200,
+  "title": "Flowboard - project planning",
+  "heading": "Sign in to access your boards",
+  "status": "Sign in required",
+  "boardNavigationVisible": true,
+  "boardNavigationDisabled": true,
+  "newBoardFormVisible": false,
+  "gateText": "Sign in to access your boards\n\nYour boards are synchronized to your account. Existing browser-only data is never uploaded without review.",
+  "viewportWidth": 1440,
+  "documentWidth": 1440,
+  "consoleErrors": 0,
+  "pageErrors": 0
+}
