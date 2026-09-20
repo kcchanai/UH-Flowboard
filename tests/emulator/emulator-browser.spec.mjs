@@ -47,6 +47,12 @@ test('Google identity with mixed-case input bootstraps and creates a real cloud 
   await expect(page.locator('#board-title')).toHaveValue('Mixed-case account board');
 });
 
+test('populated home reports a fixed stage when a descendant read is denied',async({page})=>{
+  await page.goto(`${baseURL}/tests/emulator/index.html?personal=1`);await page.waitForFunction(()=>globalThis.__flowboardEmulatorTest?.ready===true);
+  const fixture=await page.evaluate(()=>globalThis.__flowboardEmulatorTest.prepareDeniedContent()),[host,port]=process.env.FIRESTORE_EMULATOR_HOST.split(':'),admin=await initializeTestEnvironment({projectId:'demo-flowboard-browser',firestore:{host,port:Number(port)}});
+  try{await admin.withSecurityRulesDisabled(async context=>{const batch=writeBatch(context.firestore()),root=doc(context.firestore(),'workspaces',fixture.workspaceId);batch.set(doc(root,'boardLifecycle',fixture.boardId,'deletedLists',fixture.listId),{schemaVersion:1,entityType:'list',boardId:fixture.boardId,entityId:fixture.listId,operationId:'stage-denial',deletedByUid:fixture.uid,createdAt:Timestamp.now()});await batch.commit();});await page.reload();await page.waitForFunction(()=>globalThis.__flowboardEmulatorTest?.ready===true);await expect.poll(()=>page.evaluate(()=>FlowboardApp.getMode().kind),{timeout:15000}).toBe('error');const mode=await page.evaluate(()=>{const value=FlowboardApp.getMode();return{kind:value.kind,code:value.errorCode,stage:value.errorStage,message:value.message||''};});expect(mode).toMatchObject({kind:'error',code:'permission-denied',stage:'cards-query'});expect(mode.message).toContain('cards-query');expect(mode.message).not.toContain(fixture.workspaceId);}finally{await admin.cleanup();}
+});
+
 test('startup denial stays unavailable until Retry setup creates a verified home and board',async({page})=>{
   await page.goto(`${baseURL}/tests/emulator/index.html?personal=1&setupFailure=1`);
   await page.waitForFunction(()=>globalThis.__flowboardEmulatorTest?.ready===true);
@@ -64,7 +70,10 @@ test('startup denial stays unavailable until Retry setup creates a verified home
   await expect(manager).not.toContainText('Create your first board');
   await expect(manager).not.toContainText('Use New board above');
   await expect(manager.locator('#cloud-workspaces-status')).toContainText('permission-denied');
-  await page.screenshot({path:'artifacts/account-bootstrap-fix/blocked-boards.png',fullPage:true});
+  await page.screenshot({path:'artifacts/permission-denied-fix/blocked-boards.png',fullPage:true});
+  await page.setViewportSize({width:1440,height:900});await page.screenshot({path:'artifacts/permission-denied-fix/blocked-boards-wide.png',fullPage:false});
+  await page.setViewportSize({width:960,height:540});await page.screenshot({path:'artifacts/permission-denied-fix/blocked-boards-short.png',fullPage:false});
+  await page.setViewportSize({width:1280,height:720});
   await manager.getByRole('button',{name:'Retry setup'}).click();
   await expect.poll(()=>page.evaluate(()=>FlowboardApp.getMode().kind),{timeout:15000}).toBe('cloud');
   await expect(manager.getByRole('button',{name:'+ New board'})).toBeEnabled();
@@ -74,7 +83,7 @@ test('startup denial stays unavailable until Retry setup creates a verified home
   await manager.getByRole('button',{name:'Create board',exact:true}).click();
   await expect(manager.locator('#workspace-board-list')).toContainText('Recovered first board');
   expect(await page.evaluate(()=>globalThis.__flowboardEmulatorTest.personalSummary())).toEqual({signedIn:true,hasPointer:true,workspaceExists:true,role:'owner',boardCount:1});
-  await page.screenshot({path:'artifacts/account-bootstrap-fix/recovered-boards.png',fullPage:true});
+  await page.screenshot({path:'artifacts/permission-denied-fix/recovered-boards.png',fullPage:true});
 });
 
 test('broken established pointer can be explicitly repaired without adopting the legacy scope',async({page})=>{
