@@ -10,8 +10,8 @@
 
 - [complete] Step 1 of 8: pin baseline and inventory recovery dependencies
 - [complete] Step 2 of 8: add failing-before retirement and safety contract
-- [in_progress] Step 3 of 8: remove Account and Boards recovery surfaces
-- [pending] Step 4 of 8: make account repair self-contained and preserve board safeguards
+- [complete] Step 3 of 8: remove Account and Boards recovery surfaces
+- [in_progress] Step 4 of 8: make account repair self-contained and preserve board safeguards
 - [pending] Step 5 of 8: detach obsolete customer UI graph and tighten contracts
 - [pending] Step 6 of 8: reconcile tests, CI, fixtures, and current documentation
 - [pending] Step 7 of 8: run full configured, Emulator, accessibility, and budget qualification
@@ -23,8 +23,8 @@
 - Baseline command and fixture inventory: `artifacts/recovery-menu-retirement/STEP-01-BASELINE-INVENTORY.md`, synthetic built preview, 5/5 HTTP 200, 0 console/page errors, no overflow.
 - Step 2 retirement contract: `artifacts/recovery-menu-retirement/STEP-02-RETIREMENT-CONTRACT.md`, 2/2 expected baseline failures and synchronized CI grep.
 - Retirement contract: complete in `artifacts/recovery-menu-retirement/STEP-02-RETIREMENT-CONTRACT.md`.
-- Account/Boards implementation: pending Step 3
-- Repair and board-safety implementation: pending Step 4
+- Account/Boards implementation: `artifacts/recovery-menu-retirement/STEP-03-UI-RETIREMENT.md`, board-first 6/6, static/check passed, raw source 291725 bytes.
+- Repair and board-safety implementation: in progress.
 - Customer-UI graph detachment: pending Step 5
 - Test/docs/CI reconciliation: pending Step 6
 - Final validation package: pending Step 8

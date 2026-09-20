@@ -15,11 +15,15 @@ const required = [
   ['Vite module entry', /type="module"\s+src="\/src\/main\.js"/],
   ['honest cloud status', /id="cloud-status"/],
   ['Google account dialog', /id="account-dialog"/],
-  ['explicit cloud migration dialog', /id="cloud-migration-dialog"/],
   ['unified My workspace dialog', /id="workspace-dialog"/],
-  ['explicit legacy-data safety notice', /Existing browser-only data is never uploaded/]
+  ['explicit browser-data non-mutation notice', /Browser-only legacy data stays on this device and is not imported into your boards\./]
 ];
 for (const [label, pattern] of required) if (!pattern.test(html)) throw new Error(`Static validation failed: missing ${label}.`);
+const retiredDom = ['open-cloud-recovery', 'open-cloud-migration', 'cloud-migration-dialog', 'legacy-spaces-section', 'legacy-spaces-list', 'migrate-cloud-workspace', 'export-cloud-workspace'];
+for (const token of retiredDom) if (html.includes(`id="${token}"`)) throw new Error(`Static validation failed: retired DOM selector remains: ${token}.`);
+for (const copy of ['Data recovery', 'Review legacy browser data', 'Older data is available in Data recovery']) if (html.includes(copy)) throw new Error(`Static validation failed: retired visible copy remains: ${copy}.`);
+if (cloudUI.includes('open-cloud-recovery') || cloudUI.includes('open-cloud-migration') || cloudUI.includes('legacy-spaces-section') || cloudUI.includes('Data recovery')) throw new Error('Static validation failed: cloud UI still owns a retired recovery route.');
+
 if (!app.includes('FlowboardState.cardMatches') || !app.includes('FlowboardState.csvForBoard')) throw new Error('App does not use tested state helpers.');
 if (app.includes('localStorage.')) throw new Error('App bypasses the local workspace adapter.');
 if (!app.includes('FlowboardRuntime?.localAdapter')) throw new Error('App does not use the local workspace adapter.');
@@ -29,15 +33,15 @@ if (!runtimeBootstrap.includes('Object.freeze({cloudStatus, localAdapter, cloudA
 if (!core.includes('module.exports')) throw new Error('State helpers are not testable in Node.');
 if (!main.includes('createLocalWorkspaceAdapter') || !localAdapter.includes('inspectLegacyWorkspace') || localAdapter.includes('loadWorkspace()')) throw new Error('Inert legacy recovery adapter boundary is incomplete.');
 if (!main.includes('createFirebaseWorkspaceAdapter') || !firebaseAdapter.includes('signInWithPopup')) throw new Error('Firebase Authentication boundary is incomplete.');
-if (!authUI.includes('Existing legacy browser data was not changed') || !html.includes('Existing browser-only data is never uploaded without a separate review and confirmation')) throw new Error('Authentication UI lacks legacy-data safety handling.');
+if (!authUI.includes('Browser-only data was not changed') || !html.includes('Browser-only legacy data stays on this device and is not imported into your boards.')) throw new Error('Authentication UI lacks browser-data safety handling.');
 if (!cloudAdapter.includes('firebase-migration.js') || !migrationAdapter.includes('getDocFromServer') || !migrationAdapter.includes('getDocsFromServer') || !migrationAdapter.includes('importLegacyWorkspace') || !migrationAdapter.includes('exportCloudBackup') || !migrationAdapter.includes('groups=(values,size=4)') || !migrationAdapter.includes('alreadyMigrated')) throw new Error('Verified cloud migration adapter is incomplete, unbounded, or not safely retryable.');
 if (!lifecycleAdapter.includes('firebase-deletion.js') || !deletionAdapter.includes('preflightDeletion') || !deletionAdapter.includes('resumeDeletion') || !deletionAdapter.includes('getDocFromServer') || !deletionAdapter.includes('getDocsFromServer') || !deletionAdapter.includes("limit(10)") || !deletionAdapter.includes('deletedCards') || !deletionAdapter.includes('deletedLists')) throw new Error('Bounded resumable deletion adapter is incomplete.');
 if (!app.includes("'verification-pending'") || !app.includes('contextGeneration') || !app.includes('retryLastCommand') || !app.includes("dialog.returnValue=''")) throw new Error('Awaitable command or reentrant confirmation boundary is incomplete.');
 if (!cloudAdapter.includes('orderBy(documentId())') || !cloudAdapter.includes('startAfter(cursor)') || !cloudUI.includes('async function loadMore') || !cloudUI.includes("async function openSpace(space,boardId=''){const request=++generation") || html.includes('cloud-workspaces-dialog') || html.includes('return-to-local-workspace')) throw new Error('Unified My workspace pagination, stale-request protection, or obsolete-route removal is incomplete.');
 if (!firebaseAdapter.includes('firebase-workspace-lifecycle.js') || !firebaseAdapter.includes('renameWorkspace') || !firebaseAdapter.includes('archiveWorkspace') || !firebaseAdapter.includes('restoreWorkspace') || !/status:["']archived["']/.test(lifecycleAdapter) || !lifecycleAdapter.includes('archivedByUid:') || !lifecycleAdapter.includes('runTransaction') || !lifecycleAdapter.includes('REVISION_CONFLICT')) throw new Error('Owner workspace lifecycle adapter is incomplete or not revision-safe.');
-if (!cloudUI.includes('workspace-lifecycle-ui.js') || !lifecycleUI.includes('archived') || !lifecycleUI.includes('retained') || !lifecycleUI.includes('will be retained') || lifecycleUI.includes('confirm(')) throw new Error('Workspace lifecycle UI must disclose retention and use an in-app confirmation.');
+if (!lifecycleUI.includes('archived') || !lifecycleUI.includes('retained') || !lifecycleUI.includes('will be retained') || lifecycleUI.includes('confirm(')) throw new Error('Workspace lifecycle confirmation safety is incomplete.');
 if (!cloudUI.includes('u.append(t,d)') || !lifecycleUI.includes('l.append(x)')) throw new Error('Archived identity and restored Open controls must survive lifecycle refreshes.');
-if (!cloudUI.includes('Workspace container · upgrade needed') || !cloudUI.includes('retry uses the same operation')) throw new Error('Interrupted cloud migration recovery UI is incomplete.');
+if (cloudUI.includes('legacyUI') || cloudUI.includes('spacesList') || cloudUI.includes('backupWorkspaceId') || cloudUI.includes('migrate-cloud-workspace') || cloudUI.includes('export-cloud-workspace')) throw new Error('Customer cloud UI still contains retired recovery state.');
 if (!rules.includes('validWorkspaceOwnerUpdate') || !rules.includes('canReadWorkspaceContent') || !rules.includes('isActiveWorkspace(workspaceId)') || !rules.includes("request.resource.data.status == 'archived'") || !rules.includes('allow delete: if false;')) throw new Error('Workspace lifecycle Rules are incomplete or allow hard deletion.');
 if (!legacyImportUI.includes('inspection.backup.content') || !legacyImportUI.includes('The original browser data remains unchanged') || !legacyImportUI.includes('saveLegacyMigrationReceipt')) throw new Error('Legacy import UI lacks exact-backup and receipt safety handling.');
 if (!app.includes('openCloudPreview') || !app.includes('normalizeCloudWorkspace') || !app.includes("['cloud','cloud-preview']") || !cloudUI.includes('read-only')) throw new Error('Cloud preview or cloud-only mode boundary is incomplete.');

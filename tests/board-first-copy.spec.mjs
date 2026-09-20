@@ -36,7 +36,8 @@ test('Boards manager exposes board choices and preserves shared-scope distinctio
   await expect(manager).toBeVisible();
   await expect(manager.getByText('Your boards')).toBeVisible();
   await expect(manager.locator('.eyebrow')).not.toContainText('MY WORKSPACE');
-  await expect(manager.locator('#cloud-workspaces-safety')).toContainText('Older data is available in Data recovery.');
+  await expect(manager.locator('#cloud-workspaces-safety')).not.toContainText('Data recovery');
+  await expect(manager.getByText('Older data and recovery')).toHaveCount(0);
   await expect(manager.locator('#new-board-title').locator('xpath=..')).toContainText('New board');
   const rows=manager.locator('#workspace-board-list .workspace-entry').filter({hasText:'Repeated board'});
   await expect(rows).toHaveCount(3);
@@ -60,8 +61,8 @@ test('access activity invitation assignment and recovery surfaces use board-firs
   await expect(page.locator('#workspace-members-dialog .eyebrow')).toHaveText('Board access');
   await expect(page.locator('#invite-heading')).toHaveText('Access shared boards');
   await expect(page.locator('#invite-dialog .eyebrow')).toHaveText('Board invitation');
-  await expect(page.locator('#cloud-migration-safety')).not.toContainText('My workspace');
-  await expect(page.locator('#create-cloud-workspace')).toHaveText('2. Import boards');
+  await expect(page.locator('#cloud-migration-safety')).toHaveCount(0);
+  await expect(page.locator('#create-cloud-workspace')).toHaveCount(0);
 });
 
 test('retired recovery controls are absent from Account and Boards',async({page})=>{
@@ -75,20 +76,18 @@ test('retired recovery controls are absent from Account and Boards',async({page}
   await expect(account).toBeVisible();
   await expect(account.getByRole('button',{name:'Data recovery',exact:true})).toHaveCount(0);
   await expect(account.getByRole('button',{name:'Review legacy browser data',exact:true})).toHaveCount(0);
-  await expect(account.getByRole('button',{name:'Boards',exact:true})).toHaveCount(1);
+  await expect(page.locator('#open-cloud-workspaces')).toHaveCount(1);
   await account.getByRole('button',{name:/Close account/}).click();
-  await page.getByRole('button',{name:'Boards'}).click();
-  await expect(page.getByRole('dialog',{name:'Your boards'})).toBeVisible();
-  await expect(page.locator('#legacy-spaces-section')).toHaveCount(0);
   expect(await page.evaluate(()=>({current:localStorage.getItem('flowboard-workspace'),legacy:localStorage.getItem('flowboard-data'),receipt:localStorage.getItem('flowboard-legacy-migration-v1')}))).toEqual(before);
 });
 
 test('account repair remains explicit and separate from Retry',async({page})=>{
   await openReady(page);
-  await page.evaluate(async asset=>{const host=document.createElement('div');host.id='repair-contract';document.body.append(host);const {accountSetupActions}=await import(asset);host.append(accountSetupActions(()=>{},()=>{},'Repair account setup'));},builtCloudUIAsset());
-  const actions=page.locator('#repair-contract');
-  await expect(actions.getByRole('button',{name:'Repair account setup',exact:true})).toBeVisible();
-  await expect(actions.getByRole('button',{name:'Data recovery',exact:true})).toHaveCount(0);
+  await page.evaluate(async asset=>{globalThis.FlowboardApp={getMode:()=>({kind:'needs-recovery',id:'invalid-source',personalWorkspaceId:'invalid-source',role:'owner',message:'Account setup needs attention.'}),getActiveBoardId:()=>'',openCloudWorkspace:()=>{},openCloudPreview:()=>{},selectBoard:()=>{},createBoard:()=>false,retryAccountSetup:()=>{},setSession:()=>{}};const {initializeCloudWorkspaceUI}=await import(asset);initializeCloudWorkspaceUI({localAdapter:{inspectLegacyWorkspace:()=>({status:'none',counts:{boards:0}})},cloudAdapter:{listBoardDirectory:async()=>[{id:'invalid-source',name:'Invalid source',ownerUid:'owner',role:'owner',status:'ready',personal:false,migration:{state:'verified'},boards:[],hasMore:false}]}}).setSession({uid:'owner'});document.querySelector('#boards-button').disabled=false;},builtCloudUIAsset());
+  await page.getByRole('button',{name:'Boards'}).click();
+  const manager=page.getByRole('dialog',{name:'Your boards'});
+  await expect(manager.getByRole('button',{name:'Repair account setup',exact:true})).toBeVisible();
+  await expect(manager.getByRole('button',{name:'Data recovery',exact:true})).toHaveCount(0);
 });
 
 test('board manager keeps board-first copy and close control at required widths',async({page})=>{
