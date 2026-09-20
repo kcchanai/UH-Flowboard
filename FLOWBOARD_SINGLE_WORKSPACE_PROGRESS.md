@@ -20,7 +20,7 @@ Production: unchanged. No push, PR, merge, deployment, Rules publication, migrat
 | 7 | Session, realtime, and recovery edge cases | complete | pending commit | `artifacts/single-workspace/step-07/` |
 | 8 | Onboarding, copy, accessibility, and layout | complete | pending commit | `artifacts/single-workspace/step-08/` |
 | 9 | Full qualification and CI coverage | complete | pending commit | `artifacts/single-workspace/step-09/` |
-| 10 | Local release candidate package | in_progress | pending | `artifacts/single-workspace/step-10/` |
+| 10 | Local release candidate package | complete | final attestation pending commit | `artifacts/single-workspace/step-10/` |
 
 ## Step protocol
 
