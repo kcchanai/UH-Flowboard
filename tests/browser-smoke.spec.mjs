@@ -983,8 +983,7 @@ test('streamlined chrome keeps Board actions beside List view', async ({page}) =
   await page.evaluate(()=>FlowboardApp.openCloudWorkspace(FlowboardState.makeWorkspace(),{id:'streamlined-header',name:'My workspace',role:'owner'}));
   await expect(page.locator('.brand')).toBeVisible();await expect(page.getByRole('link',{name:'Flowboard'})).toHaveCount(0);
   await expect(page.locator('#cloud-status')).toBeHidden();await expect(page.locator('#collaboration-summary')).toBeHidden();await expect(page.locator('#density-toggle')).toHaveCount(0);
-  const layout=await page.evaluate(()=>{const view=document.querySelector('#view-toggle').getBoundingClientRect(),menu=document.querySelector('#board-menu').getBoundingClientRect();return{sameRow:Math.abs(view.top-menu.top)<=1,ordered:menu.left>=view.right,density:document.documentElement.dataset.density||'comfortable'};});
-  expect(layout).toEqual({sameRow:true,ordered:true,density:'comfortable'});
+  await expect.poll(()=>page.evaluate(()=>{const view=document.querySelector('#view-toggle').getBoundingClientRect(),menu=document.querySelector('#board-menu').getBoundingClientRect();return{sameRow:Math.abs(view.top-menu.top)<=1,ordered:menu.left>=view.right,density:document.documentElement.dataset.density||'comfortable'};})).toEqual({sameRow:true,ordered:true,density:'comfortable'});
   await page.locator('#board-menu').click();await expect(page.locator('#board-menu-panel')).toBeVisible();
 });
 
