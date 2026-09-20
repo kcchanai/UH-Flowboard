@@ -11,7 +11,7 @@
   const {uid, now, cleanColor, activity, makeCard, makeList, makeBoard, makeEmptyWorkspace, normalizeCard, normalizeBoard, normalizeCloudWorkspace, validWorkspace, dueState, clone, moveCard, moveList, makeCardDraft, hasCardDraftChanges, applyCardDraft} = State;
   const adapter = globalThis.FlowboardRuntime?.localAdapter;
   const ic = () => activeWorkspace.kind === 'cloud', ip = () => activeWorkspace.kind === 'cloud-preview', ir = () => ['cloud','cloud-preview'].includes(activeWorkspace.kind), flt = () => Boolean(searchTerm || filters.due !== 'all' || filters.label !== 'all' || filters.member !== 'all' || filters.completed !== 'all');
-  let state, activeWorkspace = {kind:'auth-loading'}, searchTerm = '', filters = {due:'all',label:'all',member:'all',completed:'all'}, currentUserUid = '', personalWorkspaceId='', sessionGeneration = 0, contextGeneration = 0, draggedCardId = null, pendingAction = null;
+  let state, activeWorkspace = {kind:'auth-loading'}, searchTerm = '', filters = {due:'all',label:'all',member:'all',completed:'all'}, currentUserUid = '', currentSession=null, personalWorkspaceId='', sessionGeneration = 0, contextGeneration = 0, draggedCardId = null, pendingAction = null;
   let openCardId = null, dialogTrigger = null, confirmTrigger = null, toastTimer, cardDraft = null, cardSavePending = false, cmp = false, pendingCommand = '', lastCommand = null, mutationGeneration=0, listView = null, activeView = 'board';
 
   if (!adapter) throw new Error('Flowboard local adapter failed to initialize.');
@@ -134,11 +134,11 @@
   document.addEventListener('click', event => { if (!event.target.closest('.board-actions')) closeBoardMenu(false); if (!event.target.closest('.list')) closeListMenus();const panel=$('#filter-panel');if(!event.target.closest('.filter-actions')&&!panel.hidden){panel.hidden=true;$('#filter-toggle').setAttribute('aria-expanded','false');} });
 
   function setCloudState(kind,message='',extra={}) { contextGeneration+=1;cmp=false;pendingCommand='';$$('dialog[open]').forEach(dialog=>dialog.close());state=makeEmptyWorkspace();activeWorkspace={kind,message,...extra};openCardId=null;cardDraft=null;cardSavePending=false;render();window.dispatchEvent(new Event('flowboard:cloud-preview-change')); }
-  async function activateSession(session) {
-    const generation=++sessionGeneration;currentUserUid=session?.uid||'';personalWorkspaceId='';
+  async function activateSession(session,recover=false) {
+    const generation=++sessionGeneration;currentSession=session;currentUserUid=session?.uid||'';personalWorkspaceId='';
     if(!session)return setCloudState('signed-out');setCloudState('loading');
     try{
-      const choice=await globalThis.FlowboardRuntime.cloudAdapter.ensurePersonalWorkspace();if(generation!==sessionGeneration)return;
+      const choice=await globalThis.FlowboardRuntime.cloudAdapter.ensurePersonalWorkspace({recover});if(generation!==sessionGeneration)return;
       if(choice.state==='needs-recovery')return setCloudState('needs-recovery','Your account workspace could not be verified. Retry setup or open Data recovery. Flowboard did not choose another workspace.');
       const entry=choice.entry,workspace=await globalThis.FlowboardRuntime.cloudAdapter.fetchWorkspace(entry.id);if(generation!==sessionGeneration)return;
       if(entry.status!=='ready'||entry.migration?.state!=='verified')return setCloudState('needs-recovery','Your account workspace needs owner recovery before boards can open.');
@@ -153,6 +153,7 @@
   matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => { if ((document.documentElement.dataset.appearanceMode || state.preferences.theme) === 'system') applyTheme(); }); state = makeEmptyWorkspace(); activeWorkspace={kind:'auth-loading'}; const savedUi = adapter.loadUiPreferences?.() || {density:'comfortable'}; document.documentElement.dataset.density = savedUi.density === 'compact' ? 'compact' : 'comfortable'; const densityButton=$('#density-toggle'); if(densityButton) densityButton.textContent=savedUi.density === 'compact' ? 'Compact' : 'Comfortable'; const savedAppearance = adapter.loadAppearance?.(); if (savedAppearance?.version === 1 && ['system','light','dark'].includes(savedAppearance.mode) && globalThis.FlowboardRuntime.canvasPalettes.some(item => item.id === savedAppearance.canvas) && ['gradient','solid'].includes(savedAppearance.finish) && typeof savedAppearance.showPhotos === 'boolean') { document.documentElement.dataset.appearanceMode = savedAppearance.mode; document.documentElement.dataset.canvas = savedAppearance.canvas; document.documentElement.dataset.canvasFinish = savedAppearance.finish; document.documentElement.dataset.appearancePhotos = savedAppearance.showPhotos ? 'photos' : 'initials'; } applyTheme(); render();
   globalThis.FlowboardApp = Object.freeze({
     getMode: () => ({...activeWorkspace,personalWorkspaceId}),
+    retryAccountSetup:()=>currentSession?activateSession(currentSession,true):Promise.resolve(),
     getActiveBoardId: () => state.activeBoardId,
         getActiveBoardSnapshot: () => board() ? clone(board()) : null,
         selectBoard: id => { if(!state.boards.some(item=>item.id===id))return false;contextGeneration+=1;pendingCommand='';cmp=false;state.activeBoardId=id;render();window.dispatchEvent(new Event('flowboard:active-board-change'));say('Board opened');return true; },

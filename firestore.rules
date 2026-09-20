@@ -920,11 +920,34 @@ service cloud.firestore {
         && resource.data.personalWorkspaceId is string
         && resource.data.personalWorkspaceId.size() > 0;
     }
+    function currentPersonalWorkspaceValid(uid, pointer) {
+      return pointer is string
+        && pointer.size() > 0
+        && exists(workspaceDoc(pointer))
+        && exists(memberDoc(pointer, uid))
+        && get(workspaceDoc(pointer)).data.personal == true
+        && get(workspaceDoc(pointer)).data.status == 'ready'
+        && get(workspaceDoc(pointer)).data.migration.state == 'verified'
+        && get(workspaceDoc(pointer)).data.ownerUid == uid
+        && get(memberDoc(pointer, uid)).data.uid == uid
+        && get(memberDoc(pointer, uid)).data.role == 'owner';
+    }
+    function validPersonalWorkspaceRecovery(uid) {
+      let prior = resource.data.personalWorkspaceId;
+      let next = request.resource.data.personalWorkspaceId;
+      return establishedPersonalPointer(uid)
+        && next is string
+        && next != prior
+        && request.resource.data.workspaceIds.hasAll([prior, next])
+        && !currentPersonalWorkspaceValid(uid, prior)
+        && validPersonalWorkspacePointer(uid, request.resource.data);
+    }
     function validPersonalWorkspaceUpdate(uid) {
       return !establishedPersonalPointer(uid)
         ? validPersonalWorkspacePointer(uid, request.resource.data)
         : request.resource.data.keys().hasAny(['personalWorkspaceId'])
-          && request.resource.data.personalWorkspaceId == resource.data.personalWorkspaceId;
+          && (request.resource.data.personalWorkspaceId == resource.data.personalWorkspaceId
+            || validPersonalWorkspaceRecovery(uid));
     }
     function validUserProfileCreate(uid) {
       return verifiedEmail()

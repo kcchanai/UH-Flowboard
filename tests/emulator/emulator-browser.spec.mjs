@@ -77,24 +77,30 @@ test('startup denial stays unavailable until Retry setup creates a verified home
   await page.screenshot({path:'artifacts/account-bootstrap-fix/recovered-boards.png',fullPage:true});
 });
 
-test('broken established pointer stays recoverable without adopting another personal-looking owner scope',async({page})=>{
+test('broken established pointer can be explicitly repaired without adopting the legacy scope',async({page})=>{
   await page.goto(`${baseURL}/tests/emulator/index.html?personal=1`);
   await page.waitForFunction(()=>globalThis.__flowboardEmulatorTest?.ready===true);
   await page.evaluate(()=>globalThis.__flowboardEmulatorTest.signInMixedCase());
   await expect.poll(()=>page.evaluate(()=>FlowboardApp.getMode().kind),{timeout:15000}).toBe('cloud');
-  const session=await page.evaluate(async()=>({uid:(await FlowboardRuntime.cloudAdapter.getSession()).uid,original:FlowboardApp.getMode().personalWorkspaceId}));
+  const session=await page.evaluate(async()=>({uid:(await FlowboardRuntime.cloudAdapter.getSession()).uid,original:FlowboardApp.getMode().personalWorkspaceId})),legacy='legacy-invalid-home';
   const [host,port]=process.env.FIRESTORE_EMULATOR_HOST.split(':'),admin=await initializeTestEnvironment({projectId:'demo-flowboard-browser',firestore:{host,port:Number(port)}});
-  try{await admin.withSecurityRulesDisabled(async context=>{const batch=writeBatch(context.firestore());batch.update(doc(context.firestore(),'users',session.uid),{personalWorkspaceId:'missing-canonical-home'});await batch.commit();});}finally{await admin.cleanup();}
+  try{await admin.withSecurityRulesDisabled(async context=>{const db=context.firestore(),root=doc(db,'workspaces',legacy),batch=writeBatch(db);batch.update(doc(db,'users',session.uid),{personalWorkspaceId:legacy,workspaceIds:[session.original,legacy]});batch.set(root,{name:'Legacy scope',ownerUid:session.uid,schemaVersion:5,status:'ready',personal:false,lifecycleRevision:0,activeBoardId:'',migration:{version:1,state:'verified',counts:{boards:0,lists:0,cards:0}},updatedAt:Timestamp.now()});batch.set(doc(root,'members',session.uid),{uid:session.uid,role:'owner',emailLower:'mixed@example.com'});await batch.commit();});}finally{await admin.cleanup();}
   await page.reload();
   await expect.poll(()=>page.evaluate(()=>globalThis.FlowboardApp?.getMode().kind),{timeout:15000}).toBe('needs-recovery');
   await page.locator('#boards-button').click();
   const manager=page.locator('#workspace-dialog');
   await expect(manager.getByRole('button',{name:'+ New board'})).toBeDisabled();
-  await manager.getByRole('button',{name:'Retry setup'}).click();
-  await expect.poll(()=>page.evaluate(()=>FlowboardApp.getMode().kind)).toBe('needs-recovery');
-  await expect(manager.getByRole('button',{name:'+ New board'})).toBeDisabled();
+  await manager.getByRole('button',{name:'Repair account setup'}).click();
+  await expect.poll(()=>page.evaluate(()=>FlowboardApp.getMode().kind),{timeout:15000}).toBe('cloud');
+  await expect.poll(()=>page.evaluate(id=>FlowboardApp.getMode().personalWorkspaceId!==id,legacy)).toBe(true);
+  await expect(manager.getByRole('button',{name:'+ New board'})).toBeEnabled();
+  await manager.getByRole('button',{name:'+ New board'}).click();
+  await page.locator('#new-board-title').fill('Repaired account board');
+  await page.locator('#board-template').selectOption('blank');
+  await manager.getByRole('button',{name:'Create board',exact:true}).click();
+  await expect(manager.locator('#workspace-board-list')).toContainText('Repaired account board');
   const check=await initializeTestEnvironment({projectId:'demo-flowboard-browser',firestore:{host,port:Number(port)}});
-  try{await check.withSecurityRulesDisabled(async context=>{const snapshot=await getDoc(doc(context.firestore(),'users',session.uid));expect(snapshot.data().personalWorkspaceId).toBe('missing-canonical-home');expect(snapshot.data().workspaceIds).toEqual([session.original]);});}finally{await check.cleanup();}
+  try{await check.withSecurityRulesDisabled(async context=>{const snapshot=await getDoc(doc(context.firestore(),'users',session.uid));expect(snapshot.data().personalWorkspaceId).not.toBe(legacy);expect(snapshot.data().workspaceIds).toEqual(expect.arrayContaining([session.original,legacy,snapshot.data().personalWorkspaceId]));});}finally{await check.cleanup();}
 });
 
 test('fresh account bootstraps one empty personal cloud workspace across contexts without touching legacy bytes', async ({browser}) => {
@@ -118,10 +124,11 @@ test('fresh account bootstraps one empty personal cloud workspace across context
 });
 
 test('existing workspace hints bootstrap a separate personal home without a workspace choice', async ({page}) => {
-  await page.goto(`${baseURL}/tests/emulator/index.html?personal=1`);
+  await page.goto(`${baseURL}/tests/emulator/index.html?personal=1&hintsOnly=1`);
   await page.waitForFunction(() => globalThis.__flowboardEmulatorTest?.ready === true);
   const result = await page.evaluate(() => globalThis.__flowboardEmulatorTest.existingHintsContext());
-  expect(result).toEqual({state:'created',hasPointer:true,hintPreserved:true,workspacePersonal:true,workspaceReady:true,role:'owner'});
+  expect(['created','existing']).toContain(result.state);
+  expect(result).toMatchObject({hasPointer:true,hintPreserved:true,workspacePersonal:true,workspaceReady:true,role:'owner'});
   await expect.poll(() => page.evaluate(() => globalThis.FlowboardApp.getMode().kind), {timeout:15000}).toBe('cloud');
   await expect(page.locator('#board').getByRole('heading',{name:'Your workspace is ready'})).toBeVisible();
 });

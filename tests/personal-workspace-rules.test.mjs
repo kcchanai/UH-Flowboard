@@ -83,6 +83,30 @@ test('existing lowercase profile remains usable when provider token email casing
   assert.deepEqual((await getDoc(doc(db,'users',uid))).data().workspaceIds,['retained-hint','legacy-case-personal']);
 });
 
+test('explicit recovery replaces an invalid canonical pointer and retains its hint',async()=>{
+  const uid='personal-recovery',prior='legacy-personal-looking-scope',candidate='recovered-personal-scope';
+  await env.withSecurityRulesDisabled(async context=>{
+    const db=context.firestore(),root=doc(db,'workspaces',prior);
+    await setDoc(doc(db,'users',uid),{uid,emailLower:`${uid}@example.com`,workspaceIds:[prior],personalWorkspaceId:prior});
+    await setDoc(root,{name:'Legacy scope',ownerUid:uid,schemaVersion:5,status:'ready',personal:false,lifecycleRevision:0,activeBoardId:'',migration:{version:1,state:'verified',counts:{boards:0,lists:0,cards:0}},updatedAt:serverTimestamp()});
+    await setDoc(doc(root,'members',uid),{uid,role:'owner',emailLower:`${uid}@example.com`});
+  });
+  const db=dbFor(uid);
+  await runTransaction(db,async transaction=>{
+    const profile=await transaction.get(doc(db,'users',uid));
+    await Promise.all([transaction.get(doc(db,'workspaces',prior)),transaction.get(doc(db,'workspaces',prior,'members',uid))]);
+    const root=doc(db,'workspaces',candidate);
+    transaction.set(root,{name:'My workspace',ownerUid:uid,schemaVersion:5,status:'ready',personal:true,lifecycleRevision:0,activeBoardId:'',migration:{version:1,state:'verified',counts:{boards:0,lists:0,cards:0}},createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
+    transaction.set(doc(root,'members',uid),{uid,role:'owner',emailLower:`${uid}@example.com`});
+    transaction.set(doc(db,'users',uid),{uid,emailLower:`${uid}@example.com`,workspaceIds:arrayUnion(prior,candidate),personalWorkspaceId:candidate},{merge:true});
+    assert.equal(profile.data().personalWorkspaceId,prior);
+  });
+  const profile=await getDoc(doc(db,'users',uid));
+  assert.equal(profile.data().personalWorkspaceId,candidate);
+  assert.deepEqual(profile.data().workspaceIds,[prior,candidate]);
+  await assertSucceeds(getDoc(doc(db,'workspaces',candidate)));
+});
+
 test('unverified accounts cannot bootstrap a personal workspace',async()=>{
   await assert.rejects(ensurePersonal(dbFor('personal-unverified',false),'personal-unverified','unverified-workspace'));
 });
