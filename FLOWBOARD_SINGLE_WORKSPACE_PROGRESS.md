@@ -18,8 +18,8 @@ Production: unchanged. No push, PR, merge, deployment, Rules publication, migrat
 | 5 | Visible, reliable New board | complete | pending commit | `artifacts/single-workspace/step-05/` |
 | 6 | Archived-board Restore and Delete permanently | complete | pending commit | `artifacts/single-workspace/step-06/` |
 | 7 | Session, realtime, and recovery edge cases | complete | pending commit | `artifacts/single-workspace/step-07/` |
-| 8 | Onboarding, copy, accessibility, and layout | in_progress | pending | `artifacts/single-workspace/step-08/` |
-| 9 | Full qualification and CI coverage | not_started | pending | `artifacts/single-workspace/step-09/` |
+| 8 | Onboarding, copy, accessibility, and layout | complete | pending commit | `artifacts/single-workspace/step-08/` |
+| 9 | Full qualification and CI coverage | in_progress | pending | `artifacts/single-workspace/step-09/` |
 | 10 | Local release candidate package | not_started | pending | `artifacts/single-workspace/step-10/` |
 
 ## Step protocol
