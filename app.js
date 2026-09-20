@@ -145,8 +145,8 @@
       personalWorkspaceId=entry.id;state=normalizeCloudWorkspace(workspace);activeWorkspace={kind:'cloud',id:entry.id,name:entry.name||'My workspace',role:entry.role,syncStatus:'Connecting'};render();window.dispatchEvent(new Event('flowboard:cloud-preview-change'));
     }catch(error){
       if(generation!==sessionGeneration)return;
-      const code=['permission-denied','failed-precondition','unavailable','auth/network-request-failed','EMAIL_NOT_VERIFIED','AUTH_REQUIRED'].includes(error?.code)?error.code:'unexpected-error',offline=['unavailable','auth/network-request-failed'].includes(code)||!navigator.onLine;
-      console.error('Flowboard cloud session failed.',code);setCloudState(offline?'offline':'error',`Account setup failed (${code}). Retry setup or open Data recovery.`);
+      const code=['permission-denied','failed-precondition','unavailable','auth/network-request-failed','EMAIL_NOT_VERIFIED','AUTH_REQUIRED'].includes(error?.code)?error.code:'unexpected-error',stage=error?.stage||'session',offline=['unavailable','auth/network-request-failed'].includes(code)||!navigator.onLine;
+      console.error('Flowboard cloud session failed.',code,stage);setCloudState(offline?'offline':'error',`Cloud unavailable (${code} at ${stage}). Retry setup or open Data recovery.`,{errorCode:code,errorStage:stage});
     }
   }
 

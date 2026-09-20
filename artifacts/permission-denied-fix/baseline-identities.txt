@@ -1,0 +1,4 @@
+branch=fix/permission-denied-diagnosis
+baseline=47454298495dd99f83f3c1f33dac8e8f2ff3b7b2
+rulesBlob=71b5e7aa2fd1fae4b9f2c53d31f8fd6e081b333d
+indexesBlob=79fc192e9b71eb3c18b7fd504b77fc9b07bcd18a

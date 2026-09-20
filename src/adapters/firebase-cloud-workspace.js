@@ -14,6 +14,7 @@ const context = (app, auth) => ({db:getFirestore(app), user:requireUser(auth)});
 const pageSizeOf = value => Math.min(Math.max(Number.isInteger(value) ? value : 25, 1), 25);
 
 const normalizeEmail = value => String(value || '').trim().toLowerCase();
+const staged=(stage,run)=>run().catch(error=>{error.stage=stage;throw error;});
 const randomId = () => {
   const values = new Uint8Array(16); crypto.getRandomValues(values);
   return btoa(String.fromCharCode(...values)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
@@ -52,15 +53,15 @@ export async function setBoardArchived(app,auth,{workspaceId,boardId,expectedRev
 
 export async function fetchCloudWorkspace(app, auth, workspaceId, {serverOnly=false}={}) {
   const {db}=context(app,auth);
-  const readDoc=serverOnly?getDocFromServer:getDoc,readDocs=serverOnly?getDocsFromServer:getDocs,metadata = await readDoc(doc(db, 'workspaces', workspaceId));
+  const readDoc=serverOnly?getDocFromServer:getDoc,readDocs=serverOnly?getDocsFromServer:getDocs,readQuery=(stage,target)=>staged(stage,()=>readDocs(target)),metadata = await staged('workspace-root',()=>readDoc(doc(db, 'workspaces', workspaceId)));
   if (!metadata.exists()) throw Object.assign(new Error('Workspace missing.'), {code:'WORKSPACE_NOT_FOUND'});
-  const boards = await readDocs(query(collection(db, 'workspaces', workspaceId, 'boards'), where('lifecycleState', '==', 'active'), where('archived', '==', false)));
+  const boards = await readQuery('boards-query',query(collection(db, 'workspaces', workspaceId, 'boards'), where('lifecycleState', '==', 'active'), where('archived', '==', false)));
   const workspace = {...metadata.data(), id:workspaceId};
   const visibleBoards=boards.docs.filter(item=>!item.data().archived);
   if (workspace.migration?.state !== 'verified') return {...workspace, boards:visibleBoards.map(item => item.data().snapshot)};
   const records = await Promise.all(visibleBoards.map(async item => {
-    const lists=await readDocs(query(collection(item.ref, 'lists'),where('lifecycleState','==','active')));
-    const cardPages=await Promise.all(lists.docs.map(list=>readDocs(query(collection(item.ref,'cards'),where('listId','==',list.id),where('lifecycleState','==','active')))));
+    const lists=await readQuery('lists-query',query(collection(item.ref, 'lists'),where('lifecycleState','==','active')));
+    const cardPages=await Promise.all(lists.docs.map(list=>readQuery('cards-query',query(collection(item.ref,'cards'),where('listId','==',list.id),where('lifecycleState','==','active')))));
     return {board:{id:item.id, ...item.data()},lists:lists.docs.map(doc=>({id:doc.id,...doc.data()})),cards:cardPages.flatMap(page=>page.docs.map(doc=>({id:doc.id,...doc.data()})))};
   }));
   return rehydrateGranularWorkspace(workspace, records);
