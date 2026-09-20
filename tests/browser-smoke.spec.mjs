@@ -350,61 +350,6 @@ test('rich dialogs keep close actions reachable across office and compatibility 
   }
 });
 
-test('owner workspace lifecycle dialog renames, archives, restores, and returns focus', async ({page}) => {
-  await openReady(page);
-  await page.evaluate(async asset => {
-    const {createWorkspaceLifecycleControls} = await import(asset);
-    const fixture = document.createElement('section'), openButton = document.createElement('button');
-    const title = document.createElement('strong'), detail = document.createElement('span'), status = document.createElement('output');
-    fixture.className = 'lifecycle-fixture'; openButton.textContent = 'Open fixture'; title.textContent = 'Lifecycle fixture';
-    fixture.append(openButton, title, detail, status); document.body.prepend(fixture);
-    const entry = {id:'fixture', name:'Lifecycle fixture', ownerUid:'owner', role:'owner', status:'ready', migration:{state:'verified'}};
-    let revision=0;
-    const mutate=options=>{if(options.expectedRevision!==revision)throw Object.assign(new Error('This workspace changed in another session. Refresh and try again.'),{code:'REVISION_CONFLICT'});return ++revision;};
-    globalThis.advanceLifecycleRevision=()=>++revision;
-    const adapter = {
-      renameWorkspace:async options => ({name:options.name.trim(),lifecycleRevision:mutate(options)}),
-      archiveWorkspace:async options => ({status:'archived',lifecycleRevision:mutate(options)}),
-      restoreWorkspace:async options => ({status:'ready',lifecycleRevision:mutate(options)})
-    };
-    fixture.append(createWorkspaceLifecycleControls({entry, session:{uid:'owner'}, cloudAdapter:adapter, openButton, title, detail, lifecycleStatus:status}));
-    const nonOwner = document.createElement('section'), nonOwnerOpen = document.createElement('button');
-    nonOwner.className = 'non-owner-lifecycle-fixture';
-    nonOwner.append(nonOwnerOpen, createWorkspaceLifecycleControls({entry:{...entry, role:'editor'}, session:{uid:'editor'}, cloudAdapter:adapter, openButton:nonOwnerOpen, title:document.createElement('strong'), detail:document.createElement('span'), lifecycleStatus:document.createElement('output')}));
-    document.body.prepend(nonOwner);
-  }, builtLifecycleAsset());
-
-  const fixture = page.locator('.lifecycle-fixture');
-  await expect(page.locator('.non-owner-lifecycle-fixture').getByRole('button')).toHaveCount(1);
-  await fixture.getByRole('button', {name:'Rename'}).click();
-  const rename = page.getByRole('dialog', {name:'Rename cloud workspace'});
-  await rename.getByLabel('Workspace name').fill('Renamed lifecycle fixture');
-  await rename.getByRole('button', {name:'Save name'}).click();
-  await expect(fixture.locator('strong')).toHaveText('Renamed lifecycle fixture');
-
-  const archiveButton = fixture.getByRole('button', {name:'Archive'});
-  await archiveButton.click();
-  const archive = page.getByRole('dialog', {name:'Archive cloud workspace?'});
-  await expect(archive).toContainText('contents will be retained');
-  await page.keyboard.press('Escape');
-  await expect(archiveButton).toBeFocused();
-  await archiveButton.click();
-  await archive.getByRole('button', {name:'Archive workspace'}).click();
-  await expect(fixture.getByRole('button', {name:'Open fixture'})).toBeHidden();
-  await expect(fixture).toContainText('archived · retained');
-  await fixture.getByRole('button', {name:'Restore'}).click();
-  await expect(fixture.getByRole('button', {name:'Open fixture'})).toBeVisible();
-  await page.evaluate(()=>globalThis.advanceLifecycleRevision());
-  await fixture.getByRole('button', {name:'Rename'}).click();
-  await rename.getByLabel('Workspace name').fill('Stale lifecycle fixture');
-  await rename.getByRole('button', {name:'Save name'}).click();
-  await expect(rename).toBeVisible();
-  await expect(rename.getByRole('status')).toHaveText('This workspace changed in another session. Refresh and try again.');
-  await expect(rename.getByRole('button', {name:'Save name'})).toBeEnabled();
-  await expect(fixture.locator('strong')).toHaveText('Renamed lifecycle fixture');
-  await rename.getByRole('button', {name:'Cancel'}).click();
-});
-
 test('cloud collaboration access explains roles and invitation lifecycle', async ({page}) => {
   await openReady(page);
   await page.evaluate(async asset => {
@@ -537,48 +482,6 @@ test('late comment pagination is discarded after card closure', async ({page}) =
   await page.locator('#card-dialog').evaluate(dialog => dialog.close());
   await page.evaluate(() => globalThis.resolveOlderComments({entries:[{id:'stale-comment',authorUid:'owner',body:'Stale comment',createdAt:null}],cursor:null,hasMore:false}));
   await expect(page.locator('#cloud-comments-list')).not.toContainText('Stale comment');
-});
-
-test('owner can retry an interrupted migration and the workspace list refreshes to editable', async ({page}) => {
-  await page.setViewportSize({width:390,height:844});
-  await openReady(page);
-  await page.evaluate(async asset => {
-    let verified = false;
-    const entry = () => ({id:'retry-fixture',name:'Interrupted fixture',ownerUid:'owner',role:'owner',status:verified?'ready':'migrating',migration:{state:verified?'verified':'migrating'},boards:[],hasMore:false});
-    const archivedEntry = {id:'archived-fixture',name:'Archived fixture',ownerUid:'owner',role:'owner',status:'archived',migration:{state:'verified'},boards:[],hasMore:false};
-    const cloudAdapter = {
-      listBoardDirectory:async()=>[entry(),archivedEntry],
-      fetchWorkspace:async()=>{if(!verified)throw new Error('interrupted');return {schemaVersion:4,activeBoardId:'board',boards:[]};},
-      exportCloudBackup:async()=>({format:'flowboard-cloud-backup'}),
-      migrateWorkspaceToGranular:async()=>{verified=true;return {boards:1,lists:1,cards:1};},
-      renameWorkspace:async()=>({}),archiveWorkspace:async()=>({}),restoreWorkspace:async()=>({lifecycleRevision:1})
-    };
-    globalThis.FlowboardApp={getMode:()=>({kind:'cloud',id:'retry-fixture',role:'owner'}),getActiveBoardId:()=>'',openCloudWorkspace:()=>{globalThis.upgradeOpened=true;},openCloudPreview:()=>{},selectBoard:()=>{},createBoard:()=>false};
-    const {initializeCloudWorkspaceUI}=await import(asset);
-    initializeCloudWorkspaceUI({localAdapter:{inspectLegacyWorkspace:()=>({status:'none',counts:{boards:0}})},cloudAdapter}).setSession({uid:'owner'});
-    document.querySelector('#boards-button').disabled=false;
-  }, builtCloudWorkspaceAsset());
-  await page.locator('#account-dialog').evaluate(dialog=>dialog.showModal());
-  await page.locator('#open-cloud-recovery').evaluate(button=>{button.hidden=false;});
-  await page.locator('#open-cloud-recovery').click();
-  await page.locator('#legacy-spaces-section').evaluate(section=>{section.open=true;});
-  const archivedRow=page.locator('.workspace-entry').filter({hasText:'Archived fixture'});
-  await expect(archivedRow).toContainText('archived · retained');
-  await expect(archivedRow.getByRole('button',{name:/Open|Rename|Archive/})).toHaveCount(0);
-  await expect(archivedRow.getByRole('button',{name:'Restore'})).toBeVisible();
-  const [summaryBox,restoreBox]=await Promise.all([archivedRow.locator('.workspace-board').boundingBox(),archivedRow.getByRole('button',{name:'Restore'}).boundingBox()]);
-
-  expect(restoreBox.y).toBeGreaterThanOrEqual(summaryBox.y+summaryBox.height-1);
-  await archivedRow.getByRole('button',{name:'Restore'}).click();
-  await expect(archivedRow).toContainText('Cloud workspace · owner · editable');
-  await expect(archivedRow.getByRole('button',{name:'Open Archived fixture'})).toBeVisible();
-  await expect(archivedRow.getByRole('button',{name:'Rename'})).toBeVisible();
-  await expect(archivedRow.getByRole('button',{name:'Archive',exact:true})).toBeVisible();
-  await expect(archivedRow.getByRole('button',{name:'Restore'})).toHaveCount(0);
-  await page.getByRole('button',{name:'Download complete backup'}).click();
-  await page.getByRole('button',{name:'Upgrade legacy format'}).click();
-  await expect(page.locator('#cloud-workspaces-status')).toContainText('Upgrade verified');
-  expect(await page.evaluate(()=>globalThis.upgradeOpened)).toBe(true);
 });
 
 test('dirty card discard preserves the nested cloud lifecycle confirmation',async({page})=>{

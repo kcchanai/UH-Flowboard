@@ -61,9 +61,7 @@ test('startup denial stays unavailable until Retry setup creates a verified home
   const gate=page.locator('#board .cloud-gate');
   await expect(gate).toContainText('permission-denied');
   await expect(gate.getByRole('button',{name:'Retry setup'})).toBeVisible();
-  await gate.getByRole('button',{name:'Data recovery',exact:true}).click();
-  await expect(page.getByRole('dialog',{name:'Data recovery'})).toBeVisible();
-  await page.locator('#close-workspace-dialog').click();
+  await expect(gate.getByRole('button',{name:'Data recovery',exact:true})).toHaveCount(0);
   await page.locator('#boards-button').click();
   const manager=page.locator('#workspace-dialog');
   await expect(manager.getByRole('button',{name:'+ New board'})).toBeDisabled();
@@ -193,28 +191,13 @@ test('stale verification retry cannot discard a later committed command',async({
   await page.goto(`${baseURL}/tests/emulator/index.html?personal=1&staleRetry=1`);await page.waitForFunction(()=>globalThis.__flowboardEmulatorTest?.ready===true);await page.evaluate(()=>globalThis.__flowboardEmulatorTest.signInFreshPersonal());await expect.poll(()=>page.evaluate(()=>globalThis.FlowboardApp.getMode().kind),{timeout:15000}).toBe('cloud');const result=await page.evaluate(async()=>{const first=globalThis.FlowboardApp.createBoard('First board','blank');await first.completion;const second=globalThis.FlowboardApp.createBoard('Later board','blank');const committed=await second.completion,beforeRetry=globalThis.FlowboardApp.getActiveBoardSnapshot()?.title,retry=await first.retry();return{committed:committed.status,retry:retry.status,beforeRetry,afterRetry:globalThis.FlowboardApp.getActiveBoardSnapshot()?.title};});expect(result.committed).toBe('committed');expect(result.retry).toBe('stale');expect(result.afterRetry).toBe(result.beforeRetry);
 });
 
-test('legacy browser import is explicit, account-bound, idempotent, and byte-preserving', async ({browser}) => {
-  const context=await browser.newContext(),page=await context.newPage();
-  try{
-    await page.goto(`${baseURL}/tests/emulator/index.html?personal=1`);
-    await page.waitForFunction(()=>globalThis.__flowboardEmulatorTest?.ready===true);
-    expect(await page.evaluate(()=>globalThis.__flowboardEmulatorTest.importLegacyFixture())).toEqual({
-      oversized:'WORKSPACE_TOO_LARGE',firstImported:true,secondIdempotent:true,sameOperation:true,activeVisible:true,boards:4,activeBoards:3,lists:4,cards:4,archivedBoards:1,
-      legacyLabelsOnly:true,receiptVerified:true,rawPreserved:true,crossAccount:'permission-denied'
-    });
-    await expect.poll(()=>page.evaluate(()=>globalThis.FlowboardApp.getMode().kind),{timeout:15000}).toBe('cloud');await page.locator('#boards-button').click();const duplicates=page.locator('#workspace-dialog .workspace-entry').filter({hasText:'Repeated board'});await expect(duplicates).toHaveCount(4);await expect(duplicates.filter({hasText:'Position 1'})).toHaveCount(1);await expect(duplicates.filter({hasText:'Position 4'})).toHaveCount(1);await page.getByRole('button',{name:'Close boards'}).click();
-  }finally{await context.close();}
-});
-
-test('legacy import UI requires exact backup before verified import', async ({browser}) => {
-  const context=await browser.newContext(),page=await context.newPage(),raw=JSON.stringify({schemaVersion:5,activeBoardId:'ui-board',preferences:{theme:'system'},boards:[{id:'ui-board',title:'UI legacy board',createdAt:'2025-02-01T00:00:00.000Z',updatedAt:'2025-02-02T00:00:00.000Z',archived:false,lists:[{id:'ui-list',title:'UI list',createdAt:'2025-02-01T00:00:00.000Z',updatedAt:'2025-02-02T00:00:00.000Z',archived:false,cards:[{id:'ui-card',title:'UI card',labels:[],checklist:[],activity:[],assignees:[],createdAt:'2025-02-01T00:00:00.000Z',updatedAt:'2025-02-02T00:00:00.000Z',archived:false}]}]}]}),older='legacy-secondary-unchanged';
-  await context.addInitScript(({raw,older})=>{localStorage.setItem('flowboard-workspace',raw);localStorage.setItem('flowboard-data',older);const original=URL.createObjectURL.bind(URL);URL.createObjectURL=blob=>{blob.text().then(text=>{globalThis.__legacyDownload=text;});return original(blob);};},{raw,older});
-  try{
-    await page.goto(`${baseURL}/tests/emulator/index.html?personal=1`);await page.waitForFunction(()=>globalThis.__flowboardEmulatorTest?.ready===true);await page.evaluate(()=>globalThis.__flowboardEmulatorTest.signInFreshPersonal());await expect.poll(()=>page.evaluate(()=>globalThis.FlowboardApp.getMode().kind),{timeout:15000}).toBe('cloud');
-    await page.locator('#account-button').click();await page.getByRole('button',{name:'Review legacy browser data'}).click();const dialog=page.locator('#cloud-migration-dialog'),summary=dialog.locator('#cloud-migration-summary');await expect(dialog).toBeVisible();await expect(summary.locator('dt').first()).toHaveText('Boards');await expect(summary.locator('dd').first()).toHaveText('1');await expect(dialog.getByRole('button',{name:'2. Import boards'})).toBeDisabled();
-    await dialog.getByRole('button',{name:'1. Download original backup'}).click();await expect.poll(()=>page.evaluate(()=>globalThis.__legacyDownload)).toBe(raw);await expect(dialog.getByRole('button',{name:'2. Import boards'})).toBeEnabled();await dialog.getByRole('button',{name:'2. Import boards'}).click();await expect(dialog.locator('#cloud-migration-status')).toContainText('verified',{timeout:15000});
-    expect(await page.evaluate(()=>({current:localStorage.getItem('flowboard-workspace'),older:localStorage.getItem('flowboard-data'),receipt:Boolean(localStorage.getItem('flowboard-legacy-migration-v1'))}))).toEqual({current:raw,older,receipt:true});
-  }finally{await context.close();}
+test('retired legacy import UI stays absent and browser bytes remain unchanged',async({page})=>{
+  const raw='{"legacy":"unchanged"}',older='legacy-secondary-unchanged',receipt='receipt-sentinel';
+  await page.addInitScript(({raw,older,receipt})=>{localStorage.setItem('flowboard-workspace',raw);localStorage.setItem('flowboard-data',older);localStorage.setItem('flowboard-legacy-migration-v1',receipt);},{raw,older,receipt});
+  await page.goto(`${baseURL}/tests/emulator/index.html?personal=1`);await page.waitForFunction(()=>globalThis.__flowboardEmulatorTest?.ready===true);await page.evaluate(()=>globalThis.__flowboardEmulatorTest.signInFreshPersonal());await expect.poll(()=>page.evaluate(()=>globalThis.FlowboardApp.getMode().kind),{timeout:15000}).toBe('cloud');
+  await page.locator('#account-button').click();await expect(page.getByRole('button',{name:'Review legacy browser data'})).toHaveCount(0);await expect(page.locator('#cloud-migration-dialog')).toHaveCount(0);await page.getByRole('button',{name:'Close account'}).click();
+  await page.locator('#boards-button').click();await expect(page.locator('#workspace-dialog')).toBeVisible();await expect(page.locator('#cloud-migration-dialog')).toHaveCount(0);
+  expect(await page.evaluate(()=>({current:localStorage.getItem('flowboard-workspace'),older:localStorage.getItem('flowboard-data'),receipt:localStorage.getItem('flowboard-legacy-migration-v1')}))).toEqual({current:raw,older,receipt});
 });
 
 test('Auth and Firestore Emulator workflow proves discovery, convergence, denial, conflict, revocation, and lifecycle', async ({browser}) => {

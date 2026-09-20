@@ -13,8 +13,8 @@
 - [complete] Step 3 of 8: remove Account and Boards recovery surfaces
 - [complete] Step 4 of 8: make account repair self-contained and preserve board safeguards
 - [complete] Step 5 of 8: detach obsolete customer UI graph and tighten contracts
-- [in_progress] Step 6 of 8: reconcile tests, CI, fixtures, and current documentation
-- [pending] Step 7 of 8: run full configured, Emulator, accessibility, and budget qualification
+- [complete] Step 6 of 8: reconcile tests, CI, fixtures, and current documentation
+- [in_progress] Step 7 of 8: run full configured, Emulator, accessibility, and budget qualification
 - [pending] Step 8 of 8: package the Luna candidate and stop before deployment
 
 ## Evidence ledger
@@ -26,5 +26,5 @@
 - Account/Boards implementation: `artifacts/recovery-menu-retirement/STEP-03-UI-RETIREMENT.md`, board-first 6/6, static/check passed, raw source 291725 bytes.
 - Repair and board-safety implementation: `artifacts/recovery-menu-retirement/STEP-04-REPAIR-CONFIRMATION.md`, board-first 7/7, repair/archive confirmation and focus checks passed, raw source 294687 bytes.
 - Customer-UI graph detachment: `artifacts/recovery-menu-retirement/STEP-05-UI-GRAPH.md`, unit 41/41, Rules 46/46, static/check passed, raw source 284179 bytes.
-- Test/docs/CI reconciliation: in progress.
+- Test/docs/CI reconciliation: `artifacts/recovery-menu-retirement/STEP-06-TESTS-DOCS-CI.md`, exact configured browser selection 11/11 and Account/Boards/Repair axe coverage passed.
 - Final validation package: pending Step 8
