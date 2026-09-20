@@ -1,6 +1,6 @@
 import {test, expect} from '@playwright/test';
 import {initializeTestEnvironment} from '@firebase/rules-unit-testing';
-import {doc,Timestamp,writeBatch} from 'firebase/firestore';
+import {doc,getDoc,Timestamp,writeBatch} from 'firebase/firestore';
 import {previewUrl} from '../../scripts/repository-path.mjs';
 
 test.describe.configure({mode: 'serial'});
@@ -28,6 +28,74 @@ async function openFixture(page) {
   expect(await page.evaluate(()=>{const root=document.querySelector('#board');return{cardButtons:root.querySelectorAll('.card-open').length,listView:root.classList.contains('list-view-active'),lists:root.querySelectorAll('.list').length,gate:root.classList.contains('is-gated')};})).toEqual({cardButtons:1,listView:false,lists:2,gate:false});
   await expect(page.locator('.card-open').filter({hasText: cardName})).toBeVisible();
 }
+
+test('Google identity with mixed-case input bootstraps and creates a real cloud board',async({page})=>{
+  await page.goto(`${baseURL}/tests/emulator/index.html?personal=1`);
+  await page.waitForFunction(()=>globalThis.__flowboardEmulatorTest?.ready===true);
+  // Auth Emulator lowercases provider email; mixed-case token authorization is covered by Rules tests.
+  expect(await page.evaluate(()=>globalThis.__flowboardEmulatorTest.signInMixedCase())).toEqual({mixedCaseToken:false,verified:true});
+  await expect.poll(()=>page.evaluate(()=>FlowboardApp.getMode().kind),{timeout:15000}).toBe('cloud');
+  await page.locator('#boards-button').click();
+  await page.getByRole('button',{name:'+ New board'}).click();
+  await page.locator('#new-board-title').fill('Mixed-case account board');
+  await page.locator('#board-template').selectOption('blank');
+  await page.getByRole('button',{name:'Create board',exact:true}).click();
+  await expect(page.locator('#workspace-board-list')).toContainText('Mixed-case account board');
+  expect(await page.evaluate(()=>globalThis.__flowboardEmulatorTest.personalSummary())).toEqual({signedIn:true,hasPointer:true,workspaceExists:true,role:'owner',boardCount:1});
+  await page.reload();
+  await expect.poll(()=>page.evaluate(()=>globalThis.FlowboardApp?.getMode().kind),{timeout:15000}).toBe('cloud');
+  await expect(page.locator('#board-title')).toHaveValue('Mixed-case account board');
+});
+
+test('startup denial stays unavailable until Retry setup creates a verified home and board',async({page})=>{
+  await page.goto(`${baseURL}/tests/emulator/index.html?personal=1&setupFailure=1`);
+  await page.waitForFunction(()=>globalThis.__flowboardEmulatorTest?.ready===true);
+  await page.evaluate(()=>globalThis.__flowboardEmulatorTest.signInMixedCase());
+  await expect.poll(()=>page.evaluate(()=>FlowboardApp.getMode().kind)).toBe('error');
+  const gate=page.locator('#board .cloud-gate');
+  await expect(gate).toContainText('permission-denied');
+  await expect(gate.getByRole('button',{name:'Retry setup'})).toBeVisible();
+  await gate.getByRole('button',{name:'Data recovery',exact:true}).click();
+  await expect(page.getByRole('dialog',{name:'Data recovery'})).toBeVisible();
+  await page.locator('#close-workspace-dialog').click();
+  await page.locator('#boards-button').click();
+  const manager=page.locator('#workspace-dialog');
+  await expect(manager.getByRole('button',{name:'+ New board'})).toBeDisabled();
+  await expect(manager).not.toContainText('Create your first board');
+  await expect(manager).not.toContainText('Use New board above');
+  await expect(manager.locator('#cloud-workspaces-status')).toContainText('permission-denied');
+  await page.screenshot({path:'artifacts/account-bootstrap-fix/blocked-boards.png',fullPage:true});
+  await manager.getByRole('button',{name:'Retry setup'}).click();
+  await expect.poll(()=>page.evaluate(()=>FlowboardApp.getMode().kind),{timeout:15000}).toBe('cloud');
+  await expect(manager.getByRole('button',{name:'+ New board'})).toBeEnabled();
+  await manager.getByRole('button',{name:'+ New board'}).click();
+  await page.locator('#new-board-title').fill('Recovered first board');
+  await page.locator('#board-template').selectOption('blank');
+  await manager.getByRole('button',{name:'Create board',exact:true}).click();
+  await expect(manager.locator('#workspace-board-list')).toContainText('Recovered first board');
+  expect(await page.evaluate(()=>globalThis.__flowboardEmulatorTest.personalSummary())).toEqual({signedIn:true,hasPointer:true,workspaceExists:true,role:'owner',boardCount:1});
+  await page.screenshot({path:'artifacts/account-bootstrap-fix/recovered-boards.png',fullPage:true});
+});
+
+test('broken established pointer stays recoverable without adopting another personal-looking owner scope',async({page})=>{
+  await page.goto(`${baseURL}/tests/emulator/index.html?personal=1`);
+  await page.waitForFunction(()=>globalThis.__flowboardEmulatorTest?.ready===true);
+  await page.evaluate(()=>globalThis.__flowboardEmulatorTest.signInMixedCase());
+  await expect.poll(()=>page.evaluate(()=>FlowboardApp.getMode().kind),{timeout:15000}).toBe('cloud');
+  const session=await page.evaluate(async()=>({uid:(await FlowboardRuntime.cloudAdapter.getSession()).uid,original:FlowboardApp.getMode().personalWorkspaceId}));
+  const [host,port]=process.env.FIRESTORE_EMULATOR_HOST.split(':'),admin=await initializeTestEnvironment({projectId:'demo-flowboard-browser',firestore:{host,port:Number(port)}});
+  try{await admin.withSecurityRulesDisabled(async context=>{const batch=writeBatch(context.firestore());batch.update(doc(context.firestore(),'users',session.uid),{personalWorkspaceId:'missing-canonical-home'});await batch.commit();});}finally{await admin.cleanup();}
+  await page.reload();
+  await expect.poll(()=>page.evaluate(()=>globalThis.FlowboardApp?.getMode().kind),{timeout:15000}).toBe('needs-recovery');
+  await page.locator('#boards-button').click();
+  const manager=page.locator('#workspace-dialog');
+  await expect(manager.getByRole('button',{name:'+ New board'})).toBeDisabled();
+  await manager.getByRole('button',{name:'Retry setup'}).click();
+  await expect.poll(()=>page.evaluate(()=>FlowboardApp.getMode().kind)).toBe('needs-recovery');
+  await expect(manager.getByRole('button',{name:'+ New board'})).toBeDisabled();
+  const check=await initializeTestEnvironment({projectId:'demo-flowboard-browser',firestore:{host,port:Number(port)}});
+  try{await check.withSecurityRulesDisabled(async context=>{const snapshot=await getDoc(doc(context.firestore(),'users',session.uid));expect(snapshot.data().personalWorkspaceId).toBe('missing-canonical-home');expect(snapshot.data().workspaceIds).toEqual([session.original]);});}finally{await check.cleanup();}
+});
 
 test('fresh account bootstraps one empty personal cloud workspace across contexts without touching legacy bytes', async ({browser}) => {
   const firstContext=await browser.newContext(), secondContext=await browser.newContext();

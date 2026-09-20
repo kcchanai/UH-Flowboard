@@ -898,7 +898,7 @@ service cloud.firestore {
       return data.keys().hasAll(['uid', 'emailLower', 'workspaceIds'])
         && data.keys().hasOnly(['uid', 'emailLower', 'workspaceIds', 'personalWorkspaceId'])
         && data.uid == uid
-        && data.emailLower == request.auth.token.email
+        && data.emailLower == request.auth.token.email.lower()
         && data.workspaceIds is list
         && data.workspaceIds.size() <= 100;
     }

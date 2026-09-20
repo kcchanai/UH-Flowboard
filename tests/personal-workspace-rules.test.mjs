@@ -66,6 +66,23 @@ test('verified accounts may create a hints-only profile before personal bootstra
   await assertSucceeds(setDoc(doc(db,'users',uid),{uid,emailLower:`${uid}@example.com`,workspaceIds:['synthetic-hint']}));
 });
 
+test('verified mixed-case token email can bootstrap with a normalized profile email',async()=>{
+  const uid='personal-mixed-case',db=env.authenticatedContext(uid,{email:'Personal-Mixed-Case@Example.com',email_verified:true}).firestore();
+  const result=await ensurePersonal(db,uid,'mixed-case-personal');
+  assert.equal(result.state,'created');
+  assert.equal((await getDoc(doc(db,'users',uid))).data().emailLower,'personal-mixed-case@example.com');
+  await assertFails(updateDoc(doc(db,'users',uid),{emailLower:'another@example.com'}));
+});
+
+test('existing lowercase profile remains usable when provider token email casing differs',async()=>{
+  const uid='personal-legacy-case';
+  await env.withSecurityRulesDisabled(async context=>setDoc(doc(context.firestore(),'users',uid),{uid,emailLower:`${uid}@example.com`,workspaceIds:['retained-hint']}));
+  const db=env.authenticatedContext(uid,{email:'Personal-Legacy-Case@Example.com',email_verified:true}).firestore();
+  const result=await ensurePersonal(db,uid,'legacy-case-personal');
+  assert.equal(result.state,'created');
+  assert.deepEqual((await getDoc(doc(db,'users',uid))).data().workspaceIds,['retained-hint','legacy-case-personal']);
+});
+
 test('unverified accounts cannot bootstrap a personal workspace',async()=>{
   await assert.rejects(ensurePersonal(dbFor('personal-unverified',false),'personal-unverified','unverified-workspace'));
 });

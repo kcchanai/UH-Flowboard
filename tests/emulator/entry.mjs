@@ -1,7 +1,7 @@
 import {initializeApp} from 'firebase/app';
 import {
   connectAuthEmulator, createUserWithEmailAndPassword, getAuth, signInWithEmailAndPassword,
-  signOut, updateProfile
+  signOut, updateProfile, GoogleAuthProvider, signInWithCredential
 } from 'firebase/auth';
 import {
   collection, connectFirestoreEmulator, deleteDoc, doc, getDoc, getDocs, getFirestore, query,
@@ -179,6 +179,12 @@ async function applyCardChange(before, title) {
 
 const testApi = {
   fixture: FIXTURE,
+  async signInMixedCase(){
+    await signOut(auth);
+    const credential=GoogleAuthProvider.credential(JSON.stringify({sub:crypto.randomUUID(),email:`Mixed-${crypto.randomUUID()}@Example.com`,email_verified:true}));
+    const {user}=await signInWithCredential(auth,credential),token=await user.getIdTokenResult();
+    return{mixedCaseToken:token.claims.email!==token.claims.email.toLowerCase(),verified:token.claims.email_verified===true};
+  },
   async seedFixture() { try{return await seedFixture();}catch(error){throw Error(`${seedStage}:${error.code||'unknown'}`);} },
   async signInRole(role) { return {uid: (await signInRole(role)).uid}; },
   async captureWorkspace() { capturedWorkspace = await workspaceFor(); return {revision: cardFor(capturedWorkspace)?.revision ?? -1}; },
@@ -239,7 +245,8 @@ const testApi = {
 
 const personalMode=new URLSearchParams(location.search).get('personal')==='1';
 const params=new URLSearchParams(location.search),commandRace=params.get('commandRace')==='1',verificationPending=params.get('verificationPending')==='1',staleRetry=params.get('staleRetry')==='1',mutationFailure=params.get('mutationFailure')==='1';let applyCount=0;const runtimeBase=mutationFailure?Object.freeze({...cloudAdapter,applyWorkspaceMutation:async()=>{throw Object.assign(new Error('Revision conflict.'),{code:'REVISION_CONFLICT'});}}):staleRetry?Object.freeze({...cloudAdapter,applyWorkspaceMutation:async options=>{const workspace=await cloudAdapter.applyWorkspaceMutation(options);if(!applyCount++)throw Object.assign(new Error('Verification pending.'),{code:'VERIFICATION_PENDING'});return workspace;}}):verificationPending?Object.freeze({...cloudAdapter,applyWorkspaceMutation:async()=>{throw Object.assign(new Error('Verification pending.'),{code:'VERIFICATION_PENDING'});}}):commandRace?Object.freeze({...cloudAdapter,applyWorkspaceMutation:async options=>{await new Promise(resolve=>setTimeout(resolve,120));return cloudAdapter.applyWorkspaceMutation(options);}}):cloudAdapter;
-const runtimeCloudAdapter=personalMode?runtimeBase:Object.freeze({...runtimeBase,ensurePersonalWorkspace:async()=>({state:'needs-recovery',workspaceId:FIXTURE.workspaceId})});
+let setupAttempts=0;
+const runtimeCloudAdapter=personalMode?Object.freeze({...runtimeBase,ensurePersonalWorkspace:async()=>{if(params.get('setupFailure')==='1'&&!setupAttempts++)throw Object.assign(new Error('Synthetic startup denial.'),{code:'permission-denied'});return runtimeBase.ensurePersonalWorkspace();}}):Object.freeze({...runtimeBase,ensurePersonalWorkspace:async()=>({state:'needs-recovery',workspaceId:FIXTURE.workspaceId})});
 
 await bootstrapFlowboard({
   cloudConfig: CONFIG,
