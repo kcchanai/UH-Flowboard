@@ -50,7 +50,7 @@ jobs:
           cat server.log
           exit 1
       - name: Browser critical-workflow checks
-        run: npx playwright test tests/cloud-first-configured-session.spec.mjs tests/cloud-first-a11y.spec.mjs tests/browser-smoke.spec.mjs --grep="cloud-first board|Filters stays bounded"
+        run: npx playwright test tests/cloud-first-configured-session.spec.mjs tests/cloud-first-a11y.spec.mjs tests/browser-smoke.spec.mjs tests/single-workspace-board-ux.spec.mjs --grep="cloud-first board|Filters stays bounded|configured signed-out build|board manager|Data recovery route|New board is visible|archived owner board"
       - name: Emulator-backed multi-user browser workflow
         run: |
           npm run dev -- --host 127.0.0.1 --port 4180 > emulator-server.log 2>&1 &
