@@ -6,7 +6,7 @@
   "sourceCommit": "50d913cb61fe71f4d49b4e2caf75581c05522e09",
   "rulesBlob": "296b595276122918f521d3f86ee6820a5cc876b7",
   "indexesBlob": "79fc192e9b71eb3c18b7fd504b77fc9b07bcd18a",
-  "packageCommit": null,
+  "packageCommit": "9227712779025b519e14968068c72e31b2b5a06c",
   "validation": {
     "unitTests": {"passed": 41, "failed": 0},
     "rulesTests": {"passed": 46, "failed": 0},

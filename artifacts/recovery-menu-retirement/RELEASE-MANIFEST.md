@@ -6,7 +6,7 @@
 - Branch: `fix/remove-recovery-menus`
 - Baseline deployed main: `8d3a66750885cccb3b6a5ac3136ecc1b9e2c5f9e`
 - Qualified implementation commit: `50d913cb61fe71f4d49b4e2caf75581c05522e09`
-- Evidence/package commit: pending until this manifest is committed
+- Evidence/package commit: `9227712779025b519e14968068c72e31b2b5a06c`
 - Firestore Rules blob: `296b595276122918f521d3f86ee6820a5cc876b7`
 - Firestore indexes blob: `79fc192e9b71eb3c18b7fd504b77fc9b07bcd18a`
 
