@@ -15,7 +15,7 @@ Branch: `fix/permission-denied-diagnosis`
 - [x] Step 4 of 7: implement the smallest justified correction
 - [x] Step 5 of 7: qualify user-visible recovery and persisted board creation
 - [x] Step 6 of 7: run full qualification, CI selection, budgets
-- [ ] Step 7 of 7: package local candidate, commit, and stop before deployment
+- [x] Step 7 of 7: package local candidate, commit, and stop before deployment
 
 ## Checkpoints
 

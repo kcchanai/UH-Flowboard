@@ -1,0 +1,11 @@
+{
+  "sourceBytes": 299999,
+  "sourceCap": 300000,
+  "sourceHeadroom": 1,
+  "controllerBytes": 13990,
+  "controllerCap": 14000,
+  "initialShellGzip": 25976,
+  "initialShellGzipCap": 26250,
+  "firstPartyLazyGzip": 58861,
+  "firstPartyLazyGzipCap": 60000
+}
