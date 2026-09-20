@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "baselineCommit": "47454298495dd99f83f3c1f33dac8e8f2ff3b7b2",
   "implementationCommit": "b73a9b6f9adc8f246404db98e38745c09d0e769b",
-  "evidenceCommit": "9ba5d781065e9a8cb4b30ef11cb98fbb65acd678",
+  "evidenceCommit": "29254277f3c1e130e5a99cacb071459eeb3003cf",
   "branch": "fix/permission-denied-diagnosis",
   "rulesBlob": "71b5e7aa2fd1fae4b9f2c53d31f8fd6e081b333d",
   "indexesBlob": "79fc192e9b71eb3c18b7fd504b77fc9b07bcd18a",
