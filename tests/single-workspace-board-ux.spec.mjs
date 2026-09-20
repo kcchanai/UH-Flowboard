@@ -92,7 +92,7 @@ test('New board is visible and focuses the existing form in an empty personal ho
   await expect(dialog.locator('#workspace-board-list')).toContainText('No active boards yet.');
 });
 
-test('baseline archived board exposes disabled Archived and More instead of two direct actions', async ({page}) => {
+test('archived owner board exposes direct Restore and Delete permanently actions', async ({page}) => {
   await openShell(page);
   await page.evaluate(async ({asset, fixture}) => {
     globalThis.FlowboardApp = {
@@ -110,8 +110,8 @@ test('baseline archived board exposes disabled Archived and More instead of two 
   await page.getByRole('button', {name: 'Boards'}).click();
   const archived = page.locator('#archived-board-list .workspace-entry').filter({hasText: 'Synthetic archived board'});
   await expect(archived).toBeVisible();
-  await expect(archived.getByRole('button', {name: /Archived Synthetic archived board/})).toBeDisabled();
-  await expect(archived.locator('.workspace-lifecycle-actions summary')).toHaveText('More');
-  await expect(archived.getByRole('button', {name: 'Restore'})).toHaveCount(0);
-  await expect(archived.getByRole('button', {name: 'Delete permanently'})).toHaveCount(0);
+  await expect(archived.getByRole('button', {name: /Archived Synthetic archived board/})).toHaveCount(0);
+  await expect(archived.locator('.workspace-lifecycle-actions summary')).toHaveCount(0);
+  await expect(archived.getByRole('button', {name: 'Restore'})).toBeVisible();
+  await expect(archived.getByRole('button', {name: 'Delete permanently'})).toBeVisible();
 });

@@ -102,7 +102,7 @@ async function signInFreshPersonal() {
   const credential=await signInWithEmailAndPassword(auth,account.email,account.password);if(!credential.user.displayName)await updateProfile(credential.user,{displayName:'Personal emulator user'});return credential.user;
 }
 async function signInFreshHints() {
-  const account={email:'hints@flowboard.test',password:'Flowboard-hints-123!'};
+  const account={email:`hints-${Date.now()}@flowboard.test`,password:'Flowboard-hints-123!'};
   if(auth.currentUser?.email!==account.email)await signOut(auth);
   const created=await fetch(`${AUTH_EMULATOR}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=${CONFIG.apiKey}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email:account.email,password:account.password,returnSecureToken:true})});
   if(created.ok){const {localId}=await created.json(),verified=await fetch(`${AUTH_EMULATOR}/identitytoolkit.googleapis.com/v1/projects/${CONFIG.projectId}/accounts:update?key=${CONFIG.apiKey}`,{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer owner'},body:JSON.stringify({localId,emailVerified:true})});if(!verified.ok)throw new Error('The Auth Emulator could not verify the synthetic hints account.');}

@@ -16,8 +16,8 @@ Production: unchanged. No push, PR, merge, deployment, Rules publication, migrat
 | 3 | Implement automatic account-home setup | complete | pending commit | `artifacts/single-workspace/step-03/` |
 | 4 | Board-only discovery and secondary recovery | complete | pending commit | `artifacts/single-workspace/step-04/` |
 | 5 | Visible, reliable New board | complete | pending commit | `artifacts/single-workspace/step-05/` |
-| 6 | Archived-board Restore and Delete permanently | in_progress | pending | `artifacts/single-workspace/step-06/` |
-| 7 | Session, realtime, and recovery edge cases | not_started | pending | `artifacts/single-workspace/step-07/` |
+| 6 | Archived-board Restore and Delete permanently | complete | pending commit | `artifacts/single-workspace/step-06/` |
+| 7 | Session, realtime, and recovery edge cases | in_progress | pending | `artifacts/single-workspace/step-07/` |
 | 8 | Onboarding, copy, accessibility, and layout | not_started | pending | `artifacts/single-workspace/step-08/` |
 | 9 | Full qualification and CI coverage | not_started | pending | `artifacts/single-workspace/step-09/` |
 | 10 | Local release candidate package | not_started | pending | `artifacts/single-workspace/step-10/` |
