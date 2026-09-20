@@ -71,7 +71,7 @@ test('New board is visible and focuses the existing form in an empty personal ho
   await openShell(page);
   await page.evaluate(async ({asset, fixture}) => {
     globalThis.FlowboardApp = {
-      getMode: () => ({kind: 'cloud', id: fixture.id, role: 'owner'}),
+      getMode: () => ({kind: 'cloud', id: fixture.id, personalWorkspaceId:fixture.id, role: 'owner'}),
       getActiveBoardId: () => '', openCloudWorkspace: () => {}, openCloudPreview: () => {}, selectBoard: () => {},
       createBoard: () => false
     };

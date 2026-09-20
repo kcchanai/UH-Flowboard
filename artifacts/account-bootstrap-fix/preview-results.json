@@ -1,0 +1,19 @@
+{
+  "unconfigured": {
+    "source": 299703,
+    "cap": 300000,
+    "initialShellGzip": 25940,
+    "lazyGzip": 58795
+  },
+  "configured": {
+    "source": 299703,
+    "cap": 300000,
+    "initialShellGzip": 25981,
+    "lazyGzip": 58795
+  },
+  "ciBrowserPassed": 8,
+  "failureDialogAxeViolations": 0,
+  "pageErrors": 0,
+  "lighthouseAccessibility": 1,
+  "lighthouseFailedAudits": 0
+}

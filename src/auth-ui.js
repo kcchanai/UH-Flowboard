@@ -14,6 +14,15 @@ function messageFor(error) {
 const currentMode = () => globalThis.FlowboardApp?.getMode?.() || {kind:'auth-loading'};
 const remoteMode = mode => ['cloud','cloud-preview'].includes(mode.kind);
 
+export function accountSetupActions(retry,recovery,label='Retry setup'){
+  const group=document.createElement('span');group.className='dialog-actions';group.dataset.setupActions='';
+  for(const [text,action] of [[label,retry],['Data recovery',recovery]]){
+    const button=document.createElement('button');Object.assign(button,{type:'button',className:'button button-quiet',textContent:text});
+    button.addEventListener('click',action);group.append(button);
+  }
+  return group;
+}
+
 export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
   const styleReady = import('./auth-ui-style.js');
   const button = document.querySelector('#account-button');
@@ -59,7 +68,7 @@ export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
     } else {
       workspaceName.textContent = 'My workspace';
       const recovery = mode.kind === 'needs-recovery';
-      workspaceDetail.textContent = mode.kind === 'loading' ? 'Loading synchronized boards...' : recovery ? 'Account setup needs attention. Retry or open recovery.' : 'Boards are ready.';
+      workspaceDetail.textContent = mode.kind === 'loading' ? 'Loading synchronized boards...' : mode.message || 'Account setup needs attention. Retry or open Data recovery.';
       cloudStatus.textContent = mode.kind === 'loading' ? 'Loading boards' : recovery ? 'Account setup needed' : 'Boards unavailable';
       cloudStatus.title = workspaceDetail.textContent;
     }

@@ -28,7 +28,7 @@ export function createFirebaseWorkspaceAdapter(config) {
     async signInWithGoogle() { await persistenceReady; return sessionFor((await signInWithPopup(auth, provider)).user); },
     async signOut() { await firebaseSignOut(auth); },
     verifyWorkspaceAccess(workspaceId) { return cloudCall('verifyWorkspaceAccess', workspaceId); },
-    ensurePersonalWorkspace() { return cloudCall('ensurePersonalWorkspace'); },
+    ensurePersonalWorkspace(options) { return cloudCall('ensurePersonalWorkspace', options); },
     listWorkspaces() { return cloudCall('listCloudWorkspaces'); },
     listBoardDirectory(options) { return cloudCall('listBoardDirectory', options); },
     fetchWorkspace(workspaceId) { return cloudCall('fetchCloudWorkspace', workspaceId); },
