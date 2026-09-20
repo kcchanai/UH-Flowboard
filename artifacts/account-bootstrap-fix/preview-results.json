@@ -1,15 +1,15 @@
 {
   "unconfigured": {
-    "source": 299004,
+    "source": 299703,
     "cap": 300000,
-    "initialShellGzip": 25903,
-    "lazyGzip": 58707
+    "initialShellGzip": 25940,
+    "lazyGzip": 58795
   },
   "configured": {
-    "source": 299004,
+    "source": 299703,
     "cap": 300000,
-    "initialShellGzip": 25943,
-    "lazyGzip": 58707
+    "initialShellGzip": 25981,
+    "lazyGzip": 58795
   },
   "ciBrowserPassed": 8,
   "failureDialogAxeViolations": 0,

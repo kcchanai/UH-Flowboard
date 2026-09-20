@@ -2,65 +2,55 @@
 
 ## Scope and current status
 
-Local repair candidate, not deployed. The reported production account's underlying error code has NOT been observed, so this is not an attestation that the specific production failure is resolved.
+This is a **verified local repair candidate**, not deployed. The reported production account's original error code was not observed directly, so the candidate addresses the proven failure classes without claiming real-account resolution.
 
 - Baseline/live release inspected: `ebb03434982d5ff66cbed9845eecff6ca1e342d4`
-- Local implementation: `f6ee5159bac57c0b16bf2c834882ed4141e50eb6`
+- Implementation commit: `dbbd66ce06ab108db1b280c035ac34cab8e5b9a8`
 - Branch: `fix/account-bootstrap-recovery`
-- Candidate Rules blob: `c183d52b320675b28334709f738bbda772c6916b`
-- Unchanged indexes blob: `79fc192e9b71eb3c18b7fd504b77fc9b07bcd18a`
+- Candidate Rules blob: `71b5e7aa2fd1fae4b9f2c53d31f8fd6e081b333d`
+- Indexes blob: `79fc192e9b71eb3c18b7fd504b77fc9b07bcd18a`
 
-No real-account browser session, production Firestore document access, protected-workspace access, data migration, push, PR, Pages deployment, or Rules/index publication was performed for this repair. An anonymous read of the public client assets confirmed the configured project matches the target identified in the prior release, without printing configuration values.
+No real-account browser session, production Firestore document access, protected-workspace access, data migration, push, PR, Pages deployment, or Rules/index publication was performed for this repair.
 
-## Verified defects
+## Proven defects addressed
 
-1. `validUserProfileShape` compared normalized `emailLower` to an unnormalized authenticated token email. Two new Rules tests failed with `permission-denied` before the fix: fresh profile creation and an existing normalized profile with a mixed-case token email. Both now pass using `request.auth.token.email.lower()`. UID ownership, email verification, profile field allowlists, pointer immutability, and workspace authorization remain enforced. A different-email update is still denied.
-2. Startup failures offered prose saying to retry but no retry control. The board directory could report a normal empty state and offer creation guidance while no verified creation destination existed. Added working Retry setup and Data recovery controls to both failure surfaces, safe allowlisted diagnostic codes, and honest blocked/loading copy.
-3. The chooser inferred a creation destination from the first personal-looking owner workspace. It now requires the canonical account-home ID successfully verified by the startup path. A broken pointer cannot be bypassed by another personal-looking owner scope. Existing board browsing/recovery stays separate from that creation gate.
-4. Creation controls now start disabled/hidden during directory loading and remain unavailable after a failed load. Stale directory results are discarded before they replace the current in-memory directory.
+1. **Normalized email versus token email mismatch.** The client stores `emailLower`, while Rules previously compared it to the token email without normalization. Mixed-case token tests failed with `permission-denied`. Rules now compare against `request.auth.token.email.lower()`. A different-email update remains denied.
+2. **Invalid canonical pointer could never self-heal.** An existing `personalWorkspaceId` was treated as immutable even when its workspace was non-personal, stale, archived, unready, or otherwise invalid. Initial startup still stops at recovery instead of silently repointing. The explicit **Repair account setup** action atomically creates a new personal home only after verifying that the prior pointer is invalid, updates the canonical pointer, and retains the old pointer in `workspaceIds` for recovery.
+3. **Retry was not a real action.** Startup and Boards now expose working Retry setup, Repair account setup when the canonical pointer is invalid, and Data recovery controls.
+4. **Failed directory loads looked like an empty account.** New board remains disabled until the verified canonical home is present. The dialog says boards cannot be listed until setup is verified instead of claiming that no boards exist.
+5. **Creation destination is canonical-home-bound.** A legacy/shared or personal-looking owner scope cannot silently become the creation destination.
 
-A duplicate JSON-download implementation was replaced with the existing download helper to keep the repair within existing source budgets. No caps changed.
+## Validation evidence
 
-## Evidence and limits
+- `npm.cmd run validate`: exit 0; 43 unit tests; static, syntax, build, source budget, workflow contract and asset-isolation checks passed.
+- `npm.cmd run test:rules`: exit 0; 44 Rules tests passed, including mixed-case email and explicit stale-pointer recovery.
+- `npm.cmd run test:emulator-browser`: exit 0; 18 tests passed through the actual packaged runner, including 17 emulator-browser tests plus the deletion-engine test.
+- Exact configured CI-style browser selection: 8 passed.
+- Failure-state axe audit: 0 violations; page errors: 0.
+- Lighthouse accessibility: score 1.0; failed audits: 0.
+- Final visual evidence was inspected at the 960x540 built-preview viewport. Retry/repair, Data recovery, and Close were unclipped; unavailable boards were not presented as an empty workspace.
 
-- `npm.cmd run validate`: exit 0; 43 unit tests; static, source budget, build, workflow selection contract and asset-isolation checks passed.
-- `npm.cmd run test:rules`: exit 0; 43 Rules tests passed.
-- `npm.cmd run test:emulator-browser`: exit 0; 18 tests passed through the actual packaged runner, including the deletion-engine test.
-- CI's existing emulator command selects 17 tests from `emulator-browser.spec.mjs`, including every new startup regression. The local packaged runner additionally selects the deletion-engine test. No new GitHub CI run was performed because the branch is local only.
-- Exact configured CI browser selection: 8 passed.
-- Built failure dialog at 960x540: 0 axe violations, 0 page errors, successful pointer Close.
-- Lighthouse accessibility: 1.0; 0 failed audits.
-- Source: 299,004 / 300,000 bytes.
-- Initial shell gzip: 25,903 unconfigured; 25,943 synthetic configured; cap 26,250.
-- First-party lazy gzip: 58,707; cap 60,000.
-- Every per-file cap passed. `scripts/source-budget.mjs` is unchanged.
-- Validation-owned ports 4180, 4391, 8080 and 9099 were verified non-listening after completion.
+## Final budgets
 
-The retry browser test injects a one-time adapter denial to reproduce the error UI, then calls the real production adapter against fresh Auth/Firestore emulators for bootstrap and persisted board creation. It is NOT evidence of the production account's error cause.
+- Raw source: 299,703 / 300,000 bytes.
+- Initial shell gzip: 25,940 unconfigured; 25,981 synthetic configured; cap 26,250.
+- First-party lazy gzip: 58,795; cap 60,000.
+- `src/cloud-workspace-ui.js`: 13,990 / 14,000 bytes.
+- Maintainability warning above 210,000 bytes remains visible and is not a runtime failure.
+- No source or gzip cap was increased.
 
-The Auth Emulator lowercases Google provider email even when the synthetic input is mixed-case. Thus mixed-case TOKEN authorization is proven by Rules tests, not by the Google-provider browser test. That browser test proves Google-style sign-in, canonical home creation, real board persistence, and reload through the adapter.
+## Intentional artifacts
 
-## Inspected screenshots
+- `blocked-boards.png`: synthetic failure state with unavailable-board copy and recovery controls.
+- `recovered-boards.png`: synthetic repaired account with a persisted first board.
+- `built-error-short-desktop.png`: final built failure dialog at 960x540.
+- `preview-results.json`, `validation-summary.json`, and budget JSON files: redacted test and budget summaries.
+- `qualify-preview.cjs`: repository-local configured build, browser, axe, and Lighthouse qualification runner.
 
-- `blocked-boards.png`: synthetic setup failure; no false empty/synchronized claim; New board disabled (also asserted by Playwright); visible Retry setup, Data recovery and Close.
-- `recovered-boards.png`: real emulator-persisted first board after Retry setup; active board and creation controls visible.
-- `built-error-short-desktop.png`: final built dialog at 960x540 with unclipped recovery and Close controls; zero axe violations.
+Disposable Emulator logs, browser traces, preview logs, and generated test residue were removed before packaging.
 
-`validation-summary.json`, `preview-results.json`, and budget summaries record redacted results. `qualify-preview.cjs` is a repository-local synthetic configured preview/browser/accessibility runner. Raw fixture and CLI logs were removed rather than committed.
+## Production boundary and next gate
 
-## Remaining live diagnosis and release gate
+The specific production account remains unaccepted. Do not clear browser storage, rewrite profile/workspace documents, or request tokens, cookies, raw SDK logs, email addresses, workspace IDs, or document bodies through chat.
 
-Ask the operator to reload the live page with the browser Console open and share ONLY the short code after `Flowboard cloud session failed.` (for example, `permission-denied`, `failed-precondition`, or `auth/network-request-failed`). Do not request tokens, raw SDK logs, profile bodies, email addresses, workspace IDs, or browser-storage dumps. Do not clear browser storage or rewrite existing profile/workspace documents to make startup pass.
-
-If the confirmed code points elsewhere, reproduce that condition synthetically before expanding the repair. Legacy profile shape, an actual email-address change, profile capacity, token refresh failures, and cloud service/index state are not repaired automatically by this candidate.
-
-Publishing this candidate requires separate authorization for the exact client and Rules revisions and independent release readback. Signed-in production acceptance remains separate from anonymous deployment smoke.
-
-## Reusable test lessons
-
-- Distinguish unavailable directory data from a verified empty directory; creation needs a verified destination, not just an enabled button.
-- Exercise error-to-retry-to-persisted-first-board through real adapters, not only injected empty-directory UI.
-- Anchor creation to the verified canonical pointer and test a broken pointer alongside a still-discoverable personal-looking owner workspace.
-- Account for Auth Emulator email normalization; explicit Rules claims tests are needed to cover mixed-case tokens.
-- Do not use the return value of `withSecurityRulesDisabled` for assertions; assert inside its callback because the wrapper resolves without forwarding that value.
-- Keep new regressions in both the packaged runner and CI's actual selected specs, and report any selection-count difference explicitly.
+Before release, obtain separate authorization for the exact client and Rules revisions, then push/PR/merge and publish through the normal same-SHA gates. Follow with redacted signed-in acceptance using the affected account only if separately authorized. If the production account still fails after this candidate, capture only the short allowlisted startup code from `Flowboard cloud session failed.` and reproduce that condition synthetically before changing scope.

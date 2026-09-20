@@ -1,30 +1,56 @@
 {
-  "baselineRules": {
-    "passed": 5,
-    "failed": 2,
-    "failures": "mixed-case token profile authorization: permission-denied"
+  "schemaVersion": 2,
+  "baselineCommit": "ebb03434982d5ff66cbed9845eecff6ca1e342d4",
+  "implementationCommit": "dbbd66ce06ab108db1b280c035ac34cab8e5b9a8",
+  "branch": "fix/account-bootstrap-recovery",
+  "rulesBlob": "71b5e7aa2fd1fae4b9f2c53d31f8fd6e081b333d",
+  "indexesBlob": "79fc192e9b71eb3c18b7fd504b77fc9b07bcd18a",
+  "baselineReproduction": {
+    "rulesPassed": 5,
+    "rulesFailed": 2,
+    "failure": "mixed-case token email versus normalized profile email"
   },
-  "unitPassed": 43,
-  "rulesPassed": 43,
-  "packagedEmulatorBrowserPassed": 18,
-  "ciEmulatorTestsSelected": 17,
-  "preview": {
-    "unconfigured": {
-      "source": 299004,
-      "cap": 300000,
-      "initialShellGzip": 25903,
-      "lazyGzip": 58707
-    },
-    "configured": {
-      "source": 299004,
-      "cap": 300000,
-      "initialShellGzip": 25943,
-      "lazyGzip": 58707
-    },
-    "ciBrowserPassed": 8,
+  "validation": {
+    "unitPassed": 43,
+    "rulesPassed": 44,
+    "packagedEmulatorWorkflowPassed": 18,
+    "emulatorBrowserSpecTests": 17,
+    "configuredCiStyleBrowserPassed": 8,
     "failureDialogAxeViolations": 0,
     "pageErrors": 0,
-    "lighthouseAccessibility": 1,
+    "lighthouseAccessibilityScore": 1,
     "lighthouseFailedAudits": 0
-  }
+  },
+  "budgets": {
+    "sourceBytes": 299703,
+    "sourceCap": 300000,
+    "initialShellGzipUnconfigured": 25940,
+    "initialShellGzipConfigured": 25981,
+    "initialShellGzipCap": 26250,
+    "firstPartyLazyGzip": 58795,
+    "firstPartyLazyGzipCap": 60000,
+    "cloudWorkspaceUiBytes": 13990,
+    "cloudWorkspaceUiCap": 14000
+  },
+  "production": {
+    "clientPushed": false,
+    "pagesDeployed": false,
+    "rulesPublished": false,
+    "indexesPublished": false,
+    "realAccountAcceptance": false,
+    "dataMigration": false,
+    "protectedFixturesTouched": false
+  },
+  "artifacts": [
+    "README.md",
+    "blocked-boards.png",
+    "recovered-boards.png",
+    "built-error-short-desktop.png",
+    "preview-results.json",
+    "validation-summary.json",
+    "configured-budget.json",
+    "unconfigured-budget.json",
+    "lighthouse-report.json",
+    "qualify-preview.cjs"
+  ]
 }
