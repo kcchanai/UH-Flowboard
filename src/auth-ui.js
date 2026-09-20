@@ -38,9 +38,6 @@ export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
   const heading = document.querySelector('#account-heading');
   const eyebrow = dialog?.querySelector('.eyebrow');
   const profileMark = document.querySelector('#account-profile-mark');
-  const workspaceSection = document.querySelector('#account-workspace-section');
-  const workspaceName = document.querySelector('#account-workspace-name');
-  const workspaceDetail = document.querySelector('#account-workspace-detail');
   const status = document.querySelector('#account-status');
   const cloudStatus = document.querySelector('#cloud-status');
   const announcer = document.querySelector('#announcer');
@@ -53,24 +50,19 @@ export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
   };
   const renderContext = signedIn => {
     const mode = currentMode();
-    workspaceSection.hidden = !signedIn;
     if (!signedIn) {
-      workspaceName.textContent = 'My workspace';
-      workspaceDetail.textContent = 'Sign in to access synchronized boards. Legacy browser data is not uploaded automatically.';
+      cloudStatus.textContent = 'Sign in required';
+      cloudStatus.title = 'Sign in to view your boards.';
       return;
     }
     if (remoteMode(mode)) {
       const preview = mode.kind === 'cloud-preview';
-      workspaceName.textContent = mode.name || 'Cloud workspace';
-      workspaceDetail.textContent = `${preview ? 'Read-only cloud preview' : 'Cloud workspace'} · ${mode.role || 'member'} · ${mode.syncStatus || 'Connecting'}`;
-      cloudStatus.textContent = preview ? `Cloud preview · read-only · ${mode.syncStatus || 'Connecting'}` : `Cloud workspace · ${mode.role || 'member'} · ${mode.syncStatus || 'Connecting'}`;
-      cloudStatus.title = preview ? `Viewing ${mode.name || 'this cloud workspace'} in read-only mode.` : `Editing ${mode.name || 'this cloud workspace'}.`;
+      cloudStatus.textContent = preview ? `Boards preview · read-only · ${mode.syncStatus || 'Connecting'}` : `Boards · ${mode.role || 'member'} · ${mode.syncStatus || 'Connecting'}`;
+      cloudStatus.title = preview ? 'Viewing a read-only board preview.' : 'Viewing synchronized boards.';
     } else {
-      workspaceName.textContent = 'My workspace';
       const recovery = mode.kind === 'needs-recovery';
-      workspaceDetail.textContent = mode.kind === 'loading' ? 'Loading synchronized boards...' : mode.message || 'Account setup needs attention. Retry or open Data recovery.';
       cloudStatus.textContent = mode.kind === 'loading' ? 'Loading boards' : recovery ? 'Account setup needed' : 'Boards unavailable';
-      cloudStatus.title = workspaceDetail.textContent;
+      cloudStatus.title = mode.message || 'Account setup needs attention. Retry or open Data recovery.';
     }
   };
   const render = (session, notify = true) => {
@@ -101,7 +93,7 @@ export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
   signIn.addEventListener('click', async () => {
     signIn.disabled = true;
     announce('Opening Google sign-in…');
-    try { await adapter.signInWithGoogle(); announce('Signed in with Google. Loading your workspace...'); }
+    try { await adapter.signInWithGoogle(); announce('Signed in with Google. Loading your boards...'); }
     catch (error) { console.error('Flowboard Google sign-in failed.', error); announce(messageFor(error)); }
     finally { signIn.disabled = false; }
   });
