@@ -64,6 +64,33 @@ test('access activity invitation assignment and recovery surfaces use board-firs
   await expect(page.locator('#create-cloud-workspace')).toHaveText('2. Import boards');
 });
 
+test('retired recovery controls are absent from Account and Boards',async({page})=>{
+  await page.addInitScript(()=>{localStorage.setItem('flowboard-workspace','{"sentinel":"unchanged"}');localStorage.setItem('flowboard-data','legacy-sentinel');localStorage.setItem('flowboard-legacy-migration-v1','receipt-sentinel');});
+  await openReady(page);
+  const selectors=['#open-cloud-recovery','#open-cloud-migration','#cloud-migration-dialog','#legacy-spaces-section','#legacy-spaces-list','#migrate-cloud-workspace','#export-cloud-workspace'];
+  for(const selector of selectors)await expect(page.locator(selector)).toHaveCount(0);
+  const before=await page.evaluate(()=>({current:localStorage.getItem('flowboard-workspace'),legacy:localStorage.getItem('flowboard-data'),receipt:localStorage.getItem('flowboard-legacy-migration-v1')}));
+  await page.locator('#account-button').click();
+  const account=page.getByRole('dialog',{name:/Account|Sign in/});
+  await expect(account).toBeVisible();
+  await expect(account.getByRole('button',{name:'Data recovery',exact:true})).toHaveCount(0);
+  await expect(account.getByRole('button',{name:'Review legacy browser data',exact:true})).toHaveCount(0);
+  await expect(account.getByRole('button',{name:'Boards',exact:true})).toHaveCount(1);
+  await account.getByRole('button',{name:/Close account/}).click();
+  await page.getByRole('button',{name:'Boards'}).click();
+  await expect(page.getByRole('dialog',{name:'Your boards'})).toBeVisible();
+  await expect(page.locator('#legacy-spaces-section')).toHaveCount(0);
+  expect(await page.evaluate(()=>({current:localStorage.getItem('flowboard-workspace'),legacy:localStorage.getItem('flowboard-data'),receipt:localStorage.getItem('flowboard-legacy-migration-v1')}))).toEqual(before);
+});
+
+test('account repair remains explicit and separate from Retry',async({page})=>{
+  await openReady(page);
+  await page.evaluate(async asset=>{const host=document.createElement('div');host.id='repair-contract';document.body.append(host);const {accountSetupActions}=await import(asset);host.append(accountSetupActions(()=>{},()=>{},'Repair account setup'));},builtCloudUIAsset());
+  const actions=page.locator('#repair-contract');
+  await expect(actions.getByRole('button',{name:'Repair account setup',exact:true})).toBeVisible();
+  await expect(actions.getByRole('button',{name:'Data recovery',exact:true})).toHaveCount(0);
+});
+
 test('board manager keeps board-first copy and close control at required widths',async({page})=>{
   await openReady(page);
   await installDirectoryFixture(page);

@@ -9,8 +9,8 @@
 ## Checkpoints
 
 - [complete] Step 1 of 8: pin baseline and inventory recovery dependencies
-- [in_progress] Step 2 of 8: add failing-before retirement and safety contract
-- [pending] Step 3 of 8: remove Account and Boards recovery surfaces
+- [complete] Step 2 of 8: add failing-before retirement and safety contract
+- [in_progress] Step 3 of 8: remove Account and Boards recovery surfaces
 - [pending] Step 4 of 8: make account repair self-contained and preserve board safeguards
 - [pending] Step 5 of 8: detach obsolete customer UI graph and tighten contracts
 - [pending] Step 6 of 8: reconcile tests, CI, fixtures, and current documentation
@@ -21,8 +21,8 @@
 
 - Plan: `FLOWBOARD_RECOVERY_MENU_RETIREMENT_LUNA_PLAN.md`
 - Baseline command and fixture inventory: `artifacts/recovery-menu-retirement/STEP-01-BASELINE-INVENTORY.md`, synthetic built preview, 5/5 HTTP 200, 0 console/page errors, no overflow.
-- Step 2 retirement contract: in progress.
-- Retirement contract: pending Step 2
+- Step 2 retirement contract: `artifacts/recovery-menu-retirement/STEP-02-RETIREMENT-CONTRACT.md`, 2/2 expected baseline failures and synchronized CI grep.
+- Retirement contract: complete in `artifacts/recovery-menu-retirement/STEP-02-RETIREMENT-CONTRACT.md`.
 - Account/Boards implementation: pending Step 3
 - Repair and board-safety implementation: pending Step 4
 - Customer-UI graph detachment: pending Step 5
