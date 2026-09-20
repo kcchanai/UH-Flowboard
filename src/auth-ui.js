@@ -62,7 +62,7 @@ export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
     } else {
       const recovery = mode.kind === 'needs-recovery';
       cloudStatus.textContent = mode.kind === 'loading' ? 'Loading boards' : recovery ? 'Account setup needed' : 'Boards unavailable';
-      cloudStatus.title = mode.message || 'Account setup needs attention. Retry or open Data recovery.';
+      cloudStatus.title = mode.message || 'Account setup needs attention. Retry or Data recovery.'
     }
   };
   const render = (session, notify = true) => {

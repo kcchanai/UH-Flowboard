@@ -124,7 +124,7 @@ test('fresh account bootstraps one empty personal cloud workspace across context
       await page.waitForFunction(()=>globalThis.__flowboardEmulatorTest?.ready===true);
       await page.evaluate(method=>globalThis.__flowboardEmulatorTest[method](),index===0?'signInFreshPersonal':'signInExistingPersonal');
       await expect.poll(()=>page.evaluate(()=>globalThis.FlowboardApp.getMode().kind),{timeout:15000}).toBe('cloud');
-      await expect(page.locator('#board').getByRole('heading',{name:'Your workspace is ready'})).toBeVisible();
+      await expect(page.locator('#board').getByRole('heading',{name:'Your boards are ready'})).toBeVisible();
       expect(await page.evaluate(()=>localStorage.getItem('flowboard-workspace'))).toBe(legacy);
       expect(await page.evaluate(()=>globalThis.__flowboardEmulatorTest.personalSummary())).toEqual({signedIn:true,hasPointer:true,workspaceExists:true,role:'owner',boardCount:0});
     }
@@ -139,7 +139,7 @@ test('existing workspace hints bootstrap a separate personal home without a work
   expect(['created','existing']).toContain(result.state);
   expect(result).toMatchObject({hasPointer:true,hintPreserved:true,workspacePersonal:true,workspaceReady:true,role:'owner'});
   await expect.poll(() => page.evaluate(() => globalThis.FlowboardApp.getMode().kind), {timeout:15000}).toBe('cloud');
-  await expect(page.locator('#board').getByRole('heading',{name:'Your workspace is ready'})).toBeVisible();
+  await expect(page.locator('#board').getByRole('heading',{name:'Your boards are ready'})).toBeVisible();
 });
 
 test('historical profile metadata bootstraps through the real adapter and persists a board',async({page})=>{
@@ -236,7 +236,7 @@ test('Auth and Firestore Emulator workflow proves discovery, convergence, denial
     await openFixture(editor);
     await openRole(viewer, 'viewer');
     await openFixture(viewer);
-    await expect(viewer.locator('#cloud-status')).toContainText('Cloud preview');
+    await expect(viewer.locator('#cloud-status')).toContainText('Boards preview');
 
     await editor.locator('.list').first().locator('.list-menu').click();
     await editor.locator('.list').first().getByRole('menuitem', {name:'Move right'}).click();
@@ -267,13 +267,13 @@ test('Auth and Firestore Emulator workflow proves discovery, convergence, denial
 
     await owner.evaluate(() => globalThis.__flowboardEmulatorTest.changeEditorRole('viewer'));
     await expect.poll(() => editor.evaluate(() => globalThis.FlowboardApp.getMode().kind)).toBe('cloud-preview');
-    await expect(editor.locator('#announcer')).toContainText('role changed to viewer');
+    await expect(editor.locator('#announcer')).toContainText('board access changed to viewer');
     const downgraded = await editor.evaluate(() => globalThis.__flowboardEmulatorTest.viewerWriteAttempt());
     expect(downgraded.result).toBe('permission-denied');
 
     await owner.evaluate(() => globalThis.__flowboardEmulatorTest.removeEditor());
     await expect.poll(() => editor.evaluate(() => globalThis.FlowboardApp.getMode().kind)).toBe('access-lost');
-    await expect(editor.locator('#board').getByRole('heading',{name:'Workspace access ended'})).toBeVisible();
+    await expect(editor.locator('#board').getByRole('heading',{name:'Board access ended'})).toBeVisible();
 
     await owner.evaluate(() => globalThis.__flowboardEmulatorTest.archiveWorkspace());
     await expect.poll(() => owner.evaluate(() => globalThis.FlowboardApp.getMode().kind)).toBe('access-lost');

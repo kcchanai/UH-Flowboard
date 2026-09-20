@@ -7,7 +7,7 @@ export function initializeCloudSyncController(adapter) {
   const app = () => globalThis.FlowboardApp;
   const stop = () => { generation += 1; unsubscribe?.(); unsubscribe = null; };
   const status = (name, message = '') => app()?.setCloudSyncStatus(name, message);
-  const accessRemoved = message => { stop(); app()?.handleCloudAccessRemoved(message || 'Cloud workspace access was removed.'); };
+  const accessRemoved = message => { stop(); app()?.handleCloudAccessRemoved(message || 'Board access was removed.'); };
   const reportError = (error, message) => ACCESS_CODES.has(error?.code)
     ? accessRemoved()
     : status(error?.code === 'unavailable' || !navigator.onLine ? 'Offline' : 'Error', message);
@@ -27,13 +27,13 @@ export function initializeCloudSyncController(adapter) {
         boardId,
         onWorkspace:workspace => {
           if (!active()) return;
-          if (workspace.status === 'archived') accessRemoved('This cloud workspace was archived.');
+          if (workspace.status === 'archived') accessRemoved('These boards are archived.');
           else app()?.updateCloudWorkspaceName(mode.id, workspace.name);
         },
         onBoard:payload => { if (active()) app()?.applyRemoteCloudBoard(payload); },
         onMembership:role => { if (active()) app()?.updateCloudRole(role); },
         onStatus:name => { if (active()) status(name === 'saving' ? 'Saving' : name === 'offline' ? 'Offline' : 'Synced'); },
-        onError:error => { if (active()) reportError(error, 'Realtime updates stopped. Reopen the cloud workspace to retry.'); }
+        onError:error => { if (active()) reportError(error, 'Realtime updates stopped. Reopen Boards to retry.'); }
       });
       if (!active()) next(); else unsubscribe = next;
     } catch (error) { if (active()) reportError(error, 'Realtime updates could not start.'); }

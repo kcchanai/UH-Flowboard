@@ -10,8 +10,8 @@
 - [complete] Step 2 of 7: define and test the board-first presentation contract
 - [complete] Step 3 of 7: simplify the Account dialog
 - [complete] Step 4 of 7: simplify the Boards manager and row metadata
-- [in_progress] Step 5 of 7: translate access, activity, invitation, and recovery surfaces
-- [pending] Step 6 of 7: run full browser, accessibility, Emulator, and budget qualification
+- [complete] Step 5 of 7: translate access, activity, invitation, and recovery surfaces
+- [in_progress] Step 6 of 7: run full browser, accessibility, Emulator, and budget qualification
 - [pending] Step 7 of 7: package evidence and stop before deployment
 
 ## Evidence ledger
@@ -23,3 +23,4 @@
 - Account dialog checkpoint: `artifacts/board-first-copy-simplification/STEP-03-ACCOUNT.md`, 1 focused browser test passed.
 - Static/budget/workflow gates remain passing after the Account checkpoint.
 - Boards manager checkpoint: `artifacts/board-first-copy-simplification/STEP-04-BOARDS.md`, selected smoke 3 passed and Emulator runner 20 passed.
+- Access/recovery checkpoint: `artifacts/board-first-copy-simplification/STEP-05-ACCESS-RECOVERY.md`, collaboration/session 7 passed and Emulator runner 20 passed.

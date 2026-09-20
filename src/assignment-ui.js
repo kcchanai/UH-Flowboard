@@ -27,8 +27,8 @@ export function initializeAssignmentUI(adapter) {
       });
       if (legacy.length) status.textContent=`Legacy labels: ${legacy.join(', ')}. Select people with board access to map them.`;
       else if (former.length) status.textContent='This card includes a former member. Remove that assignment before changing other assignees.';
-      else status.textContent=active.kind==='cloud-preview' ? 'Assignments are read only.' : 'Choose up to eight members.';
-    } catch (error) { if (token!==generation) return; console.error('Member load failed.',error); status.textContent='Members could not load.'; }
+      else status.textContent=active.kind==='cloud-preview' ? 'Assignments are read only.' : 'choose no more than eight people with board access.';
+    } catch (error) { if (token!==generation) return; console.error('Member load failed.',error); status.textContent='People with board access could not load.'; }
   };
   new MutationObserver(()=>render()).observe(dialog,{attributes:true,attributeFilter:['open']});
   ['flowboard:cloud-preview-change','flowboard:profile-change'].forEach(name=>window.addEventListener(name,()=>{members=[];render();}));

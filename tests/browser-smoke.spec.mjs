@@ -279,12 +279,12 @@ test('hidden cloud status feedback preserves local data scope', async ({page}) =
   await page.evaluate(() => FlowboardApp.openCloudWorkspace(FlowboardState.makeWorkspace(), {id:'status-fixture',name:'Status fixture',role:'editor'}));
   for (const status of ['Connecting','Saving','Synced','Offline','Conflict','Error']) {
     await page.evaluate(value => FlowboardApp.setCloudSyncStatus(value, `${value} status`), status);
-    await expect(page.locator('#cloud-status')).toHaveText(`Cloud workspace · editor · ${status}`);
+    await expect(page.locator('#cloud-status')).toHaveText(`Boards · editor · ${status}`);
     await expect(page.locator('#cloud-status')).toHaveAttribute('title', `${status} status`);
   }
   await page.getByRole('button',{name:'Open appearance settings'}).click();
   await page.getByRole('button',{name:'Close appearance'}).click();
-  await expect(page.locator('#cloud-status')).toHaveText('Cloud workspace · editor · Error');
+  await expect(page.locator('#cloud-status')).toHaveText('Boards · editor · Error');
   await expect(page.locator('#cloud-status')).toBeHidden();
   expect(await page.evaluate(expected => localStorage.getItem('flowboard-workspace') === expected, before)).toBe(true);
 });
