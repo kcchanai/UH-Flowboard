@@ -2,7 +2,7 @@ import test, {after, before} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {assertFails, assertSucceeds, initializeTestEnvironment} from '@firebase/rules-unit-testing';
-import {arrayUnion, collection, doc, getDoc, getDocs, query, runTransaction, serverTimestamp, setDoc, updateDoc, where} from 'firebase/firestore';
+import {arrayUnion, collection, deleteField, doc, getDoc, getDocs, query, runTransaction, serverTimestamp, setDoc, updateDoc, where} from 'firebase/firestore';
 
 const projectId='demo-flowboard-rules';
 let env;
@@ -15,8 +15,6 @@ async function ensurePersonal(db,uid,candidate){
   return runTransaction(db,async transaction=>{
     const profile=await transaction.get(profileRef), data=profile.data()||{}, pointer=typeof data.personalWorkspaceId==='string'?data.personalWorkspaceId:'';
     if(pointer)return{state:'existing',workspaceId:pointer};
-    const hints=Array.isArray(data.workspaceIds)?data.workspaceIds:[];
-    if(hints.length)return{state:'needs-selection',workspaceIds:hints};
     transaction.set(doc(db,'workspaces',candidate),{name:'My workspace',ownerUid:uid,schemaVersion:5,status:'ready',personal:true,lifecycleRevision:0,activeBoardId:'',migration:{version:1,state:'verified',counts:{boards:0,lists:0,cards:0}},createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
     transaction.set(doc(db,'workspaces',candidate,'members',uid),{uid,role:'owner',emailLower:`${uid}@example.com`});
     transaction.set(profileRef,{uid,emailLower:`${uid}@example.com`,workspaceIds:arrayUnion(candidate),personalWorkspaceId:candidate},{merge:true});
@@ -43,18 +41,29 @@ test('personal workspace pointer must reference an atomically created owner scop
   const uid='personal-owner', db=dbFor(uid), result=await ensurePersonal(db,uid,'personal-owned-workspace');
   assert.equal(result.state,'created');
   await assertFails(updateDoc(doc(db,'users',uid),{personalWorkspaceId:'forged-workspace'}));
+  await assertFails(updateDoc(doc(db,'users',uid),{personalWorkspaceId:null}));
+  await assertFails(updateDoc(doc(db,'users',uid),{personalWorkspaceId:deleteField()}));
   await assertFails(updateDoc(doc(db,'users',uid),{unknownField:true}));
   await assertSucceeds(updateDoc(doc(db,'users',uid),{workspaceIds:['personal-owned-workspace','stale-hint']}));
+  assert.equal((await getDoc(doc(db,'users',uid))).data().personalWorkspaceId,'personal-owned-workspace');
   await assertFails(getDoc(doc(dbFor('personal-outsider'),'users',uid)));
 });
 
-test('existing workspace hints require selection and never auto-create another scope',async()=>{
+test('existing workspace hints create a new personal scope without changing the hints',async()=>{
   const uid='personal-selection';
   await env.withSecurityRulesDisabled(async context=>setDoc(doc(context.firestore(),'users',uid),{uid,emailLower:`${uid}@example.com`,workspaceIds:['existing-owner-scope']}));
   const db=dbFor(uid), result=await ensurePersonal(db,uid,'must-not-create');
-  assert.equal(result.state,'needs-selection');
-  assert.deepEqual(result.workspaceIds,['existing-owner-scope']);
-  await env.withSecurityRulesDisabled(async context=>assert.equal((await getDoc(doc(context.firestore(),'workspaces','must-not-create'))).exists(),false));
+  assert.equal(result.state,'created');
+  assert.equal(result.workspaceId,'must-not-create');
+  const profile=await getDoc(doc(db,'users',uid));
+  assert.equal(profile.data().personalWorkspaceId,'must-not-create');
+  assert.deepEqual(profile.data().workspaceIds,['existing-owner-scope','must-not-create']);
+  await assertSucceeds(getDoc(doc(db,'workspaces','must-not-create')));
+});
+
+test('verified accounts may create a hints-only profile before personal bootstrap',async()=>{
+  const uid='personal-hints-create',db=dbFor(uid);
+  await assertSucceeds(setDoc(doc(db,'users',uid),{uid,emailLower:`${uid}@example.com`,workspaceIds:['synthetic-hint']}));
 });
 
 test('unverified accounts cannot bootstrap a personal workspace',async()=>{

@@ -1,0 +1,34 @@
+{
+  "step": 1,
+  "branch": "luna/single-workspace-board-ux",
+  "baselineCommit": "2e86332133b1387c484e17fcfefe56455c163153",
+  "rulesBlob": "ab892fb38e3c371d533ffc59c739adf7a9300ffb",
+  "indexesBlob": "79fc192e9b71eb3c18b7fd504b77fc9b07bcd18a",
+  "production": "unchanged",
+  "accountAccess": "none",
+  "protectedFixtures": "untouched",
+  "results": {
+    "unitDomainAdapter": {"passed": 43, "failed": 0},
+    "rules": {"passed": 40, "failed": 0},
+    "emulatorBrowser": {"passed": 14, "failed": 0},
+    "configuredSessionAndLoadedA11y": {"passed": 2, "failed": 0},
+    "scrollAndFilters": {"passed": 2, "failed": 0},
+    "singleWorkspaceBaselineReproduction": {"passed": 2, "failed": 0}
+  },
+  "knownBaselineMismatch": "The configured-session test was also run against an unconfigured preview and timed out waiting for configured signed-out state; the synthetic configured build then passed the configured-session and a11y tests.",
+  "budget": {
+    "rawBytes": 295374,
+    "rawCapBytes": 300000,
+    "rawHeadroomBytes": 4626,
+    "maintainabilityWarningBytes": 210000,
+    "unbudgetedReachableFiles": 0,
+    "configuredShellGzipObservationBytes": 26114,
+    "lazyGzipObservationBytes": 57982,
+    "qualifiedAfterImplementation": false
+  },
+  "evidence": [
+    "README.md",
+    "baseline-workspace-rows.png",
+    "../../../tests/single-workspace-board-ux.spec.mjs"
+  ]
+}

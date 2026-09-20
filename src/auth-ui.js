@@ -22,6 +22,7 @@ export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
   const signIn = document.querySelector('#google-sign-in');
   const signOut = document.querySelector('#account-sign-out');
   const workspaces = document.querySelector('#open-cloud-workspaces');
+  const recovery = document.querySelector('#open-cloud-recovery');
   const appearance = document.querySelector('#account-open-appearance');
   const name = document.querySelector('#account-name');
   const email = document.querySelector('#account-email');
@@ -57,8 +58,9 @@ export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
       cloudStatus.title = preview ? `Viewing ${mode.name || 'this cloud workspace'} in read-only mode.` : `Editing ${mode.name || 'this cloud workspace'}.`;
     } else {
       workspaceName.textContent = 'My workspace';
-      workspaceDetail.textContent = mode.kind === 'loading' ? 'Loading synchronized boards...' : 'Choose or recover My workspace.';
-      cloudStatus.textContent = mode.kind === 'loading' ? 'Loading workspace' : 'Workspace selection needed';
+      const recovery = mode.kind === 'needs-recovery';
+      workspaceDetail.textContent = mode.kind === 'loading' ? 'Loading synchronized boards...' : recovery ? 'Account setup needs attention. Retry or open recovery.' : 'Boards are ready.';
+      cloudStatus.textContent = mode.kind === 'loading' ? 'Loading boards' : recovery ? 'Account setup needed' : 'Boards unavailable';
       cloudStatus.title = workspaceDetail.textContent;
     }
   };
@@ -77,6 +79,7 @@ export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
     signIn.hidden = signedIn;
     signOut.hidden = !signedIn;
     workspaces.hidden = !signedIn;
+    if (recovery) recovery.hidden = !signedIn;
     renderContext(signedIn);
     if (!signedIn && !remoteMode(mode)) cloudStatus.textContent = 'Sign in required';
     if (notify) onSessionChange(session);

@@ -1,0 +1,29 @@
+{
+  "classification": "Planning observation. Existing dist was NOT rebuilt or qualified.",
+  "source": 295374,
+  "cap": 300000,
+  "headroom": 4626,
+  "unbudgeted": [],
+  "existingDist": {
+    "initial shell": {
+      "files": 3,
+      "bytes": 88906,
+      "gzipBytes": 26150
+    },
+    "first-party lazy": {
+      "files": 12,
+      "bytes": 181879,
+      "gzipBytes": 57982
+    },
+    "vendor": {
+      "files": 2,
+      "bytes": 478299,
+      "gzipBytes": 139809
+    },
+    "document": {
+      "files": 1,
+      "bytes": 23590,
+      "gzipBytes": 5385
+    }
+  }
+}

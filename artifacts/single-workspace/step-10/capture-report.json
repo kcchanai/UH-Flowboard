@@ -1,0 +1,10 @@
+{
+  "scope": "Synthetic local release evidence only",
+  "consoleErrors": 0,
+  "pageErrors": 0,
+  "screenshots": [
+    "boards-archived-actions.png",
+    "new-board-empty-state.png",
+    "data-recovery.png"
+  ]
+}

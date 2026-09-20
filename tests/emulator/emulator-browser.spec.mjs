@@ -18,7 +18,7 @@ async function openFixture(page) {
   await page.locator('#account-button').click();
   const account = page.locator('#account-dialog');
   await expect(account).toBeVisible();
-  await account.getByRole('button', {name: 'My workspace'}).click();
+  await account.getByRole('button', {name: 'Boards'}).click();
   const picker = page.locator('#workspace-dialog');
   const row = picker.locator('#workspace-board-list .workspace-entry').filter({hasText: 'Emulator board'});
   await expect(row).toBeVisible();
@@ -49,11 +49,20 @@ test('fresh account bootstraps one empty personal cloud workspace across context
   } finally { await Promise.all([firstContext.close(),secondContext.close()]); }
 });
 
+test('existing workspace hints bootstrap a separate personal home without a workspace choice', async ({page}) => {
+  await page.goto(`${baseURL}/tests/emulator/index.html?personal=1`);
+  await page.waitForFunction(() => globalThis.__flowboardEmulatorTest?.ready === true);
+  const result = await page.evaluate(() => globalThis.__flowboardEmulatorTest.existingHintsContext());
+  expect(result).toEqual({state:'created',hasPointer:true,hintPreserved:true,workspacePersonal:true,workspaceReady:true,role:'owner'});
+  await expect.poll(() => page.evaluate(() => globalThis.FlowboardApp.getMode().kind), {timeout:15000}).toBe('cloud');
+  await expect(page.locator('#board').getByRole('heading',{name:'Your workspace is ready'})).toBeVisible();
+});
+
 test('unified My workspace creates the first cloud board and opens it across contexts',async({browser})=>{
   const firstContext=await browser.newContext(),secondContext=await browser.newContext(),first=await firstContext.newPage(),second=await secondContext.newPage();
   try{
     await first.goto(`${baseURL}/tests/emulator/index.html?personal=1`);await first.waitForFunction(()=>globalThis.__flowboardEmulatorTest?.ready===true);await first.evaluate(()=>globalThis.__flowboardEmulatorTest.signInFreshPersonal());await expect.poll(()=>first.evaluate(()=>globalThis.FlowboardApp.getMode().kind),{timeout:15000}).toBe('cloud');
-    await first.locator('#boards-button').click();const manager=first.locator('#workspace-dialog');await expect(manager).toBeVisible();await expect(manager.locator('#workspace-search')).toBeFocused();await expect(first.locator('#cloud-workspaces-dialog')).toHaveCount(0);await manager.locator('#new-board-title').fill('Cross context board');await manager.locator('#board-template').selectOption('blank');await manager.getByRole('button',{name:'Create board'}).click();await expect.poll(()=>first.evaluate(async()=>({title:globalThis.FlowboardApp.getActiveBoardSnapshot()?.title||'',status:document.querySelector('#cloud-workspaces-status').textContent,directory:(await globalThis.FlowboardRuntime.cloudAdapter.listBoardDirectory()).map(space=>({name:space.name,status:space.status,migration:space.migration?.state,unavailable:Boolean(space.unavailable),boards:space.boards.map(board=>board.title)}))})),{timeout:15000}).toEqual({title:'Cross context board',status:'All board metadata is synchronized.',directory:[{name:'My workspace',status:'ready',migration:'verified',unavailable:false,boards:['Cross context board']}]});await expect(manager.locator('#workspace-board-list')).toContainText('Cross context board',{timeout:15000});expect(await first.evaluate(async()=>{const command=globalThis.FlowboardApp.getLastCommand();return{started:command.started,status:command.status,completion:(await command.completion).status};})).toEqual({started:true,status:'pending',completion:'committed'});await manager.getByRole('button',{name:'Close My workspace'}).click();await expect(first.locator('#boards-button')).toBeFocused();
+    await first.locator('#boards-button').click();const manager=first.locator('#workspace-dialog');await expect(manager).toBeVisible();await expect(manager.locator('#workspace-search')).toBeFocused();await expect(manager.getByRole('button',{name:'+ New board'})).toBeVisible();await manager.getByRole('button',{name:'+ New board'}).click();await expect(manager.locator('#new-board-title')).toBeFocused();await expect(first.locator('#cloud-workspaces-dialog')).toHaveCount(0);await manager.locator('#new-board-title').fill('Cross context board');await manager.locator('#board-template').selectOption('blank');await manager.getByRole('button',{name:'Create board'}).click();await expect.poll(()=>first.evaluate(async()=>({title:globalThis.FlowboardApp.getActiveBoardSnapshot()?.title||'',status:document.querySelector('#cloud-workspaces-status').textContent,directory:(await globalThis.FlowboardRuntime.cloudAdapter.listBoardDirectory()).map(space=>({name:space.name,status:space.status,migration:space.migration?.state,unavailable:Boolean(space.unavailable),boards:space.boards.map(board=>board.title)}))})),{timeout:15000}).toEqual({title:'Cross context board',status:'All board metadata is synchronized.',directory:[{name:'My workspace',status:'ready',migration:'verified',unavailable:false,boards:['Cross context board']}]});await expect(manager.locator('#workspace-board-list')).toContainText('Cross context board',{timeout:15000});expect(await first.evaluate(async()=>{const command=globalThis.FlowboardApp.getLastCommand();return{started:command.started,status:command.status,completion:(await command.completion).status};})).toEqual({started:true,status:'pending',completion:'committed'});await manager.getByRole('button',{name:'Close My workspace'}).click();await expect(first.locator('#boards-button')).toBeFocused();
     await second.goto(`${baseURL}/tests/emulator/index.html?personal=1`);await second.waitForFunction(()=>globalThis.__flowboardEmulatorTest?.ready===true);await second.evaluate(()=>globalThis.__flowboardEmulatorTest.signInExistingPersonal());await expect.poll(()=>second.evaluate(()=>globalThis.FlowboardApp.getMode().kind),{timeout:15000}).toBe('cloud');await second.locator('#boards-button').click();const row=second.locator('#workspace-board-list .workspace-entry').filter({hasText:'Cross context board'});await expect(row).toBeVisible();await row.getByRole('button',{name:/Open Cross context board/}).click();await expect(second.locator('#board-title')).toHaveValue('Cross context board');
   }finally{await Promise.all([firstContext.close(),secondContext.close()]);}
 });
@@ -182,7 +191,7 @@ test('Auth and Firestore Emulator workflow proves discovery, convergence, denial
     await owner.evaluate(() => globalThis.__flowboardEmulatorTest.restoreWorkspace());
 
     await owner.locator('#account-button').click();
-    await owner.locator('#account-dialog').getByRole('button', {name: 'My workspace'}).click();
+    await owner.locator('#account-dialog').getByRole('button', {name: 'Boards'}).click();
     const restoredRow = owner.locator('#workspace-board-list .workspace-entry').filter({hasText:'Emulator board'});
     await expect(restoredRow).toContainText('owner');
     await restoredRow.getByRole('button', {name:/Open Emulator board/}).click();
