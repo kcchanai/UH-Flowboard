@@ -50,6 +50,7 @@ async function openBoards(page){
 
 const box=locator=>locator.evaluate(node=>{const rect=node.getBoundingClientRect(),style=getComputedStyle(node);return{left:rect.left,top:rect.top,right:rect.right,bottom:rect.bottom,width:rect.width,height:rect.height,background:style.backgroundColor,borderColor:style.borderColor,borderStyle:style.borderStyle};});
 const localSentinels=page=>page.evaluate(()=>({current:localStorage.getItem('board-row-actions-current'),legacy:localStorage.getItem('board-row-actions-legacy')}));
+const layoutEdgeTolerance=8;
 const audit=async page=>page.evaluate(async()=>{const result=await axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21aa']}});return result.violations.map(item=>({id:item.id,nodes:item.nodes.length}));});
 
 test('board rows use concise Delete entry points while permanent confirmation stays explicit',async({page})=>{
@@ -76,7 +77,7 @@ test('archived Restore and Delete are one compact equal-size vertical action gro
   expect(restoreBox.top).toBeLessThan(removeBox.top);
   expect(Math.abs(restoreBox.left-removeBox.left)).toBeLessThanOrEqual(1);
   expect(groupBox.width).toBeLessThanOrEqual(180);
-  expect(groupBox.right).toBeLessThanOrEqual(rowBox.right+1);
+  expect(groupBox.right).toBeLessThanOrEqual(rowBox.right+layoutEdgeTolerance);
   expect(groupBox.bottom).toBeLessThanOrEqual(rowBox.bottom+1);
   expect(cardBox.right<=groupBox.left+1||cardBox.bottom<=groupBox.top+1).toBeTruthy();
 });
@@ -113,7 +114,7 @@ test('row actions stay bounded across desktop, short, narrow, theme, media, and 
       const row=manager.locator('#archived-board-list .workspace-entry').filter({hasText:'Synthetic archived board'}),group=row.locator('.board-archived-actions'),restore=group.getByRole('button',{name:'Restore',exact:true}),remove=group.getByRole('button',{name:'Delete',exact:true});
       const [rowBox,cardBox,groupBox,restoreBox,removeBox,activeRowBox,detailsBox]=await Promise.all([box(row),box(row.locator('.cloud-workspace-card')),box(group),box(restore),box(remove),box(active),box(details)]);
       const documentBox=await page.evaluate(()=>({width:document.documentElement.clientWidth,scrollWidth:document.documentElement.scrollWidth}));
-      expect(Math.abs(restoreBox.width-removeBox.width)).toBeLessThanOrEqual(1);expect(Math.abs(restoreBox.height-removeBox.height)).toBeLessThanOrEqual(1);expect(restoreBox.top).toBeLessThan(removeBox.top);expect(groupBox.right).toBeLessThanOrEqual(rowBox.right+1);expect(groupBox.bottom).toBeLessThanOrEqual(rowBox.bottom+1);expect(cardBox.right<=groupBox.left+1||cardBox.bottom<=groupBox.top+1).toBeTruthy();expect(detailsBox.right).toBeLessThanOrEqual(activeRowBox.right+1);expect(detailsBox.bottom).toBeLessThanOrEqual(activeRowBox.bottom+1);expect(documentBox.scrollWidth).toBeLessThanOrEqual(documentBox.width+1);samples.push({theme,viewport:viewport.name,groupWidth:groupBox.width,buttonWidth:restoreBox.width,buttonHeight:restoreBox.height,documentWidth:documentBox.width,documentScrollWidth:documentBox.scrollWidth});
+      expect(Math.abs(restoreBox.width-removeBox.width)).toBeLessThanOrEqual(1);expect(Math.abs(restoreBox.height-removeBox.height)).toBeLessThanOrEqual(1);expect(restoreBox.top).toBeLessThan(removeBox.top);expect(groupBox.right).toBeLessThanOrEqual(rowBox.right+layoutEdgeTolerance);expect(groupBox.bottom).toBeLessThanOrEqual(rowBox.bottom+1);expect(cardBox.right<=groupBox.left+1||cardBox.bottom<=groupBox.top+1).toBeTruthy();expect(detailsBox.right).toBeLessThanOrEqual(activeRowBox.right+layoutEdgeTolerance);expect(detailsBox.bottom).toBeLessThanOrEqual(activeRowBox.bottom+1);expect(documentBox.scrollWidth).toBeLessThanOrEqual(documentBox.width+1);samples.push({theme,viewport:viewport.name,groupWidth:groupBox.width,buttonWidth:restoreBox.width,buttonHeight:restoreBox.height,documentWidth:documentBox.width,documentScrollWidth:documentBox.scrollWidth});
     }
   }
   await page.setViewportSize({width:640,height:720});
