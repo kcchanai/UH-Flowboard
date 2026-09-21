@@ -5,8 +5,9 @@ const [validate, deploy] = await Promise.all([
   readFile('.github/workflows/deploy-pages.yml', 'utf8')
 ]);
 const requiredValidation = [
-  'npm run validate', 'npm run test:rules', 'npx playwright test tests/board-first-copy.spec.mjs tests/cloud-first-configured-session.spec.mjs tests/cloud-first-a11y.spec.mjs tests/browser-smoke.spec.mjs tests/single-workspace-board-ux.spec.mjs --grep="cloud-first board|Filters stays bounded|configured signed-out build|board manager|retired recovery controls|account repair|New board is visible|archived owner board|streamlined chrome"',
+  'npm run validate', 'npm run test:rules', 'npx playwright test tests/board-first-copy.spec.mjs tests/cloud-first-configured-session.spec.mjs tests/cloud-first-a11y.spec.mjs tests/browser-smoke.spec.mjs tests/single-workspace-board-ux.spec.mjs --grep="cloud-first board|Filters stays bounded|configured signed-out build|board manager|retired recovery controls|account repair|lower New board form|archived owner board|streamlined chrome"',
   'npx playwright test tests/board-creation-confirmation.spec.mjs --reporter=line',
+  'npx playwright test tests/board-controls-simplification.spec.mjs --reporter=line',
   'emulators:exec --only auth,firestore',
   'tests/emulator/emulator-browser.spec.mjs tests/emulator/deletion-engine.spec.mjs --reporter=line --workers=1',
   'tests/emulator/board-lifecycle-ui.spec.mjs --reporter=line --workers=1',

@@ -75,7 +75,7 @@ A removed member loses direct reads, writes, and listeners. On reconnect, Flowbo
 
 ## Export behavior
 
-Customer-facing export/recovery remains board-scoped: Board actions provide CSV export and Local recovery provides browser-local snapshot inspection/restore. Cloud-workspace backup and legacy import/export remain protected maintenance capabilities, not Account or Boards navigation. Export files can contain personal or project content and are outside Flowboard’s control after download. Store and share them appropriately.
+Customer-facing archived-card access is board-scoped through the direct Archived cards control. Shared CSV serialization and browser-local recovery/legacy import-export capabilities remain protected compatibility or maintenance boundaries, not Account or Boards navigation. Any supported export files can contain personal or project content and are outside Flowboard’s control after download. Store and share them appropriately.
 
 ## Offline and cache behavior
 

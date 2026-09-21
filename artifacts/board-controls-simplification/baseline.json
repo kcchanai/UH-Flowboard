@@ -1,0 +1,27 @@
+{
+  "step": 1,
+  "status": "complete",
+  "branch": "fix/board-controls-simplification",
+  "baseSha": "7d6da43cb8fc8eaa4a603ab01be6849350b6fd85",
+  "remoteMainSha": "7d6da43cb8fc8eaa4a603ab01be6849350b6fd85",
+  "rulesBlob": "296b595276122918f521d3f86ee6820a5cc876b7",
+  "indexesBlob": "79fc192e9b71eb3c18b7fd504b77fc9b07bcd18a",
+  "commands": [
+    {"command":"npm.cmd run validate","exitCode":1,"result":"Pre-existing Windows working-tree line-ending budget failure: src/confirmation-dialog-ui.js is 4012 bytes locally versus 4000 per-file cap; normalized Git blob is 3978 bytes."},
+    {"command":"npm.cmd test","exitCode":0,"tests":41},
+    {"command":"npm.cmd run build","exitCode":0},
+    {"command":"npm.cmd run measure:mvp-v2","exitCode":0,"sourceBytes":286909,"sourceCap":300000,"sourceWarning":210000,"initialShellGzip":25878,"initialShellGzipCap":26250,"firstPartyLazyGzip":56019,"firstPartyLazyGzipCap":60000,"documentGzip":4931},
+    {"command":"node scripts/validate-test-isolation.mjs","exitCode":0,"assets":17},
+    {"command":"node scripts/validate-static.mjs","exitCode":0},
+    {"command":"node scripts/validate-workflow-gating.mjs","exitCode":0},
+    {"command":"git diff --check","exitCode":0},
+    {"command":"git diff --exit-code -- firestore.rules firestore.indexes.json","exitCode":0}
+  ],
+  "boundary": "Local repository only. Synthetic planning browser audit only. No signed-in account, production data, Rules/index publication, push, PR, merge, or deployment.",
+  "preExistingUntrackedPreserved": [
+    "FLOWBOARD_BLANK_BOARDS_AND_CONFIRMATION_FIX_LUNA_PLAN.md",
+    "FLOWBOARD_BOARD_CONTROLS_SIMPLIFICATION_LUNA_PLAN.md",
+    "artifacts/board-controls-simplification-plan/",
+    "artifacts/board-creation-dialog-plan/"
+  ]
+}

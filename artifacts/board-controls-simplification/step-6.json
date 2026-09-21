@@ -1,0 +1,17 @@
+{
+  "step": 6,
+  "status": "complete",
+  "commands": [
+    {"command":"focused populated archive and responsive selection","exitCode":0,"selected":2,"passed":2},
+    {"command":"configured synthetic browser-smoke touch selection","exitCode":0,"selected":1,"passed":1},
+    {"command":"git diff --check","exitCode":0}
+  ],
+  "coverage": [
+    "Current-board archive ignores active search filtering and shows archived card content.",
+    "Owner archive controls are visible; viewer restore and permanent-delete controls are hidden.",
+    "Archive closes through pointer Close and Escape without reload.",
+    "Dialog and direct trigger remain bounded at 1440x900, 960x540, 390x844, and 320x720.",
+    "Synthetic configured coarse-pointer browser confirms 44px controls and intentional board-lane overflow."
+  ],
+  "boundary":"Local/synthetic only. No real account, production board, invitation, ownership transfer, Rules/index publication, push, PR, merge, or deployment."
+}

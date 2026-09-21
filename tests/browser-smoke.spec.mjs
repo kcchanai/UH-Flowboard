@@ -849,9 +849,9 @@ test('desktop board structure keeps navigation separate and controls reachable',
   for (const width of [1280, 1440, 1920, 960]) {
     await page.setViewportSize({width, height:720});
     const layout = await page.evaluate(() => {
-      const main = document.querySelector('#main-content'), header = document.querySelector('.board-header'), board = document.querySelector('#board'), menu = document.querySelector('#board-menu'), search = document.querySelector('#search'), firstList = document.querySelector('.list');
+      const main = document.querySelector('#main-content'), header = document.querySelector('.board-header'), board = document.querySelector('#board'), archived = document.querySelector('#archived-cards-button'), search = document.querySelector('#search'), firstList = document.querySelector('.list');
       const box = element => { const value = element?.getBoundingClientRect(); return value ? {left:value.left, right:value.right, top:value.top, bottom:value.bottom, width:value.width, height:value.height} : null; };
-      return {boardIsMainChild:board?.parentElement === main, boardNestedInHeader:header?.contains(board), searchInBoardHeader:header?.contains(search), searchInTopbar:Boolean(document.querySelector('.topbar #search')), pageFits:document.documentElement.scrollWidth <= document.documentElement.clientWidth, boardOverflow:getComputedStyle(board).overflowX, boardScrollable:board.scrollWidth > board.clientWidth, menu:box(menu), search:box(search), firstList:box(firstList)};
+      return {boardIsMainChild:board?.parentElement === main, boardNestedInHeader:header?.contains(board), searchInBoardHeader:header?.contains(search), searchInTopbar:Boolean(document.querySelector('.topbar #search')), pageFits:document.documentElement.scrollWidth <= document.documentElement.clientWidth, boardOverflow:getComputedStyle(board).overflowX, boardScrollable:board.scrollWidth > board.clientWidth, archived:box(archived), search:box(search), firstList:box(firstList)};
     });
     expect(layout.boardIsMainChild, `board structure at ${width}px`).toBe(true);
     expect(layout.boardNestedInHeader, `board nesting at ${width}px`).toBe(false);
@@ -860,7 +860,7 @@ test('desktop board structure keeps navigation separate and controls reachable',
     expect(layout.pageFits, `page overflow at ${width}px`).toBe(true);
     expect(layout.boardOverflow).toBe('auto');
     if (width <= 1440) expect(layout.boardScrollable, `board scroll at ${width}px`).toBe(true);
-    expect(layout.menu.width).toBeGreaterThan(0);
+    expect(layout.archived.width).toBeGreaterThan(0);
     expect(layout.search.width).toBeGreaterThan(0);
     expect(layout.firstList.right).toBeGreaterThan(layout.firstList.left);
   }
@@ -882,13 +882,13 @@ test('board header actions stay aligned and bounded', async ({page}) => {
   }
 });
 
-test('streamlined chrome keeps Board actions beside List view', async ({page}) => {
+test('streamlined chrome keeps Archived cards beside List view', async ({page}) => {
   await openReady(page);await page.setViewportSize({width:1900,height:720});
   await page.evaluate(()=>FlowboardApp.openCloudWorkspace(FlowboardState.makeWorkspace(),{id:'streamlined-header',name:'My workspace',role:'owner'}));
   await expect(page.locator('.brand')).toBeVisible();await expect(page.getByRole('link',{name:'Flowboard'})).toHaveCount(0);
   await expect(page.locator('#cloud-status')).toBeHidden();await expect(page.locator('#collaboration-summary')).toBeHidden();await expect(page.locator('#density-toggle')).toHaveCount(0);
-  await expect.poll(()=>page.evaluate(()=>{const view=document.querySelector('#view-toggle').getBoundingClientRect(),menu=document.querySelector('#board-menu').getBoundingClientRect();return{sameRow:Math.abs(view.top-menu.top)<=1,ordered:menu.left>=view.right,density:document.documentElement.dataset.density||'comfortable'};})).toEqual({sameRow:true,ordered:true,density:'comfortable'});
-  await page.locator('#board-menu').click();await expect(page.locator('#board-menu-panel')).toBeVisible();
+  await expect.poll(()=>page.evaluate(()=>{const view=document.querySelector('#view-toggle').getBoundingClientRect(),archived=document.querySelector('#archived-cards-button').getBoundingClientRect();return{sameRow:Math.abs(view.top-archived.top)<=1,ordered:archived.left>=view.right,density:document.documentElement.dataset.density||'comfortable'};})).toEqual({sameRow:true,ordered:true,density:'comfortable'});
+  await page.locator('#archived-cards-button').click();await expect(page.getByRole('dialog',{name:'Archived cards'})).toBeVisible();
 });
 
 test('List view lazy-loads with parity, sorting, pagination, and card focus return', async ({page}) => {
@@ -940,26 +940,22 @@ test('responsive widths confine horizontal scrolling to the board lane', async (
   }
 });
 
-test('board actions support keyboard traversal and Escape focus return', async ({page}) => {
+test('Archived cards is a direct labelled dialog control with Escape focus return', async ({page}) => {
   await openReady(page);
-  const button = page.getByRole('button', {name:'Board actions'});
-  await button.focus();
-  await page.keyboard.press('ArrowDown');
-  const menu = page.getByRole('menu');
-  await expect(menu).toBeVisible();
-  await expect(menu.getByRole('menuitem').first()).toBeFocused();
-  await page.keyboard.press('End');
-  await expect(menu.getByRole('menuitem').last()).toBeFocused();
-  await page.keyboard.press('Escape');
-  await expect(menu).toBeHidden();
-  await expect(button).toBeFocused();
+  await page.evaluate(()=>FlowboardApp.openCloudWorkspace(FlowboardState.makeWorkspace(),{id:'direct-archive-keyboard',name:'Synthetic board',role:'owner'}));
+  const button = page.locator('#archived-cards-button');
+  await expect(button).toHaveAttribute('aria-haspopup','dialog');
+  await expect(button).toHaveAttribute('aria-controls','archive-dialog');
+  await button.focus();await page.keyboard.press('Enter');
+  const archive=page.getByRole('dialog',{name:'Archived cards'});await expect(archive).toBeVisible();
+  await page.keyboard.press('Escape');await expect(archive).toBeHidden();await expect(button).toBeFocused();
 });
 
 test('touch controls meet 44px targets and the board keeps intentional scrolling', async ({browser}) => {
   const context = await browser.newContext({viewport:{width:390,height:844}, hasTouch:true, isMobile:true});
   const page = await context.newPage();
   try {
-    await openReady(page);
+    await openReady(page);await page.evaluate(()=>FlowboardApp.openCloudWorkspace(FlowboardState.makeWorkspace(),{id:'touch-synthetic-board',name:'Synthetic board',role:'owner'}));
     const evidence = await page.locator('button:visible').evaluateAll(elements => elements.map(element => {
       const box = element.getBoundingClientRect();
       return {name:element.getAttribute('aria-label') || element.textContent.trim().slice(0,30), width:box.width, height:box.height};

@@ -15,9 +15,9 @@ A lightweight, local-first project-planning board inspired by kanban tools. It u
 - Filter cards across titles, descriptions, labels, checklist text, and assignees.
 - Open an accessible card-detail dialog to edit titles, descriptions, named colored labels, due dates/times, checklists, and local assignees.
 - See concise card metadata: description, checklist progress, due state, labels, and assignee initials.
-- Archive cards and restore them from **Board actions → Archived cards**; permanent deletion remains separate.
+- Archive cards and restore them from the direct **Archived cards** control; permanent deletion remains separate.
 - Undo the most recent common change (including deletes, moves, resets, and imports) while the page stays open.
-- Export the full workspace or active board as readable JSON, and export active-board cards as CSV.
+- Export the full workspace or active board as readable JSON.
 - Preview valid Flowboard JSON before importing, then merge it as a new board or explicitly replace the workspace.
 - Keep up to five rotating local recovery backups when browser storage allows; storage write failures are surfaced clearly.
 - Reset the workspace only through an explicit custom confirmation that recommends exporting first.
@@ -27,7 +27,7 @@ A lightweight, local-first project-planning board inspired by kanban tools. It u
 - Light/dark visual themes.
 - Accessible native dialogs with labelled content, Escape dismissal, and focus returned to the initiating control.
 - Semantic landmarks, a skip-to-board link, card lists with screen-reader card positions, and live announcements for saves, filters, and mutations.
-- Keyboard-operable board-action menu (Arrow keys, Home/End, Escape), card details, keyboard card movement, and 44 px coarse-pointer targets.
+- Keyboard-operable list menus, card details, keyboard card movement, direct archive access, and 44 px coarse-pointer targets.
 - Forced-colors/high-contrast support, 200% reflow safeguards, and reduced-motion support.
 - Browser-local persistence and migration from the original MVP storage format.
 - A tested `LocalWorkspaceAdapter` boundary. The application does not bypass it for browser persistence, and cloud mode never writes cloud content into the browser-local workspace.
@@ -104,9 +104,9 @@ GitHub Actions runs all of these checks for pull requests and `main`, then insta
 
 ## Accessibility
 
-Flowboard is designed for keyboard and assistive-technology use: use the skip link to reach the board, **Enter** to open a card, **Alt + Arrow keys** to move a focused card, and Arrow keys/Home/End/Escape in **Board actions**. Native dialogs contain their focus while open and return it when closed. Cards announce their list and visible position; save, filter, add, move, archive, delete, and undo outcomes are announced through a polite live region.
+Flowboard is designed for keyboard and assistive-technology use: use the skip link to reach the board, **Enter** to open a card, **Alt + Arrow keys** to move a focused card, and Arrow keys/Home/End/Escape in list menus. Native dialogs contain their focus while open and return it when closed. Cards announce their list and visible position; save, filter, add, move, archive, delete, and undo outcomes are announced through a polite live region.
 
-The Phase 6 audit used Lighthouse accessibility against the locally served app (score: **100**, no failed audits), plus practical browser checks for dialog focus return, menu keyboard behavior, a keyboard-created persisted card, 200% zoom/reflow, reduced-motion CSS, and desktop visual layout. Browser-local storage and drag-and-drop remain local-only; no screen-reader testing can substitute for testing with a user’s chosen assistive technology.
+The Phase 6 audit used Lighthouse accessibility against the locally served app (score: **100**, no failed audits), plus practical browser checks for dialog focus return, direct archive keyboard behavior, a keyboard-created persisted card, 200% zoom/reflow, reduced-motion CSS, and desktop visual layout. Browser-local storage and drag-and-drop remain local-only; no screen-reader testing can substitute for testing with a user’s chosen assistive technology.
 
 ## Collaboration status and next work
 

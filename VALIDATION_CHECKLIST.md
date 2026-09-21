@@ -23,15 +23,15 @@ Run these checks before publishing a Flowboard change.
 - [ ] Open a card and save title, multiline description, named labels, due date/time, assignees, and checklist items; reload and verify every field persists.
 - [ ] Mark a checklist item complete and confirm card progress updates after save.
 - [ ] Verify upcoming, due-today, overdue, and complete due-state presentation includes readable text.
-- [ ] Archive a card, confirm it leaves the active board, then restore it through **Board actions → Archived cards**.
+- [ ] Archive a card, confirm it leaves the active board, then restore it through the direct **Archived cards** control.
 - [ ] Duplicate a card and confirm the copy persists.
 - [ ] Open and close the card dialog with the close control and Escape; focus returns to the triggering card.
-- [ ] Reset the workspace through Board actions and verify the custom dialog, export-first guidance, and Undo behavior.
+- [ ] Reset the workspace through its supported reset surface and verify the custom dialog, export-first guidance, and Undo behavior.
 
 ## Data safety and portability
 
 - [ ] Export the workspace JSON and verify it is human-readable, has `schemaVersion: 5`, and includes all boards, ordering, card metadata, and local collaboration-plan metadata.
-- [ ] Export the active board JSON and card CSV; confirm CSV quotes commas/quotes correctly and includes archived status.
+- [ ] Export the active board JSON. Keep CSV quoting/archived-status behavior covered by the state-helper unit tests; no customer-facing board CSV control is required.
 - [ ] In a clean browser storage area, import a workspace export, choose **Replace workspace**, and verify equivalent boards, list/card ordering, metadata, and collaboration-plan data after reload.
 - [ ] Import a board export, choose **Merge as a new board**, and verify current data remains while the imported board opens.
 - [ ] Select an invalid JSON file and verify the preview rejects it without changing local storage.

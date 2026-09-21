@@ -1,0 +1,177 @@
+{
+  "count": 9,
+  "captures": [
+    {
+      "label": "Your boards with the single lower creation form",
+      "shot": "final-your-boards.png",
+      "metrics": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "documentWidth": 1440,
+        "viewportWidth": 1440,
+        "mode": "cloud",
+        "visibleText": "Skip to board\nFlowboard\nBoards\nAppearance\nSign in\nSign in to access your boards\nSign in to access your boards\n\nYour boards are synchronized to your account. Existing browser-only data is never uploaded without review.\n\nBOARDS\n\nYour boards\n\nBoards load after cloud access is verified. Archived boards are retained until restored.\n\nNo boards yet. Create a board.\n\nFind a board\nActive boards\n\nNo active boards yet. Create a board using the form below.\n\nNew board\nCreate board"
+      },
+      "errors": {
+        "console": [],
+        "page": [],
+        "requests": []
+      }
+    },
+    {
+      "label": "Board view toolbar with direct Archived cards",
+      "shot": "final-toolbar-board.png",
+      "metrics": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "documentWidth": 1440,
+        "viewportWidth": 1440,
+        "mode": "cloud",
+        "visibleText": "Skip to board\nFlowboard\nBoards\nAppearance\nSign in\nWebsite Launch board\n10 cards - 0 overdue - 0 due today - 0 complete\nOverdue\nDue today\nUnassigned\nFilters\n+ Add card\nList view\nArchived cards\n3 cards\nResearch\nResearch competitor landing pages\n. Card 1 of 3 in Ideas. Alt plus arrow keys moves this card.\nSocial proof\nCollect customer testimonials\n. Card 2 of 3 in Ideas. Alt plus arrow keys moves this card.\nPlan launch announcement\n. Card 3 of 3 in Ideas. Alt plus arrow keys moves this card.\nAdd a "
+      },
+      "errors": {
+        "console": [],
+        "page": [],
+        "requests": []
+      }
+    },
+    {
+      "label": "List view toolbar with direct Archived cards",
+      "shot": "final-toolbar-list.png",
+      "metrics": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "documentWidth": 1440,
+        "viewportWidth": 1440,
+        "mode": "cloud",
+        "visibleText": "Skip to board\nFlowboard\nBoards\nAppearance\nSign in\nWebsite Launch board\n10 cards - 0 overdue - 0 due today - 0 complete\nOverdue\nDue today\nUnassigned\nFilters\n+ Add card\nBoard view\nArchived cards\nList view\n\n10 of 10 cards shown. Filters and sorting affect this view only.\n\nWebsite Launch task list\nTASK\tLIST\tASSIGNEES\tDUE\tCHECKLIST\tSTATUS\n\nResearch competitor landing pages\n\tIdeas\tUnassigned\tNo due date\tNone\tNone\n\nCollect customer testimonials\n\tIdeas\tUnassigned\tNo due date\tNone\tNone\n\nPlan launch annou"
+      },
+      "errors": {
+        "console": [],
+        "page": [],
+        "requests": []
+      }
+    },
+    {
+      "label": "Populated Archived cards dialog",
+      "shot": "final-archive-populated.png",
+      "metrics": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "documentWidth": 1440,
+        "viewportWidth": 1440,
+        "mode": "cloud",
+        "visibleText": "Skip to board\nFlowboard\nBoards\nAppearance\nSign in\nWebsite Launch board\n10 cards - 0 overdue - 0 due today - 0 complete\nOverdue\nDue today\nUnassigned\nFilters\n+ Add card\nList view\nArchived cards\n3 cards\nResearch\nResearch competitor landing pages\n. Card 1 of 3 in Ideas. Alt plus arrow keys moves this card.\nSocial proof\nCollect customer testimonials\n. Card 2 of 3 in Ideas. Alt plus arrow keys moves this card.\nPlan launch announcement\n. Card 3 of 3 in Ideas. Alt plus arrow keys moves this card.\nAdd a "
+      },
+      "errors": {
+        "console": [],
+        "page": [],
+        "requests": []
+      }
+    },
+    {
+      "label": "Empty Archived cards dialog",
+      "shot": "final-archive-empty.png",
+      "metrics": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "documentWidth": 1440,
+        "viewportWidth": 1440,
+        "mode": "cloud",
+        "visibleText": "Skip to board\nFlowboard\nBoards\nAppearance\nSign in\nWebsite Launch board\n10 cards - 0 overdue - 0 due today - 0 complete\nOverdue\nDue today\nUnassigned\nFilters\n+ Add card\nList view\nArchived cards\n3 cards\nResearch\nResearch competitor landing pages\n. Card 1 of 3 in Ideas. Alt plus arrow keys moves this card.\nSocial proof\nCollect customer testimonials\n. Card 2 of 3 in Ideas. Alt plus arrow keys moves this card.\nPlan launch announcement\n. Card 3 of 3 in Ideas. Alt plus arrow keys moves this card.\nAdd a "
+      },
+      "errors": {
+        "console": [],
+        "page": [],
+        "requests": []
+      }
+    },
+    {
+      "label": "Board access at desktop width",
+      "shot": "final-board-access-1440.png",
+      "metrics": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "documentWidth": 1440,
+        "viewportWidth": 1440,
+        "mode": "cloud",
+        "visibleText": "Skip to board\nFlowboard\nBoards\nAppearance\nSign in\nSign in to access your boards\nSign in to access your boards\n\nYour boards are synchronized to your account. Existing browser-only data is never uploaded without review.\n\nBOARDS\n\nYour boards\n\nBoards load after cloud access is verified. Archived boards are retained until restored.\n\nFind a board\nActive boards\nNew board\nCreate board\nManage members\n\nBOARD ACCESS\n\nPeople and invitations\n\nCloud access only. These controls never change this browser’s loca"
+      },
+      "errors": {
+        "console": [],
+        "page": [],
+        "requests": []
+      }
+    },
+    {
+      "label": "Board access at resized screenshot width",
+      "shot": "final-board-access-680.png",
+      "metrics": {
+        "viewport": {
+          "width": 680,
+          "height": 793
+        },
+        "documentWidth": 680,
+        "viewportWidth": 680,
+        "mode": "cloud",
+        "visibleText": "Skip to board\nFlowboard\nBoards\nAppearance\nSign in\nSign in to access your boards\nSign in to access your boards\n\nYour boards are synchronized to your account. Existing browser-only data is never uploaded without review.\n\nBOARDS\n\nYour boards\n\nBoards load after cloud access is verified. Archived boards are retained until restored.\n\nFind a board\nActive boards\nNew board\nCreate board\nManage members\n\nBOARD ACCESS\n\nPeople and invitations\n\nCloud access only. These controls never change this browser’s loca"
+      },
+      "errors": {
+        "console": [],
+        "page": [],
+        "requests": []
+      }
+    },
+    {
+      "label": "Board access stacked phone layout",
+      "shot": "final-board-access-390.png",
+      "metrics": {
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "documentWidth": 390,
+        "viewportWidth": 390,
+        "mode": "cloud",
+        "visibleText": "Skip to board\nFlowboard\nBoards\nAppearance\nSign in\nSign in to access your boards\nSign in to access your boards\n\nYour boards are synchronized to your account. Existing browser-only data is never uploaded without review.\n\nBOARDS\n\nYour boards\n\nBoards load after cloud access is verified. Archived boards are retained until restored.\n\nFind a board\nActive boards\nNew board\nCreate board\nManage members\n\nBOARD ACCESS\n\nPeople and invitations\n\nCloud access only. These controls never change this browser’s loca"
+      },
+      "errors": {
+        "console": [],
+        "page": [],
+        "requests": []
+      }
+    },
+    {
+      "label": "Your boards narrow layout with lower form",
+      "shot": "final-your-boards-320.png",
+      "metrics": {
+        "viewport": {
+          "width": 320,
+          "height": 720
+        },
+        "documentWidth": 320,
+        "viewportWidth": 320,
+        "mode": "cloud",
+        "visibleText": "Skip to board\nBoards\nAppearance\nSign in\nSign in to access your boards\nSign in to access your boards\n\nYour boards are synchronized to your account. Existing browser-only data is never uploaded without review.\n\nBOARDS\n\nYour boards\n\nBoards load after cloud access is verified. Archived boards are retained until restored.\n\nNo boards yet. Create a board.\n\nFind a board\nActive boards\n\nNo active boards yet. Create a board using the form below.\n\nNew board\nCreate board"
+      },
+      "errors": {
+        "console": [],
+        "page": [],
+        "requests": []
+      }
+    }
+  ],
+  "boundary": "Fresh anonymous/synthetic browser contexts only; no sign-in, production board, or cloud mutation."
+}

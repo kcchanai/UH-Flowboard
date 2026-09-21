@@ -1,0 +1,25 @@
+{
+  "step": 2,
+  "status": "complete",
+  "suite": "tests/board-controls-simplification.spec.mjs",
+  "command": "PLAYWRIGHT_BASE_URL=http://127.0.0.1:4192 PLAYWRIGHT_EXECUTABLE_PATH=C:/Program Files (x86)/Google/Chrome/Application/chrome.exe node node_modules/@playwright/test/cli.js test tests/board-controls-simplification.spec.mjs --reporter=line",
+  "exitCode": 1,
+  "total": 6,
+  "passed": 2,
+  "failed": 4,
+  "expectedFailures": [
+    "Your boards uses the lower form as its only New board entry point: header #new-board-button exists (expected 0).",
+    "Archived cards replaces Board actions and returns focus after close: #board-menu exists (expected 0).",
+    "Archived cards opens from List view without a menu: #board-menu exists (expected 0).",
+    "Board access is at least as wide as Your boards and keeps owner fields readable: Board access is 440px versus Your boards minimum 619px."
+  ],
+  "passingUnaffectedContracts": [
+    "trailing Add another list remains available as the list creation control",
+    "Board access remains inspectable for a viewer without mutation controls"
+  ],
+  "notes": [
+    "The first baseline attempt used an unconfigured signed-out preview and was corrected to open synthetic editable cloud boards for toolbar contracts.",
+    "The focused list contract intentionally checks availability; exact list mutation/readback remains in Emulator qualification because the production cloud adapter is immutable in browser fixtures.",
+    "No real account, production data, Rules/index publication, push, PR, merge, or deployment."
+  ]
+}

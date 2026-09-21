@@ -25,8 +25,12 @@ for (const copy of ['Data recovery', 'Review legacy browser data', 'Older data i
 if (html.includes('id="board-template"') || html.includes('Start from') || html.includes('Website launch') || html.includes('Personal tasks')) throw new Error('Static validation failed: new-board template selector or seeded template copy remains in the production form.');
 if (!cloudUI.includes("createBoard(title,'blank'") || !app.includes("makeBoard('blank')") || app.includes('makeBoard(template)')) throw new Error('Static validation failed: new-board creation is not explicitly blank.');
 if (cloudUI.includes('open-cloud-recovery') || cloudUI.includes('open-cloud-migration') || cloudUI.includes('legacy-spaces-section') || cloudUI.includes('Data recovery')) throw new Error('Static validation failed: cloud UI still owns a retired recovery route.');
+const retiredBoardControls = ['id="board-menu"', 'id="board-menu-panel"', 'data-action="add-list"', 'data-action="export-csv"', 'data-action="show-archive"', 'Board actions', 'Recovery: Archived cards'];
+for (const token of retiredBoardControls) if (html.includes(token)) throw new Error(`Static validation failed: retired Board actions control remains: ${token}.`);
+if (!html.includes('id="archived-cards-button"') || !html.includes('aria-controls="archive-dialog"')) throw new Error('Static validation failed: direct Archived cards control is missing or not linked to its dialog.');
+for (const token of ['#board-menu', '#board-menu-panel', 'closeBoardMenu', 'openBoardMenu', 'exportCsv', 'safeFilename']) if (app.includes(token)) throw new Error(`Static validation failed: retired Board actions runtime path remains: ${token}.`);
 
-if (!app.includes('FlowboardState.cardMatches') || !app.includes('FlowboardState.csvForBoard')) throw new Error('App does not use tested state helpers.');
+if (!app.includes('FlowboardState.cardMatches') || !core.includes('csvForBoard')) throw new Error('App/state code does not retain tested state helpers.');
 if (app.includes('localStorage.')) throw new Error('App bypasses the local workspace adapter.');
 if (!app.includes('FlowboardRuntime?.localAdapter')) throw new Error('App does not use the local workspace adapter.');
 if (html.includes('id="collaboration-button"') || html.includes('id="collaboration-dialog"') || app.includes('showCollaboration') || app.includes('saveCollaboration') || app.includes('collaborationDraft')) throw new Error('Obsolete local collaboration planner remains wired into the application.');
