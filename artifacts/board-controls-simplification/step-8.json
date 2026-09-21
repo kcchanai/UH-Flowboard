@@ -1,0 +1,28 @@
+{
+  "step": 8,
+  "status": "complete",
+  "finalValidatedSourceBase":"26bfc4a3f13ae6351e374dcf2eb25abcc25b7346",
+  "ciChanges": [
+    "Added an explicit Board controls and access regressions CI step.",
+    "Updated configured browser grep to select the renamed lower-form test.",
+    "Updated workflow gating to require the focused suite and current selection."
+  ],
+  "enumeration": {"focusedBoardControls":8,"configuredCriticalWorkflow":11},
+  "commands": [
+    {"command":"npm.cmd run validate","exitCode":0,"unitTests":41,"assetIsolation":18,"sourceBytes":283597,"initialShellGzip":25427,"initialShellGzipCap":26250,"firstPartyLazyGzip":56771,"firstPartyLazyGzipCap":60000,"documentGzip":4809},
+    {"command":"npm.cmd run test:rules","exitCode":0,"tests":46},
+    {"command":"npm.cmd run test:emulator-browser","exitCode":0,"multiUserAndDeletion":19,"boardLifecycleUI":4},
+    {"command":"configured critical-workflow browser selection","exitCode":0,"selected":11,"passed":11},
+    {"command":"focused board-controls browser selection","exitCode":0,"selected":8,"passed":8},
+    {"command":"configured Lighthouse accessibility","exitCode":0,"score":1,"failedAudits":0},
+    {"command":"node scripts/validate-test-isolation.mjs","exitCode":0,"assets":18},
+    {"command":"node scripts/validate-static.mjs","exitCode":0},
+    {"command":"node scripts/validate-workflow-gating.mjs","exitCode":0},
+    {"command":"git diff --check","exitCode":0},
+    {"command":"git diff --exit-code -- firestore.rules firestore.indexes.json","exitCode":0}
+  ],
+  "rulesBlob":"296b595276122918f521d3f86ee6820a5cc876b7",
+  "indexesBlob":"79fc192e9b71eb3c18b7fd504b77fc9b07bcd18a",
+  "lineEndingNote":"The pre-existing Windows CRLF working copy of src/confirmation-dialog-ui.js was normalized to its identical 3978-byte Git blob for the aggregate per-file budget gate; no semantic diff or cap change.",
+  "boundary":"Local/synthetic and disposable Emulator validation only. No real account, production data, Rules/index publication, push, PR, merge, or deployment."
+}
