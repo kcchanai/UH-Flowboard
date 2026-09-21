@@ -42,6 +42,7 @@ test('Google identity with mixed-case input bootstraps and creates a real cloud 
   await expect(page.locator('#workspace-board-list')).toContainText('Mixed-case account board');
   await expect(page.locator('#board-template')).toHaveCount(0);
   expect(await page.evaluate(()=>{const board=FlowboardApp.getActiveBoardSnapshot();return{lists:board?.lists.length||0,cards:board?.lists.reduce((sum,list)=>sum+list.cards.length,0)||0};})).toEqual({lists:0,cards:0});
+  expect(await page.evaluate(async()=>{const workspace=await FlowboardRuntime.cloudAdapter.fetchWorkspace(FlowboardApp.getMode().id);const board=workspace.boards.find(item=>item.title==='Mixed-case account board');return{lists:board?.lists.length||0,cards:board?.lists.reduce((sum,list)=>sum+list.cards.length,0)||0};})).toEqual({lists:0,cards:0});
   expect(await page.evaluate(()=>globalThis.__flowboardEmulatorTest.personalSummary())).toEqual({signedIn:true,hasPointer:true,workspaceExists:true,role:'owner',boardCount:1});
   await page.reload();
   await expect.poll(()=>page.evaluate(()=>globalThis.FlowboardApp?.getMode().kind),{timeout:15000}).toBe('cloud');
@@ -87,7 +88,7 @@ test('startup denial stays unavailable until Retry setup creates a verified home
 });
 
 test('broken established pointer can be explicitly repaired without adopting the legacy scope',async({page})=>{
-  await page.goto(`${baseURL}/tests/emulator/index.html?personal=1`);
+  await page.goto(`${baseURL}/tests/emulator/index.html?personal=1&repairFailure=1`);
   await page.waitForFunction(()=>globalThis.__flowboardEmulatorTest?.ready===true);
   await page.evaluate(()=>globalThis.__flowboardEmulatorTest.signInMixedCase());
   await expect.poll(()=>page.evaluate(()=>FlowboardApp.getMode().kind),{timeout:15000}).toBe('cloud');
@@ -103,8 +104,11 @@ test('broken established pointer can be explicitly repaired without adopting the
   const repairConfirmation=page.getByRole('dialog',{name:'Repair account setup?'});
   await expect(repairConfirmation).toBeVisible();
   await repairConfirmation.getByRole('button',{name:'Repair account setup',exact:true}).click();
-  await expect.poll(()=>page.evaluate(()=>FlowboardApp.getMode().kind),{timeout:15000}).toBe('cloud');
+  await expect.poll(()=>page.evaluate(()=>globalThis.FlowboardApp.getMode().kind),{timeout:15000}).toBe('offline');
+  await page.evaluate(()=>globalThis.FlowboardApp.retryAccountSetup());
+  await expect.poll(()=>page.evaluate(()=>globalThis.FlowboardApp.getMode().kind),{timeout:15000}).toBe('cloud');
   await expect.poll(()=>page.evaluate(id=>FlowboardApp.getMode().personalWorkspaceId!==id,legacy)).toBe(true);
+  await page.locator('#boards-button').click();
   await expect(manager.getByRole('button',{name:'+ New board'})).toBeEnabled();
   await manager.getByRole('button',{name:'+ New board'}).click();
   await page.locator('#new-board-title').fill('Repaired account board');

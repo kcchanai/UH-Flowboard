@@ -1,0 +1,34 @@
+{
+  "step": 6,
+  "scope": "Fresh Auth and Firestore Emulator creation, lifecycle, deletion, and repair qualification",
+  "commands": [
+    {"command": "npm.cmd run test:emulator-browser", "exitCode": 0, "selection": "fresh multi-user/deletion Emulator session", "passed": 19},
+    {"command": "npm.cmd run test:emulator-browser", "exitCode": 0, "selection": "fresh board-lifecycle UI Emulator session", "passed": 4},
+    {"command": "npm.cmd run measure:mvp-v2", "exitCode": 0}
+  ],
+  "assertions": {
+    "blankBoardAuthoritativeServerRead": true,
+    "blankBoardLists": 0,
+    "blankBoardCards": 0,
+    "sharedSelectionCreationDestinationProtected": true,
+    "archiveRestoreDeletePointerFlows": true,
+    "boundedDeletionAndDescendantChecks": true,
+    "lastBoardHonestEmptyState": true,
+    "repairControlledRejectionThenRetry": true,
+    "localLegacySentinelPreserved": true,
+    "rulesAndIndexesUnchanged": true,
+    "rulesBlob": "296b595276122918f521d3f86ee6820a5cc876b7",
+    "indexesBlob": "79fc192e9b71eb3c18b7fd504b77fc9b07bcd18a",
+    "productionDataAccessed": false
+  },
+  "budget": {
+    "rawSourceBytes": 286513,
+    "rawCapBytes": 300000,
+    "initialShellGzipBytes": 25918,
+    "initialShellGzipCapBytes": 26250,
+    "firstPartyLazyGzipBytes": 56019,
+    "firstPartyLazyGzipCapBytes": 60000,
+    "documentGzipBytes": 4927,
+    "confirmationModuleBytes": 3978
+  }
+}
