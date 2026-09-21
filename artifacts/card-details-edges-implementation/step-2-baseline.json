@@ -1,0 +1,15 @@
+{
+  "step":2,
+  "status":"complete",
+  "baselineSha":"0da8fd8de9191a8ae73fd38d3672d3d34c9dbd18",
+  "command":"PLAYWRIGHT_BASE_URL=http://127.0.0.1:4192 PLAYWRIGHT_EXECUTABLE_PATH=C:/Program Files (x86)/Google/Chrome/Application/chrome.exe node node_modules/@playwright/test/cli.js test tests/card-details-edges-comments.spec.mjs --reporter=line",
+  "exitCode":1,
+  "selection":{"listedTests":3,"passed":1,"failed":2},
+  "expectedBaselineFailures":[
+    {"test":"card-details header and footer cover the inner window at every scroll position","failure":"topGap 22 CSS px exceeded 1 px tolerance before body wrapper assertion","baselineMetrics":{"viewport":"desktop-light","position":"top","topGap":22,"bottomGap":21,"bodyPresent":false,"topCoveredByHeader":false,"bottomCoveredByFooter":false,"scrollMax":2951}},
+    {"test":"comments remove retired explanatory and idle copy but retain operational status","failure":"static explanatory sentence and idle status were present","observed":"Authenticated cloud comments are separate from older card-local activity. ... Comments are current."}
+  ],
+  "passedContracts":["delayed comment results are discarded after close and local sentinel bytes stay unchanged"],
+  "fixtureBoundary":"Production built-preview markup and comments controller with synthetic in-memory card/comments; no sign-in or production data.",
+  "next":"Implement the card-only bounded header/body/footer layout, then rerun these contracts."
+}
