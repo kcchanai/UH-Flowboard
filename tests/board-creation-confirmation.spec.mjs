@@ -5,9 +5,9 @@ import {basePath} from '../scripts/repository-path.mjs';
 const builtCloudAsset=()=>`${basePath}assets/${readdirSync('dist/assets').find(file=>file.startsWith('cloud-ui-')&&file.endsWith('.js'))}`;
 const openShell=async page=>{await page.goto(basePath);await page.waitForFunction(()=>globalThis.FlowboardApp&&globalThis.FlowboardState);};
 
-async function installFixture(page,{repairAfterDelete=false,pendingArchive=false}={}){
-  await page.evaluate(async({asset,repairAfterDelete,pendingArchive})=>{
-    const state={archived:false,deleted:false,mode:'cloud',archiveCalls:0,deleteCalls:0,repairCalls:0,createArgs:null,pendingResolve:null};
+async function installFixture(page,{repairAfterDelete=false,pendingArchive=false,rejectArchiveOnce=false}={}){
+  await page.evaluate(async({asset,repairAfterDelete,pendingArchive,rejectArchiveOnce})=>{
+    const state={archived:false,deleted:false,mode:'cloud',archiveCalls:0,deleteCalls:0,repairCalls:0,createArgs:null,pendingResolve:null,archiveFailureUsed:false};
     const board=()=>({id:'confirm-board',title:'Confirm board',rank:0,archived:state.archived,revision:state.archiveCalls,lifecycleState:state.archived?'archived':'active'});
     const entry=()=>({id:'personal-source',name:'My workspace',ownerUid:'owner',role:'owner',status:'ready',personal:true,migration:{state:'verified'},hasMore:false,boards:state.deleted?[]:[board()]});
     const directory=()=>state.mode==='needs-recovery'?[{id:'invalid-source',name:'Invalid source',ownerUid:'owner',role:'owner',status:'ready',personal:false,migration:{state:'verified'},hasMore:false,boards:[]}]:[entry()];
@@ -24,6 +24,7 @@ async function installFixture(page,{repairAfterDelete=false,pendingArchive=false
       listBoardDirectory:async()=>directory(),
       fetchWorkspace:async()=>workspace(),
       setBoardArchived:async({archived})=>{
+        if(rejectArchiveOnce&&!state.archiveFailureUsed){state.archiveFailureUsed=true;throw Error('Synthetic archive failure.');}
         if(pendingArchive){await new Promise(resolve=>{state.pendingResolve=()=>{state.archived=archived;state.archiveCalls+=1;resolve();};});}
         else{state.archived=archived;state.archiveCalls+=1;}
         return{revision:state.archiveCalls,archived};
@@ -34,7 +35,7 @@ async function installFixture(page,{repairAfterDelete=false,pendingArchive=false
     const{initializeCloudWorkspaceUI}=await import(asset);
     initializeCloudWorkspaceUI({localAdapter:{inspectLegacyWorkspace:()=>({status:'none',counts:{boards:0}})},cloudAdapter}).setSession({uid:'owner'});
     document.querySelector('#boards-button').disabled=false;
-  },{asset:builtCloudAsset(),repairAfterDelete,pendingArchive});
+  },{asset:builtCloudAsset(),repairAfterDelete,pendingArchive,rejectArchiveOnce});
 }
 
 async function openBoards(page){
@@ -96,6 +97,8 @@ test('delete and Repair confirmations keep usable width at a narrow viewport',as
 test('pending confirmation owns Escape until the remote action settles',async({page})=>{
   await openShell(page);await installFixture(page,{pendingArchive:true});const manager=await openBoards(page),confirmation=await openArchiveConfirmation(page,manager);await confirmation.getByRole('button',{name:'Archive board',exact:true}).click();
   await expect(confirmation.getByRole('button',{name:'Cancel',exact:true})).toBeDisabled();
+  await confirmation.locator('form').evaluate(form=>form.requestSubmit());
+  await expect.poll(()=>page.evaluate(()=>globalThis.__blankConfirmationFixture.archiveCalls)).toBe(0);
   await page.keyboard.press('Escape');
   await expect(confirmation).toBeVisible();
   await page.evaluate(()=>globalThis.__blankConfirmationFixture.pendingResolve());
@@ -103,8 +106,16 @@ test('pending confirmation owns Escape until the remote action settles',async({p
   await expect.poll(()=>page.evaluate(()=>globalThis.__blankConfirmationFixture.archiveCalls)).toBe(1);
 });
 
+test('confirmation failure restores controls and permits one safe retry',async({page})=>{
+  await openShell(page);await installFixture(page,{rejectArchiveOnce:true});const manager=await openBoards(page),confirmation=await openArchiveConfirmation(page,manager);await confirmation.getByRole('button',{name:'Archive board',exact:true}).click();await expect(confirmation).toContainText('Synthetic archive failure.');await expect(confirmation.getByRole('button',{name:'Cancel',exact:true})).toBeEnabled();await expect(confirmation.getByRole('button',{name:'Archive board',exact:true})).toBeEnabled();await confirmation.getByRole('button',{name:'Archive board',exact:true}).click();await expect(confirmation).toBeHidden();await expect.poll(()=>page.evaluate(()=>globalThis.__blankConfirmationFixture.archiveCalls)).toBe(1);
+});
+
+test('delete keeps exact-name protection and permits retry after mismatch',async({page})=>{
+  await openShell(page);await installFixture(page);const manager=await openBoards(page),row=manager.locator('#workspace-board-list .workspace-entry').filter({hasText:'Confirm board'});await row.locator('.workspace-lifecycle-actions summary').click();await row.getByRole('button',{name:'Delete permanently'}).click();const confirmation=page.getByRole('dialog',{name:'Delete board permanently?'});await confirmation.locator('input').fill('Wrong name');await confirmation.getByRole('button',{name:'Delete permanently',exact:true}).click();await expect(confirmation).toContainText('Name mismatch.');await expect.poll(()=>page.evaluate(()=>globalThis.__blankConfirmationFixture.deleteCalls)).toBe(0);await confirmation.locator('input').fill('Confirm board');await confirmation.getByRole('button',{name:'Delete permanently',exact:true}).click();await expect(confirmation).toBeHidden();await expect.poll(()=>page.evaluate(()=>globalThis.__blankConfirmationFixture.deleteCalls)).toBe(1);
+});
+
 test('delete then Repair account setup uses a fresh confirmation state',async({page})=>{
   await openShell(page);await installFixture(page,{repairAfterDelete:true});const manager=await openBoards(page);const row=manager.locator('#workspace-board-list .workspace-entry').filter({hasText:'Confirm board'});await row.locator('.workspace-lifecycle-actions summary').click();await row.getByRole('button',{name:'Delete permanently'}).click();
-  const confirmation=page.getByRole('dialog',{name:'Delete board permanently?'});await confirmation.locator('input').fill('Confirm board');await confirmation.getByRole('button',{name:'Delete permanently',exact:true}).click();await expect(confirmation).toBeHidden();
-  const repair=manager.getByRole('button',{name:'Repair account setup',exact:true});await expect(repair).toBeVisible();await repair.click();const repairConfirmation=page.getByRole('dialog',{name:'Repair account setup?'});await expect(repairConfirmation.getByRole('button',{name:'Cancel',exact:true})).toBeEnabled();await repairConfirmation.getByRole('button',{name:'Cancel',exact:true}).click();await expect(repairConfirmation).toBeHidden();await expect.poll(()=>page.evaluate(()=>globalThis.__blankConfirmationFixture.deleteCalls)).toBe(1);await expect.poll(()=>page.evaluate(()=>globalThis.__blankConfirmationFixture.repairCalls)).toBe(0);
+  const confirmation=page.getByRole('dialog',{name:'Delete board permanently?'});await confirmation.locator('input').fill('Confirm board');await confirmation.getByRole('button',{name:'Delete permanently',exact:true}).click();await expect(confirmation).toBeHidden();await expect(manager.locator('#workspace-search')).toBeFocused();const repair=manager.getByRole('button',{name:'Repair account setup',exact:true});
+  await expect(repair).toBeVisible();await repair.click();const repairConfirmation=page.getByRole('dialog',{name:'Repair account setup?'});await expect(repairConfirmation.getByRole('button',{name:'Cancel',exact:true})).toBeEnabled();await repairConfirmation.getByRole('button',{name:'Cancel',exact:true}).click();await expect(repairConfirmation).toBeHidden();await expect.poll(()=>page.evaluate(()=>globalThis.__blankConfirmationFixture.deleteCalls)).toBe(1);await expect.poll(()=>page.evaluate(()=>globalThis.__blankConfirmationFixture.repairCalls)).toBe(0);
 });

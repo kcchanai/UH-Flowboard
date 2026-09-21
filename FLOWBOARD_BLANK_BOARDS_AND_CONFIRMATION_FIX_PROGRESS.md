@@ -26,7 +26,7 @@ This ledger records the local implementation and qualification of `FLOWBOARD_BLA
 - [x] Step 2: Add focused regressions that fail on the baseline.
 - [x] Step 3: Remove templates and make creation explicitly blank.
 - [x] Step 4: Repair the shared confirmation layout.
-- [ ] Step 5: Fix confirmation reuse and asynchronous state ownership.
+- [x] Step 5: Fix confirmation reuse and asynchronous state ownership.
 - [ ] Step 6: Verify creation, lifecycle, and Repair through fresh Emulators.
 - [ ] Step 7: Integrate CI selections and run final qualification.
 - [ ] Step 8: Package evidence and stop before publication.
