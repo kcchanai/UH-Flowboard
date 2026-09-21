@@ -18,7 +18,7 @@ After each verified step, report:
 ## Steps
 
 - [x] Step 1: Pin baseline, branch, ledger, prerequisites, and baseline qualification.
-- [ ] Step 2: Add focused failing contracts and record baseline failures.
+- [x] Step 2: Add focused failing contracts and record baseline failures.
 - [ ] Step 3: Remove duplicate New board shortcut.
 - [ ] Step 4: Replace Board actions with direct Archived cards.
 - [ ] Step 5: Widen Board access and owner forms through the real opening path.
@@ -31,8 +31,8 @@ After each verified step, report:
 
 | Step | Status | Evidence |
 |---|---|---|
-| 1 | in progress | Baseline manifest pending |
-| 2 | pending | |
+| 1 | complete | `artifacts/board-controls-simplification/baseline.json`; 41 unit tests, build, isolation, static/workflow gates, budget measurement; pre-existing CRLF per-file check recorded |
+| 2 | complete | `tests/board-controls-simplification.spec.mjs`, `artifacts/board-controls-simplification/step-2-baseline.json`; 6 selected, 2 pass, 4 intended baseline failures |
 | 3 | pending | |
 | 4 | pending | |
 | 5 | pending | |
