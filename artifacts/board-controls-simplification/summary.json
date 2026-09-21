@@ -1,0 +1,54 @@
+{
+  "implementationCandidateSha": "305361c5fcccdb77af1eb6b0ff8c0b85ad34cf90",
+  "baselineMainSha": "7d6da43cb8fc8eaa4a603ab01be6849350b6fd85",
+  "branch": "fix/board-controls-simplification",
+  "scope": "Local/synthetic/disposable Emulator qualification only",
+  "qualification": {
+    "unitTests": 41,
+    "rulesEmulator": 46,
+    "packagedEmulatorMultiUserDeletion": 19,
+    "packagedEmulatorLifecycleUI": 4,
+    "configuredCriticalBrowser": 11,
+    "focusedBoardControls": 8,
+    "lighthouseAccessibilityScore": 1,
+    "lighthouseFailedAudits": 0,
+    "productionAssetIsolation": 18,
+    "finalCaptures": 9,
+    "finalCaptureErrorArraysEmpty": true,
+    "horizontalOverflowCaptures": 0
+  },
+  "budgets": {
+    "sourceBytes": 283597,
+    "sourceCap": 300000,
+    "initialShellGzip": 25427,
+    "initialShellGzipCap": 26250,
+    "firstPartyLazyGzip": 56771,
+    "firstPartyLazyGzipCap": 60000,
+    "documentGzip": 4809,
+    "maintainabilityWarning": 210000
+  },
+  "rulesBlob": "296b595276122918f521d3f86ee6820a5cc876b7",
+  "indexesBlob": "79fc192e9b71eb3c18b7fd504b77fc9b07bcd18a",
+  "evidence": {
+    "directory": "artifacts/board-controls-simplification",
+    "captureIndex": "artifacts/board-controls-simplification/final-captures.json",
+    "screenshots": [
+      "final-your-boards.png",
+      "final-toolbar-board.png",
+      "final-toolbar-list.png",
+      "final-archive-populated.png",
+      "final-archive-empty.png",
+      "final-board-access-1440.png",
+      "final-board-access-680.png",
+      "final-board-access-390.png",
+      "final-your-boards-320.png"
+    ]
+  },
+  "publication": {"pushed":false,"pullRequest":false,"merged":false,"deployed":false,"rulesPublished":false,"indexesPublished":false,"realAccountAcceptance":false},
+  "preExistingUntrackedPreserved": [
+    "FLOWBOARD_BLANK_BOARDS_AND_CONFIRMATION_FIX_LUNA_PLAN.md",
+    "FLOWBOARD_BOARD_CONTROLS_SIMPLIFICATION_LUNA_PLAN.md",
+    "artifacts/board-controls-simplification-plan/",
+    "artifacts/board-creation-dialog-plan/"
+  ]
+}

@@ -25,7 +25,7 @@ After each verified step, report:
 - [x] Step 6: Qualify archive interaction and responsive accessibility.
 - [x] Step 7: Prove fresh Emulator workflows.
 - [x] Step 8: Integrate CI and run final qualification.
-- [ ] Step 9: Package evidence and stop before publication.
+- [x] Step 9: Package evidence and stop before publication.
 
 ## Evidence ledger
 
@@ -39,4 +39,4 @@ After each verified step, report:
 | 6 | complete | `artifacts/board-controls-simplification/step-6.json`; populated archive/viewer/responsive tests pass; configured coarse-pointer test pass |
 | 7 | complete | `artifacts/board-controls-simplification/step-7.json`; packaged Emulator 19+4, Rules Emulator 46, Rules/index blobs unchanged |
 | 8 | complete | `artifacts/board-controls-simplification/step-8.json`; aggregate, configured browser 11/11, focused 8/8, Lighthouse, isolation, and fixed-budget gates pass |
-| 9 | pending | |
+| 9 | complete | `artifacts/board-controls-simplification/summary.json`, `final-captures.json`, 9 visually inspected screenshots; stopped before publication |
