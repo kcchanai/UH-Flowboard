@@ -38,9 +38,11 @@ test('Google identity with mixed-case input bootstraps and creates a real cloud 
   await page.locator('#boards-button').click();
   await page.getByRole('button',{name:'+ New board'}).click();
   await page.locator('#new-board-title').fill('Mixed-case account board');
-  await page.locator('#board-template').selectOption('blank');
   await page.getByRole('button',{name:'Create board',exact:true}).click();
   await expect(page.locator('#workspace-board-list')).toContainText('Mixed-case account board');
+  await expect(page.locator('#board-template')).toHaveCount(0);
+  expect(await page.evaluate(()=>{const board=FlowboardApp.getActiveBoardSnapshot();return{lists:board?.lists.length||0,cards:board?.lists.reduce((sum,list)=>sum+list.cards.length,0)||0};})).toEqual({lists:0,cards:0});
+  expect(await page.evaluate(async()=>{const workspace=await FlowboardRuntime.cloudAdapter.fetchWorkspace(FlowboardApp.getMode().id);const board=workspace.boards.find(item=>item.title==='Mixed-case account board');return{lists:board?.lists.length||0,cards:board?.lists.reduce((sum,list)=>sum+list.cards.length,0)||0};})).toEqual({lists:0,cards:0});
   expect(await page.evaluate(()=>globalThis.__flowboardEmulatorTest.personalSummary())).toEqual({signedIn:true,hasPointer:true,workspaceExists:true,role:'owner',boardCount:1});
   await page.reload();
   await expect.poll(()=>page.evaluate(()=>globalThis.FlowboardApp?.getMode().kind),{timeout:15000}).toBe('cloud');
@@ -77,15 +79,16 @@ test('startup denial stays unavailable until Retry setup creates a verified home
   await expect(manager.getByRole('button',{name:'+ New board'})).toBeEnabled();
   await manager.getByRole('button',{name:'+ New board'}).click();
   await page.locator('#new-board-title').fill('Recovered first board');
-  await page.locator('#board-template').selectOption('blank');
   await manager.getByRole('button',{name:'Create board',exact:true}).click();
   await expect(manager.locator('#workspace-board-list')).toContainText('Recovered first board');
+  await expect(manager.locator('#board-template')).toHaveCount(0);
+  expect(await page.evaluate(()=>{const board=FlowboardApp.getActiveBoardSnapshot();return{lists:board?.lists.length||0,cards:board?.lists.reduce((sum,list)=>sum+list.cards.length,0)||0};})).toEqual({lists:0,cards:0});
   expect(await page.evaluate(()=>globalThis.__flowboardEmulatorTest.personalSummary())).toEqual({signedIn:true,hasPointer:true,workspaceExists:true,role:'owner',boardCount:1});
   await page.screenshot({path:'artifacts/permission-denied-fix/recovered-boards.png',fullPage:true});
 });
 
 test('broken established pointer can be explicitly repaired without adopting the legacy scope',async({page})=>{
-  await page.goto(`${baseURL}/tests/emulator/index.html?personal=1`);
+  await page.goto(`${baseURL}/tests/emulator/index.html?personal=1&repairFailure=1`);
   await page.waitForFunction(()=>globalThis.__flowboardEmulatorTest?.ready===true);
   await page.evaluate(()=>globalThis.__flowboardEmulatorTest.signInMixedCase());
   await expect.poll(()=>page.evaluate(()=>FlowboardApp.getMode().kind),{timeout:15000}).toBe('cloud');
@@ -101,14 +104,18 @@ test('broken established pointer can be explicitly repaired without adopting the
   const repairConfirmation=page.getByRole('dialog',{name:'Repair account setup?'});
   await expect(repairConfirmation).toBeVisible();
   await repairConfirmation.getByRole('button',{name:'Repair account setup',exact:true}).click();
-  await expect.poll(()=>page.evaluate(()=>FlowboardApp.getMode().kind),{timeout:15000}).toBe('cloud');
+  await expect.poll(()=>page.evaluate(()=>globalThis.FlowboardApp.getMode().kind),{timeout:15000}).toBe('offline');
+  await page.evaluate(()=>globalThis.FlowboardApp.retryAccountSetup());
+  await expect.poll(()=>page.evaluate(()=>globalThis.FlowboardApp.getMode().kind),{timeout:15000}).toBe('cloud');
   await expect.poll(()=>page.evaluate(id=>FlowboardApp.getMode().personalWorkspaceId!==id,legacy)).toBe(true);
+  await page.locator('#boards-button').click();
   await expect(manager.getByRole('button',{name:'+ New board'})).toBeEnabled();
   await manager.getByRole('button',{name:'+ New board'}).click();
   await page.locator('#new-board-title').fill('Repaired account board');
-  await page.locator('#board-template').selectOption('blank');
   await manager.getByRole('button',{name:'Create board',exact:true}).click();
   await expect(manager.locator('#workspace-board-list')).toContainText('Repaired account board');
+  await expect(manager.locator('#board-template')).toHaveCount(0);
+  expect(await page.evaluate(()=>{const board=FlowboardApp.getActiveBoardSnapshot();return{lists:board?.lists.length||0,cards:board?.lists.reduce((sum,list)=>sum+list.cards.length,0)||0};})).toEqual({lists:0,cards:0});
   const check=await initializeTestEnvironment({projectId:'demo-flowboard-browser',firestore:{host,port:Number(port)}});
   try{await check.withSecurityRulesDisabled(async context=>{const snapshot=await getDoc(doc(context.firestore(),'users',session.uid));expect(snapshot.data().personalWorkspaceId).not.toBe(legacy);expect(snapshot.data().workspaceIds).toEqual(expect.arrayContaining([session.original,legacy,snapshot.data().personalWorkspaceId]));});}finally{await check.cleanup();}
 });
@@ -153,7 +160,7 @@ test('unified My workspace creates the first cloud board and opens it across con
   const firstContext=await browser.newContext(),secondContext=await browser.newContext(),first=await firstContext.newPage(),second=await secondContext.newPage();
   try{
     await first.goto(`${baseURL}/tests/emulator/index.html?personal=1`);await first.waitForFunction(()=>globalThis.__flowboardEmulatorTest?.ready===true);await first.evaluate(()=>globalThis.__flowboardEmulatorTest.signInFreshPersonal());await expect.poll(()=>first.evaluate(()=>globalThis.FlowboardApp.getMode().kind),{timeout:15000}).toBe('cloud');
-    await first.locator('#boards-button').click();const manager=first.locator('#workspace-dialog');await expect(manager).toBeVisible();await expect(manager.locator('#workspace-search')).toBeFocused();await expect(manager.getByRole('button',{name:'+ New board'})).toBeVisible();await manager.getByRole('button',{name:'+ New board'}).click();await expect(manager.locator('#new-board-title')).toBeFocused();await expect(first.locator('#cloud-workspaces-dialog')).toHaveCount(0);await manager.locator('#new-board-title').fill('Cross context board');await manager.locator('#board-template').selectOption('blank');await manager.getByRole('button',{name:'Create board'}).click();await expect.poll(()=>first.evaluate(async()=>({title:globalThis.FlowboardApp.getActiveBoardSnapshot()?.title||'',status:document.querySelector('#cloud-workspaces-status').textContent,directory:(await globalThis.FlowboardRuntime.cloudAdapter.listBoardDirectory()).map(space=>({name:space.name,status:space.status,migration:space.migration?.state,unavailable:Boolean(space.unavailable),boards:space.boards.map(board=>board.title)}))})),{timeout:15000}).toEqual({title:'Cross context board',status:'Metadata synchronized.',directory:[{name:'My workspace',status:'ready',migration:'verified',unavailable:false,boards:['Cross context board']}]});await expect(manager.locator('#workspace-board-list')).toContainText('Cross context board',{timeout:15000});expect(await first.evaluate(async()=>{const command=globalThis.FlowboardApp.getLastCommand();return{started:command.started,status:command.status,completion:(await command.completion).status};})).toEqual({started:true,status:'pending',completion:'committed'});await manager.getByRole('button',{name:'Close boards'}).click();await expect(first.locator('#boards-button')).toBeFocused();
+    await first.locator('#boards-button').click();const manager=first.locator('#workspace-dialog');await expect(manager).toBeVisible();await expect(manager.locator('#workspace-search')).toBeFocused();await expect(manager.getByRole('button',{name:'+ New board'})).toBeVisible();await manager.getByRole('button',{name:'+ New board'}).click();await expect(manager.locator('#new-board-title')).toBeFocused();await expect(first.locator('#cloud-workspaces-dialog')).toHaveCount(0);await manager.locator('#new-board-title').fill('Cross context board');await manager.getByRole('button',{name:'Create board'}).click();await expect.poll(()=>first.evaluate(async()=>({title:globalThis.FlowboardApp.getActiveBoardSnapshot()?.title||'',status:document.querySelector('#cloud-workspaces-status').textContent,directory:(await globalThis.FlowboardRuntime.cloudAdapter.listBoardDirectory()).map(space=>({name:space.name,status:space.status,migration:space.migration?.state,unavailable:Boolean(space.unavailable),boards:space.boards.map(board=>board.title)}))})),{timeout:15000}).toEqual({title:'Cross context board',status:'Metadata synchronized.',directory:[{name:'My workspace',status:'ready',migration:'verified',unavailable:false,boards:['Cross context board']}]});await expect(manager.locator('#workspace-board-list')).toContainText('Cross context board',{timeout:15000});expect(await first.evaluate(async()=>{const command=globalThis.FlowboardApp.getLastCommand();return{started:command.started,status:command.status,completion:(await command.completion).status};})).toEqual({started:true,status:'pending',completion:'committed'});await manager.getByRole('button',{name:'Close boards'}).click();await expect(first.locator('#boards-button')).toBeFocused();
     await second.goto(`${baseURL}/tests/emulator/index.html?personal=1`);await second.waitForFunction(()=>globalThis.__flowboardEmulatorTest?.ready===true);await second.evaluate(()=>globalThis.__flowboardEmulatorTest.signInExistingPersonal());await expect.poll(()=>second.evaluate(()=>globalThis.FlowboardApp.getMode().kind),{timeout:15000}).toBe('cloud');await second.locator('#boards-button').click();const row=second.locator('#workspace-board-list .workspace-entry').filter({hasText:'Cross context board'});await expect(row).toBeVisible();await row.getByRole('button',{name:/Open Cross context board/}).click();await expect(second.locator('#board-title')).toHaveValue('Cross context board');
   }finally{await Promise.all([firstContext.close(),secondContext.close()]);}
 });

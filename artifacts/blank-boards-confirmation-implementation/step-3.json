@@ -1,0 +1,30 @@
+{
+  "step": 3,
+  "scope": "Blank-only board creation",
+  "commands": [
+    {"command": "npm.cmd run check", "exitCode": 0},
+    {"command": "npm.cmd run build", "exitCode": 0},
+    {"command": "npm.cmd run measure:mvp-v2", "exitCode": 0},
+    {"command": "focused blank creation test", "exitCode": 0, "passed": 1}
+  ],
+  "assertions": {
+    "productionTemplateSelector": false,
+    "productionStartFromLabel": false,
+    "controllerPassesLiteralBlank": true,
+    "appUsesMakeBoardBlank": true,
+    "directoryRaceFixtureHasNoTemplateSelector": true,
+    "legacyStateTemplateConstructorsRetained": true
+  },
+  "budget": {
+    "rawSourceBytes": 284587,
+    "rawCapBytes": 300000,
+    "initialShellGzipBytes": 25817,
+    "initialShellGzipCapBytes": 26250,
+    "firstPartyLazyGzipBytes": 55707,
+    "firstPartyLazyGzipCapBytes": 60000,
+    "documentGzipBytes": 4925,
+    "confirmationModuleBytes": 2508
+  },
+  "rulesOrIndexesChanged": false,
+  "productionDataAccessed": false
+}

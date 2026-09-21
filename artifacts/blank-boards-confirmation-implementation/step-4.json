@@ -1,0 +1,31 @@
+{
+  "step": 4,
+  "scope": "Scoped confirmation-dialog layout and responsive geometry",
+  "commands": [
+    {"command": "npm.cmd run check", "exitCode": 0},
+    {"command": "npm.cmd run build", "exitCode": 0},
+    {"command": "npm.cmd run measure:mvp-v2", "exitCode": 0},
+    {"command": "focused archive geometry test", "exitCode": 0, "passed": 1},
+    {"command": "focused delete and Repair narrow geometry test", "exitCode": 0, "passed": 1}
+  ],
+  "assertions": {
+    "confirmationGrid": "minmax(0,1fr)",
+    "iconBasedDialogGridPreserved": true,
+    "archiveBodyWidthUsable": true,
+    "deleteInputWidthUsableAt320px": true,
+    "repairBodyWidthUsableAt320px": true,
+    "shortHeightScrollRulesPreserved": true,
+    "productionDataAccessed": false
+  },
+  "budget": {
+    "rawSourceBytes": 285043,
+    "rawCapBytes": 300000,
+    "initialShellGzipBytes": 25880,
+    "initialShellGzipCapBytes": 26250,
+    "firstPartyLazyGzipBytes": 55707,
+    "firstPartyLazyGzipCapBytes": 60000,
+    "documentGzipBytes": 4927,
+    "confirmationModuleBytes": 2508
+  },
+  "rulesOrIndexesChanged": false
+}

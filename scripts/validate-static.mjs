@@ -22,6 +22,8 @@ for (const [label, pattern] of required) if (!pattern.test(html)) throw new Erro
 const retiredDom = ['open-cloud-recovery', 'open-cloud-migration', 'cloud-migration-dialog', 'legacy-spaces-section', 'legacy-spaces-list', 'migrate-cloud-workspace', 'export-cloud-workspace'];
 for (const token of retiredDom) if (html.includes(`id="${token}"`)) throw new Error(`Static validation failed: retired DOM selector remains: ${token}.`);
 for (const copy of ['Data recovery', 'Review legacy browser data', 'Older data is available in Data recovery']) if (html.includes(copy)) throw new Error(`Static validation failed: retired visible copy remains: ${copy}.`);
+if (html.includes('id="board-template"') || html.includes('Start from') || html.includes('Website launch') || html.includes('Personal tasks')) throw new Error('Static validation failed: new-board template selector or seeded template copy remains in the production form.');
+if (!cloudUI.includes("createBoard(title,'blank'") || !app.includes("makeBoard('blank')") || app.includes('makeBoard(template)')) throw new Error('Static validation failed: new-board creation is not explicitly blank.');
 if (cloudUI.includes('open-cloud-recovery') || cloudUI.includes('open-cloud-migration') || cloudUI.includes('legacy-spaces-section') || cloudUI.includes('Data recovery')) throw new Error('Static validation failed: cloud UI still owns a retired recovery route.');
 
 if (!app.includes('FlowboardState.cardMatches') || !app.includes('FlowboardState.csvForBoard')) throw new Error('App does not use tested state helpers.');

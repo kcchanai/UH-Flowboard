@@ -1,0 +1,35 @@
+{
+  "step": 5,
+  "scope": "Confirmation reuse, pending ownership, retry, accessibility, and focus",
+  "commands": [
+    {"command": "npm.cmd run check", "exitCode": 0},
+    {"command": "npm.cmd run build", "exitCode": 0},
+    {"command": "focused board-creation-confirmation suite", "exitCode": 0, "passed": 8},
+    {"command": "configured cloud-first-a11y suite", "exitCode": 0, "passed": 2},
+    {"command": "npm.cmd run measure:mvp-v2", "exitCode": 0}
+  ],
+  "assertions": {
+    "requestToken": true,
+    "busyDuplicateSubmitBlocked": true,
+    "busyEscapeDismissalBlocked": true,
+    "idleCancelEnabledAfterReuse": true,
+    "failureRestoresRetryControls": true,
+    "exactNameDeleteGuard": true,
+    "detachedRowFocusFallback": true,
+    "accessibleMessageAndDescriptionIds": true,
+    "repairSharesCorrectedHelper": true,
+    "productionDataAccessed": false
+  },
+  "budget": {
+    "rawSourceBytes": 286513,
+    "rawCapBytes": 300000,
+    "initialShellGzipBytes": 25918,
+    "initialShellGzipCapBytes": 26250,
+    "firstPartyLazyGzipBytes": 56019,
+    "firstPartyLazyGzipCapBytes": 60000,
+    "documentGzipBytes": 4927,
+    "confirmationModuleBytes": 3978,
+    "confirmationModuleCapBytes": 4000
+  },
+  "rulesOrIndexesChanged": false
+}
