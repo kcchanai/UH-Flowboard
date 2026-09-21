@@ -45,7 +45,7 @@ test('board manager shows boards and keeps legacy recovery rows out of normal na
   await page.screenshot({path: 'artifacts/single-workspace/step-01/baseline-workspace-rows.png', fullPage: true});
 });
 
-test('New board is visible and focuses the existing form in an empty personal home', async ({page}) => {
+test('the lower New board form is the only creation path in an empty personal home', async ({page}) => {
   await openShell(page);
   await page.evaluate(async ({asset, fixture}) => {
     globalThis.FlowboardApp = {
@@ -62,11 +62,8 @@ test('New board is visible and focuses the existing form in an empty personal ho
   }, {asset: builtCloudAsset(), fixture: {...directoryFixture(), personal: true, boards: []}});
   await page.getByRole('button', {name: 'Boards'}).click();
   const dialog = page.getByRole('dialog', {name: 'Your boards'});
-  await expect(dialog.getByRole('button', {name: '+ New board'})).toBeVisible();
-  await expect(dialog.getByRole('button', {name: '+ New board'})).toBeEnabled();
-  await dialog.getByRole('button', {name: '+ New board'}).click();
+  await expect(dialog.locator('#new-board-button')).toHaveCount(0);
   await expect(dialog.locator('#new-board-form')).toBeVisible();
-  await expect(dialog.locator('#new-board-title')).toBeFocused();
   await expect(dialog.locator('#workspace-board-list')).toContainText('No active boards yet.');
 });
 

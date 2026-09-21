@@ -59,7 +59,7 @@ test('blank creation removes Start from and keeps the blank command explicit',as
   await openShell(page);
   await installFixture(page);
   const manager=await openBoards(page);
-  await manager.getByRole('button',{name:'+ New board'}).click();
+  await expect(manager.locator('#new-board-button')).toHaveCount(0);
   await expect(manager.locator('#new-board-form')).toBeVisible();
   await expect(manager.locator('#board-template')).toHaveCount(0);
   await expect(manager.getByText('Start from',{exact:true})).toHaveCount(0);
@@ -121,7 +121,7 @@ test('delete then Repair account setup uses a fresh confirmation state',async({p
 });
 
 test('final synthetic screenshots cover blank and lifecycle confirmations',async({page})=>{
-  await openShell(page);await installFixture(page,{repairAfterDelete:true});let manager=await openBoards(page);await manager.getByRole('button',{name:'+ New board'}).click();await page.screenshot({path:'artifacts/blank-boards-confirmation-implementation/screenshots/final-blank-board.png',fullPage:false});await manager.getByRole('button',{name:'Close boards'}).click();manager=await openBoards(page);
+  await openShell(page);await installFixture(page,{repairAfterDelete:true});let manager=await openBoards(page);await expect(manager.locator('#new-board-button')).toHaveCount(0);await expect(manager.locator('#new-board-form')).toBeVisible();await page.screenshot({path:'artifacts/blank-boards-confirmation-implementation/screenshots/final-blank-board.png',fullPage:false});await manager.getByRole('button',{name:'Close boards'}).click();manager=await openBoards(page);
   let confirmation=await openArchiveConfirmation(page,manager);await page.screenshot({path:'artifacts/blank-boards-confirmation-implementation/screenshots/final-archive.png',fullPage:false});await confirmation.getByRole('button',{name:'Archive board',exact:true}).click();await expect(confirmation).toBeHidden();
   const archived=manager.locator('#archived-board-list .workspace-entry').filter({hasText:'Confirm board'});await archived.getByRole('button',{name:'Restore'}).click();confirmation=page.getByRole('dialog',{name:'Restore board?'});await page.screenshot({path:'artifacts/blank-boards-confirmation-implementation/screenshots/final-restore.png',fullPage:false});await confirmation.getByRole('button',{name:'Restore board',exact:true}).click();await expect(confirmation).toBeHidden();
   manager=page.getByRole('dialog',{name:'Your boards'});const active=manager.locator('#workspace-board-list .workspace-entry').filter({hasText:'Confirm board'});await active.locator('.workspace-lifecycle-actions summary').click();await active.getByRole('button',{name:'Delete permanently'}).click();confirmation=page.getByRole('dialog',{name:'Delete board permanently?'});await confirmation.locator('input').fill('Confirm board');await page.screenshot({path:'artifacts/blank-boards-confirmation-implementation/screenshots/final-delete.png',fullPage:false});await confirmation.getByRole('button',{name:'Delete permanently',exact:true}).click();await expect(confirmation).toBeHidden();const repair=manager.getByRole('button',{name:'Repair account setup',exact:true});await expect(repair).toBeVisible();await repair.click();const repairConfirmation=page.getByRole('dialog',{name:'Repair account setup?'});await page.screenshot({path:'artifacts/blank-boards-confirmation-implementation/screenshots/final-repair.png',fullPage:false});await repairConfirmation.getByRole('button',{name:'Cancel',exact:true}).click();await expect(repairConfirmation).toBeHidden();
