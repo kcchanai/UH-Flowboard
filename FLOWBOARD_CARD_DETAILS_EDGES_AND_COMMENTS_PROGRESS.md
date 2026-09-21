@@ -18,7 +18,7 @@ Plan: `FLOWBOARD_CARD_DETAILS_EDGES_AND_COMMENTS_LUNA_PLAN.md`
 - [x] Step 5 of 8: Qualify keyboard, draft, theme, and responsive behavior.
 - [x] Step 6 of 8: Verify real Emulator card/comment workflows.
 - [x] Step 7 of 8: Integrate CI and run the final candidate gates.
-- [ ] Step 8 of 8: Package evidence and stop before publication.
+- [x] Step 8 of 8: Package evidence and stop before publication.
 
 ## Evidence ledger
 
@@ -31,4 +31,4 @@ Plan: `FLOWBOARD_CARD_DETAILS_EDGES_AND_COMMENTS_LUNA_PLAN.md`
 | 5 | complete | `tests/card-details-edges-comments.spec.mjs` 5/5; configured axe 2/2; confirmation/board-controls 17/17; responsive/media matrix passed |
 | 6 | complete | `tests/emulator/card-details-ui.spec.mjs`; packaged Emulator 19+1+4; Rules Emulator 46; separate Vite ports and Emulator shutdown settling |
 | 7 | complete | `artifacts/card-details-edges-implementation/step-7.json`; unconfigured aggregate pass; configured browser 11+24; Lighthouse 1.0; Emulator 19+1+4; Rules 46 |
-| 8 | pending | |
+| 8 | complete | `artifacts/card-details-edges-implementation/step-8.json`, `summary.json`, `final-captures.json`, 5 visually inspected captures; stopped before publication |
