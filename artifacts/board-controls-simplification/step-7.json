@@ -1,0 +1,14 @@
+{
+  "step": 7,
+  "status": "complete",
+  "commands": [
+    {"command":"npm.cmd run test:emulator-browser","exitCode":0,"selections":[{"label":"multi-user and deletion","passed":19},{"label":"board lifecycle UI","passed":4}]},
+    {"command":"npm.cmd run test:rules","exitCode":0,"tests":46},
+    {"command":"git diff --exit-code -- firestore.rules firestore.indexes.json","exitCode":0},
+    {"command":"git diff --check","exitCode":0}
+  ],
+  "rulesBlob":"296b595276122918f521d3f86ee6820a5cc876b7",
+  "indexesBlob":"79fc192e9b71eb3c18b7fd504b77fc9b07bcd18a",
+  "cleanup":"Removed firestore-debug.log and restored four unrelated generated permission-denied screenshots.",
+  "boundary":"Fresh demo Auth/Firestore Emulator sessions only. No real account, production data, Rules/index publication, push, PR, merge, or deployment."
+}

@@ -23,7 +23,7 @@ After each verified step, report:
 - [x] Step 4: Replace Board actions with direct Archived cards.
 - [x] Step 5: Widen Board access and owner forms through the real opening path.
 - [x] Step 6: Qualify archive interaction and responsive accessibility.
-- [ ] Step 7: Prove fresh Emulator workflows.
+- [x] Step 7: Prove fresh Emulator workflows.
 - [ ] Step 8: Integrate CI and run final qualification.
 - [ ] Step 9: Package evidence and stop before publication.
 
@@ -37,6 +37,6 @@ After each verified step, report:
 | 4 | complete | `artifacts/board-controls-simplification/step-4.json`; direct archive/browser smoke selection 8/8; static/workflow/budget gates pass |
 | 5 | complete | `artifacts/board-controls-simplification/step-5.json`; real opening-path geometry 1440/960/680/390, viewer/no-mutation checks, lazy budget pass |
 | 6 | complete | `artifacts/board-controls-simplification/step-6.json`; populated archive/viewer/responsive tests pass; configured coarse-pointer test pass |
-| 7 | pending | |
+| 7 | complete | `artifacts/board-controls-simplification/step-7.json`; packaged Emulator 19+4, Rules Emulator 46, Rules/index blobs unchanged |
 | 8 | pending | |
 | 9 | pending | |
