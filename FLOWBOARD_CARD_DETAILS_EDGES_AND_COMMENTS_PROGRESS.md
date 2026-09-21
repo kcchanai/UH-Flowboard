@@ -15,7 +15,7 @@ Plan: `FLOWBOARD_CARD_DETAILS_EDGES_AND_COMMENTS_LUNA_PLAN.md`
 - [x] Step 2 of 8: Add focused production-markup regressions.
 - [x] Step 3 of 8: Repair the card-only header/body/footer layout.
 - [x] Step 4 of 8: Remove only the redundant comments sentences.
-- [ ] Step 5 of 8: Qualify keyboard, draft, theme, and responsive behavior.
+- [x] Step 5 of 8: Qualify keyboard, draft, theme, and responsive behavior.
 - [ ] Step 6 of 8: Verify real Emulator card/comment workflows.
 - [ ] Step 7 of 8: Integrate CI and run the final candidate gates.
 - [ ] Step 8 of 8: Package evidence and stop before publication.
@@ -28,7 +28,7 @@ Plan: `FLOWBOARD_CARD_DETAILS_EDGES_AND_COMMENTS_LUNA_PLAN.md`
 | 2 | complete | `tests/card-details-edges-comments.spec.mjs`; `artifacts/card-details-edges-implementation/step-2-baseline.json`; baseline 1 passed, 2 expected failures |
 | 3 | complete | `index.html`, `styles.css`, and focused edge contract; 3/3 passed across 9 viewport/scroll cases; zero-gap geometry and fixed budgets pass |
 | 4 | complete | `index.html`, `src/comments-ui.js`, `scripts/validate-static.mjs`, `artifacts/card-details-edges-implementation/step-4.json`; focused 3/3 and static/build pass |
-| 5 | pending | |
+| 5 | complete | `tests/card-details-edges-comments.spec.mjs` 5/5; configured axe 2/2; confirmation/board-controls 17/17; responsive/media matrix passed |
 | 6 | pending | |
 | 7 | pending | |
 | 8 | pending | |
