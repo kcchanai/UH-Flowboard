@@ -1,0 +1,36 @@
+{
+  "candidateSha": "633a00de2485c9f85f8e3c22fd4f8cccb7cefe6c",
+  "branch": "fix/blank-boards-and-confirmations",
+  "evidencePackage": "artifacts/blank-boards-confirmation-implementation",
+  "results": {
+    "unit": 41,
+    "rulesEmulator": 46,
+    "packagedEmulatorMultiUserDeletion": 19,
+    "packagedEmulatorBoardLifecycle": 4,
+    "configuredCiBrowser": 11,
+    "focusedFunctional": 8,
+    "finalEvidenceCapture": 1,
+    "lighthouseAccessibilityScore": 1,
+    "lighthouseFailedAudits": 0,
+    "productionAssetIsolation": 17
+  },
+  "screenshots": [
+    "screenshots/final-blank-board.png",
+    "screenshots/final-archive.png",
+    "screenshots/final-restore.png",
+    "screenshots/final-delete.png",
+    "screenshots/final-repair.png"
+  ],
+  "budgets": {
+    "configured": {"rawSource": 286513, "initialShellGzip": 25918, "firstPartyLazyGzip": 56019, "documentGzip": 4927, "confirmationModule": 3978},
+    "unconfigured": {"rawSource": 286513, "initialShellGzip": 25878, "firstPartyLazyGzip": 56019, "documentGzip": 4928}
+  },
+  "caps": {"rawSource": 300000, "initialShellGzip": 26250, "firstPartyLazyGzip": 60000, "confirmationModule": 4000},
+  "rulesBlob": "296b595276122918f521d3f86ee6820a5cc876b7",
+  "indexesBlob": "79fc192e9b71eb3c18b7fd504b77fc9b07bcd18a",
+  "rulesOrIndexesChanged": false,
+  "productionDataAccessed": false,
+  "deployed": false,
+  "pushed": false,
+  "realAccountAcceptance": false
+}

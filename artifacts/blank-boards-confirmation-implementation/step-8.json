@@ -1,0 +1,32 @@
+{
+  "step": 8,
+  "scope": "Evidence package and release gate",
+  "candidateSha": "633a00de2485c9f85f8e3c22fd4f8cccb7cefe6c",
+  "commands": [
+    {"command": "final focused suite including evidence capture", "exitCode": 0, "passed": 9},
+    {"command": "synthetic screenshot count and size verification", "exitCode": 0, "count": 5},
+    {"command": "visual inspection of five screenshots", "exitCode": 0},
+    {"command": "git diff --check", "exitCode": 0}
+  ],
+  "evidence": {
+    "readme": "artifacts/blank-boards-confirmation-implementation/README.md",
+    "summary": "artifacts/blank-boards-confirmation-implementation/summary.json",
+    "screenshots": [
+      "screenshots/final-blank-board.png",
+      "screenshots/final-archive.png",
+      "screenshots/final-restore.png",
+      "screenshots/final-delete.png",
+      "screenshots/final-repair.png"
+    ]
+  },
+  "releaseBoundary": {
+    "pushed": false,
+    "prCreated": false,
+    "merged": false,
+    "deployed": false,
+    "rulesPublished": false,
+    "indexesPublished": false,
+    "realAccountAcceptance": false,
+    "productionDataAccessed": false
+  }
+}

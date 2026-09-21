@@ -6,7 +6,7 @@
     {"command": "npm.cmd run test:rules", "exitCode": 0, "rulesPassed": 46},
     {"command": "npm.cmd run test:emulator-browser", "exitCode": 0, "multiUserDeletionPassed": 19, "boardLifecyclePassed": 4},
     {"command": "configured CI browser selection", "exitCode": 0, "passed": 11},
-    {"command": "configured focused blank-board and confirmation suite", "exitCode": 0, "passed": 8},
+    {"command": "configured focused blank-board and confirmation suite plus final evidence capture", "exitCode": 0, "passed": 9, "functionalPassed": 8, "evidenceCapturePassed": 1},
     {"command": "configured Lighthouse accessibility plus scripts/assert-lighthouse.mjs", "exitCode": 0, "score": 1, "failedAudits": 0},
     {"command": "node scripts/validate-workflow-gating.mjs", "exitCode": 0}
   ],

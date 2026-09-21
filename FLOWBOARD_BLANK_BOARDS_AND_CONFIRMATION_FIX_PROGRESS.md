@@ -29,7 +29,7 @@ This ledger records the local implementation and qualification of `FLOWBOARD_BLA
 - [x] Step 5: Fix confirmation reuse and asynchronous state ownership.
 - [x] Step 6: Verify creation, lifecycle, and Repair through fresh Emulators.
 - [x] Step 7: Integrate CI selections and run final qualification.
-- [ ] Step 8: Package evidence and stop before publication.
+- [x] Step 8: Package evidence and stop before publication.
 
 ## Evidence policy
 
