@@ -1,0 +1,13 @@
+{
+  "step":7,
+  "status":"complete",
+  "ciChanges":["Added explicit card-details browser regression step.","Added dedicated card-details Emulator job with separate Vite port in CI.","Updated workflow gating to require the card-details browser and Emulator selections.","Hardened packaged Emulator runner with separate ports and Auth/Firestore/UI port settling between fresh jobs."],
+  "unconfiguredAggregate":{"command":"npm.cmd run validate","exitCode":0,"unitTests":41,"sourceBytes":284509,"initialShellGzip":25523,"firstPartyLazyGzip":56764,"documentGzip":4798,"productionAssetIsolation":18},
+  "configuredBrowser":{"criticalSelection":11,"criticalPassed":11,"focusedAndPriorMatrix":24,"focusedAndPriorPassed":24,"lighthouseAccessibilityScore":1,"lighthouseFailedAudits":0,"syntheticConfigOnly":true},
+  "emulator":{"packagedJobs":[19,1,4],"rulesTests":46,"allPassed":true},
+  "static":"passed",
+  "workflowGate":"passed",
+  "rulesBlob":"296b595276122918f521d3f86ee6820a5cc876b7",
+  "indexesBlob":"79fc192e9b71eb3c18b7fd504b77fc9b07bcd18a",
+  "boundary":"Local CI-shaped runs only; no push, PR, merge, deployment, Rules/index publication, or real-account acceptance."
+}

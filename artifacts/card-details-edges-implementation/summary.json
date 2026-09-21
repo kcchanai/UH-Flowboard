@@ -1,0 +1,15 @@
+{
+  "step":8,
+  "status":"complete",
+  "implementationCommit":"f70bf5ac96573fde0104451f9a3f586f813a1945",
+  "baseMain":"ffea4adc77ac0d23abf206363092530b1b58220f",
+  "captures":{"count":5,"files":["final-desktop-light-top.png","final-desktop-light-end.png","final-short-dark-middle.png","final-phone-light-middle.png","final-desktop-light-failure.png"],"visuallyInspected":5,"zeroGeometryGaps":true,"retiredCopyCases":[],"unexpectedErrorCases":[]},
+  "captureMetrics":{"desktopTopGap":0,"desktopEndGap":0,"shortDarkGap":0,"phoneGap":0,"failureGap":0,"documentWidthsMatchViewport":true,"failureStatus":"Synthetic comments failure","expectedFailureConsoleCount":1},
+  "qualification":{"unitTests":41,"configuredCriticalBrowser":11,"configuredFocusedAndPriorMatrix":24,"configuredAxe":2,"lighthouseAccessibilityScore":1,"packagedEmulatorJobs":[19,1,4],"rulesEmulator":46,"productionAssetIsolation":18},
+  "budgets":{"sourceBytes":284509,"sourceCap":300000,"initialShellGzip":25523,"initialShellGzipCap":26250,"firstPartyLazyGzip":56764,"firstPartyLazyGzipCap":60000,"documentGzip":4798,"maintainabilityWarning":210000},
+  "rulesBlob":"296b595276122918f521d3f86ee6820a5cc876b7",
+  "indexesBlob":"79fc192e9b71eb3c18b7fd504b77fc9b07bcd18a",
+  "publication":{"pushed":false,"pullRequest":false,"merged":false,"deployed":false,"rulesPublished":false,"indexesPublished":false,"realAccountAcceptance":false},
+  "limitations":["Synthetic browser fixtures and disposable demo Auth/Firestore Emulators only.","No real-account acceptance or production data access.","Touch and mobile keyboard hardware were not tested on physical devices.","One historical browser-smoke expectation remains outside this plan: it expects an archive confirmation from the Delete control while current app.js routes that control to permanent-delete preflight."],
+  "evidenceCommit":"343282f1053d790a16e2147e96e8a402e59cd4a0"
+}

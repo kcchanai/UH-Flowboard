@@ -1,0 +1,12 @@
+{
+  "step":6,
+  "status":"complete",
+  "newSpec":"tests/emulator/card-details-ui.spec.mjs",
+  "newSpecSelection":{"tests":1,"passed":1,"freshAuthFirestoreEmulator":true},
+  "packagedRunner":{"jobs":[{"label":"multi-user and deletion","passed":19},{"label":"card details UI","passed":1},{"label":"board lifecycle UI","passed":4}],"exitCode":0,"runner":"npm.cmd run test:emulator-browser"},
+  "rulesEmulator":{"tests":46,"passed":46,"exitCode":0,"command":"npm.cmd run test:rules"},
+  "coverage":["owner/editor card title save and server convergence","editor comment create","editor comment edit","editor comment removal","viewer comment read-only boundary","viewer Close pointer behavior","retired comments copy absence","fresh Auth/Firestore Emulators"],
+  "runnerIsolation":"Each packaged Emulator job uses a separate Vite port and waits for Auth, Firestore, and Emulator UI ports to settle before the next fresh job.",
+  "rulesIndexes":"unchanged; no publication",
+  "boundary":"Synthetic accounts and demo Emulator projects only; no real account or production data."
+}

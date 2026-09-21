@@ -1,0 +1,12 @@
+{
+  "step":8,
+  "status":"complete",
+  "evidenceDirectory":"artifacts/card-details-edges-implementation",
+  "finalCaptures":5,
+  "visualInspection":"5/5 inspected; header/footer edge coverage confirmed at desktop, short dark, phone, end-scroll, and failure-state captures",
+  "unexpectedRuntimeErrors":0,
+  "expectedFailureState":"Synthetic comments failure appears in one intentionally triggered failure capture; its one console error is expected and recorded separately.",
+  "geometry":"All final captures measured topGap=0 and bottomGap=0; document width matched viewport width.",
+  "publication":"stopped before push, PR, merge, deployment, Rules/index publication, and real-account acceptance.",
+  "limitations":"Synthetic/local/Emulator only; no physical mobile hardware or real account acceptance."
+}

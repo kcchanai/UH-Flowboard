@@ -1,0 +1,9 @@
+{
+  "step":5,
+  "status":"complete",
+  "focusedCardDetails":{"tests":5,"passed":5,"selection":"tests/card-details-edges-comments.spec.mjs","viewportMatrix":["1280x720","1440x900","1920x1080","960x720","960x540","390x844","320x720","844x390","640x450 effective 200% reflow"],"themes":["light","dark"],"media":["prefers-reduced-motion: reduce","forced-colors: active"],"pointerClose":true,"keyboardEscape":true,"draftConfirmation":true,"viewerClose":true,"overflowCases":0},
+  "preservedSuites":{"confirmationAndBoardControls":{"tests":17,"passed":17},"browserSmokeTargeted":{"tests":4,"passed":3,"preExistingFailure":"dirty card discard expects Archive this cloud card after the Delete control; current app.js routes that control to permanent-delete preflight and app.js was not changed by this plan"}},
+  "accessibility":{"configuredAxeTests":2,"configuredAxePassed":2,"score":"zero axe violations"},
+  "build":"unconfigured production build passed",
+  "boundary":"Local built previews only. Synthetic memory fixtures and synthetic public configuration for axe only; no sign-in, production Firebase, or real data."
+}

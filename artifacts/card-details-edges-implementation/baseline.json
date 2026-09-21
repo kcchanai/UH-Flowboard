@@ -1,0 +1,20 @@
+{
+  "step":1,
+  "status":"complete",
+  "baseSha":"ffea4adc77ac0d23abf206363092530b1b58220f",
+  "branch":"fix/card-details-edges-and-comments",
+  "remoteMainSha":"ffea4adc77ac0d23abf206363092530b1b58220f",
+  "rulesBlob":"296b595276122918f521d3f86ee6820a5cc876b7",
+  "indexesBlob":"79fc192e9b71eb3c18b7fd504b77fc9b07bcd18a",
+  "tools":{"node":"v22.23.0","npm":"10.9.8","playwright":"present","systemChrome":"C:/Program Files (x86)/Google/Chrome/Application/chrome.exe"},
+  "baselineCommands":[
+    {"command":"npm.cmd run validate","exitCode":0,"unitTests":41,"static":"passed","workflowGate":"passed","build":"passed","sourceBudget":"passed","productionAssetIsolation":18},
+    {"command":"node scripts/validate-static.mjs","exitCode":0,"result":"passed"},
+    {"command":"node scripts/validate-workflow-gating.mjs","exitCode":0,"result":"passed"},
+    {"command":"npm.cmd run measure:mvp-v2","exitCode":0,"sourceBytes":283597,"sourceCap":300000,"initialShellGzip":25376,"initialShellGzipCap":26250,"firstPartyLazyGzip":56771,"firstPartyLazyGzipCap":60000,"documentGzip":4806,"maintainabilityWarning":210000},
+    {"command":"git diff --check && git diff --exit-code -- firestore.rules firestore.indexes.json","exitCode":0,"result":"passed"}
+  ],
+  "lineEndingCheck":{"file":"src/confirmation-dialog-ui.js","workingBytes":3978,"gitBlobBytes":3978,"workingCRLF":0,"gitBlobCRLF":0,"normalizedEqual":true},
+  "publication":{"pushed":false,"pullRequest":false,"merged":false,"deployed":false,"rulesPublished":false,"indexesPublished":false,"realAccountAcceptance":false},
+  "preExistingUntrackedPreserved":["FLOWBOARD_BLANK_BOARDS_AND_CONFIRMATION_FIX_LUNA_PLAN.md","FLOWBOARD_BOARD_CONTROLS_SIMPLIFICATION_LUNA_PLAN.md","FLOWBOARD_CARD_DETAILS_EDGES_AND_COMMENTS_LUNA_PLAN.md","artifacts/board-controls-simplification-plan/","artifacts/board-creation-dialog-plan/","artifacts/card-details-edge-plan/"]
+}
