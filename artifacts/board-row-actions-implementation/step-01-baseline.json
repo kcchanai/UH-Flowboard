@@ -1,0 +1,35 @@
+{
+  "step": "1 of 6",
+  "status": "complete",
+  "branch": "fix/board-row-actions",
+  "baseSha": "5a40a6376c028f8a35f5d8c0ae67d98b30b7a502",
+  "remoteMainSha": "5a40a6376c028f8a35f5d8c0ae67d98b30b7a502",
+  "rulesBlob": "296b595276122918f521d3f86ee6820a5cc876b7",
+  "indexesBlob": "79fc192e9b71eb3c18b7fd504b77fc9b07bcd18a",
+  "tools": {
+    "node": "v22.23.0",
+    "npm": "10.9.8",
+    "java": "Temurin OpenJDK 21.0.12",
+    "playwright": "1.55.0",
+    "lighthouse": "12.8.2",
+    "firebaseExecutable": "unavailable; repository npx path retained"
+  },
+  "commands": [
+    {"command": "npm.cmd run validate", "exitCode": 0, "unitTests": 41, "productionAssets": 18},
+    {"command": "node scripts/validate-static.mjs", "exitCode": 0, "guards": 10},
+    {"command": "node scripts/validate-workflow-gating.mjs", "exitCode": 0},
+    {"command": "git diff --check", "exitCode": 0}
+  ],
+  "budgets": {
+    "sourceBytes": 284509,
+    "sourceCapBytes": 300000,
+    "initialShellGzipBytes": 25523,
+    "initialShellGzipCapBytes": 26250,
+    "firstPartyLazyGzipBytes": 56764,
+    "firstPartyLazyGzipCapBytes": 60000,
+    "documentGzipBytes": 4798,
+    "warningBytes": 210000
+  },
+  "trackedApplicationFilesChanged": false,
+  "preservedPreexistingUntrackedPlansAndEvidence": true
+}

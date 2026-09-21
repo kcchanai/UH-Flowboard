@@ -1,0 +1,30 @@
+{
+  "step": "5 of 6",
+  "status": "complete",
+  "commands": [
+    {"command": "npm.cmd run test:rules", "exitCode": 0, "rulesTests": 46, "firebaseProject": "demo-flowboard-rules", "published": false},
+    {"command": "PLAYWRIGHT_EXECUTABLE_PATH=C:/Program Files (x86)/Google/Chrome/Application/chrome.exe npm.cmd run test:emulator-browser", "exitCode": 0, "selections": [
+      {"label": "multi-user and deletion", "passed": 19},
+      {"label": "card details UI", "passed": 1},
+      {"label": "board lifecycle UI", "passed": 4}
+    ]}
+  ],
+  "lifecycleCoverage": {
+    "activeRowArchiveRestore": true,
+    "activeRowDeleteEntryPoint": "Delete",
+    "archivedRowRestoreAboveDelete": true,
+    "permanentConfirmation": "Delete permanently",
+    "typedBoardName": true,
+    "descendantPreflightAndReadback": true,
+    "ownerPermissionBoundary": true,
+    "viewerEditorDenial": true
+  },
+  "cleanup": {
+    "authFirestorePortsClosed": true,
+    "emulatorRunnerPortsClosed": true,
+    "preexistingTrackedDiagnosticsRestored": true,
+    "disposableRulesLogRemoved": true,
+    "rulesOrIndexesPublished": false,
+    "realAccountsOrProductionData": false
+  }
+}

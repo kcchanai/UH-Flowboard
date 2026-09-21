@@ -12,14 +12,16 @@ export function createBoardLifecycleActions({space:s,board:b,cloudAdapter:a,stat
     ask({trigger,title:archived?'Archive board?':'Restore board?',message:archived?'Board content will be retained.':'Return board to Active boards.',confirm:archived?'Archive board':'Restore board',waiting:archived?'Archiving...':'Restoring...',action:async()=>{await a.setBoardArchived({workspaceId:s.id,boardId:b.id,expectedRevision:b.revision,archived});await refresh(s);}});
   };
   if(b.archived){
-    const restore=button('Restore','button button-primary'),remove=button('Delete permanently','button button-danger');
+    const actions=el('div'),restore=button('Restore','button button-primary'),remove=button('Delete','button button-danger');
+    actions.className='board-archived-actions';
     restore.onclick=()=>act(false,restore);remove.onclick=()=>act(true,remove);
-    return[restore,remove];
+    actions.append(restore,remove);
+    return[actions];
   }
-  const box=el('details'),more=el('summary'),toggle=button('Archive');
+  const box=el('details'),more=el('summary'),toggle=button('Archive','button board-archive-action');
   box.className='workspace-lifecycle-actions';more.textContent='More';more.setAttribute('aria-label',`More actions for ${b.title}`);
   toggle.onclick=()=>act(false,toggle);
-  const remove=button('Delete permanently','button button-danger');remove.onclick=()=>act(true,remove);
+  const remove=button('Delete','button button-danger');remove.onclick=()=>act(true,remove);
   box.append(more,toggle,remove);
   return[box];
 }

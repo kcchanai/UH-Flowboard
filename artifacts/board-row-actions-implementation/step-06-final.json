@@ -1,0 +1,44 @@
+{
+  "step": "6 of 6",
+  "status": "complete",
+  "commands": [
+    {"command": "npm.cmd run validate", "exitCode": 0, "unitTests": 41, "configured": true},
+    {"command": "node --check tests/board-row-actions.spec.mjs", "exitCode": 0},
+    {"command": "node --check artifacts/board-row-actions-implementation/capture-final.mjs", "exitCode": 0},
+    {"command": "node scripts/validate-static.mjs", "exitCode": 0},
+    {"command": "node scripts/validate-workflow-gating.mjs", "exitCode": 0},
+    {"command": "git diff --check", "exitCode": 0},
+    {"command": "npx.cmd playwright test tests/board-row-actions.spec.mjs --reporter=line", "exitCode": 0, "passed": 8, "total": 8},
+    {"command": "npx.cmd playwright test tests/board-creation-confirmation.spec.mjs tests/board-controls-simplification.spec.mjs tests/card-details-edges-comments.spec.mjs --reporter=line", "exitCode": 0, "passed": 22, "total": 22},
+    {"command": "exact CI critical browser selection --reporter=line", "exitCode": 0, "passed": 11, "total": 11},
+    {"command": "npx lighthouse ... --only-categories=accessibility", "exitCode": 0, "score": 1},
+    {"command": "node scripts/assert-lighthouse.mjs artifacts/board-row-actions-implementation/lighthouse-report.json", "exitCode": 0},
+    {"command": "npm.cmd run test:rules", "exitCode": 0, "passed": 46},
+    {"command": "npm.cmd run test:emulator-browser", "exitCode": 0, "passed": 24, "selections": "19 + 1 + 4"}
+  ],
+  "selectionLists": {"boardRowActions": 8, "ciCritical": 11},
+  "budgets": {
+    "source": "285391/300000",
+    "initialShellGzip": "25656/26250",
+    "firstPartyLazyGzip": "56788/60000",
+    "documentGzip": 4800,
+    "productionAssets": 18
+  },
+  "captures": {
+    "count": 5,
+    "httpStatus": 200,
+    "consoleErrors": 0,
+    "pageErrors": 0,
+    "failedRequests": 0,
+    "files": [
+      "screenshots/final-desktop-light-active.png",
+      "screenshots/final-desktop-dark-active.png",
+      "screenshots/final-short-dark-archived.png",
+      "screenshots/final-phone-light-archived.png",
+      "screenshots/final-desktop-light-confirmation.png"
+    ]
+  },
+  "rulesAndIndexesPublished": false,
+  "realAccountsOrProductionData": false,
+  "pushedOrDeployed": false
+}

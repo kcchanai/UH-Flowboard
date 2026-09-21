@@ -67,7 +67,7 @@ test('the lower New board form is the only creation path in an empty personal ho
   await expect(dialog.locator('#workspace-board-list')).toContainText('No active boards yet.');
 });
 
-test('archived owner board exposes direct Restore and Delete permanently actions', async ({page}) => {
+test('archived owner board exposes direct Restore and Delete row actions', async ({page}) => {
   await openShell(page);
   await page.evaluate(async ({asset, fixture}) => {
     globalThis.FlowboardApp = {
@@ -88,5 +88,5 @@ test('archived owner board exposes direct Restore and Delete permanently actions
   await expect(archived.getByRole('button', {name: /Archived Synthetic archived board/})).toHaveCount(0);
   await expect(archived.locator('.workspace-lifecycle-actions summary')).toHaveCount(0);
   await expect(archived.getByRole('button', {name: 'Restore'})).toBeVisible();
-  await expect(archived.getByRole('button', {name: 'Delete permanently'})).toBeVisible();
+  await expect(archived.getByRole('button', {name: 'Delete'})).toBeVisible();
 });
