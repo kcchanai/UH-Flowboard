@@ -51,6 +51,8 @@ jobs:
           exit 1
       - name: Browser critical-workflow checks
         run: npx playwright test tests/board-first-copy.spec.mjs tests/cloud-first-configured-session.spec.mjs tests/cloud-first-a11y.spec.mjs tests/browser-smoke.spec.mjs tests/single-workspace-board-ux.spec.mjs --grep="cloud-first board|Filters stays bounded|configured signed-out build|board manager|retired recovery controls|account repair|New board is visible|archived owner board|streamlined chrome"
+      - name: Blank-board and confirmation regressions
+        run: npx playwright test tests/board-creation-confirmation.spec.mjs --reporter=line
       - name: Emulator-backed multi-user browser workflow
         run: |
           npm run dev -- --host 127.0.0.1 --port 4180 > emulator-server.log 2>&1 &
@@ -59,7 +61,8 @@ jobs:
           for i in {1..20}; do curl --fail --silent "http://127.0.0.1:4180${FLOWBOARD_BASE_PATH}tests/emulator/index.html" >/dev/null && break; sleep 1; done
           curl --fail --silent "http://127.0.0.1:4180${FLOWBOARD_BASE_PATH}tests/emulator/index.html" >/dev/null
           export PLAYWRIGHT_EMULATOR_BASE_URL="http://127.0.0.1:4180${FLOWBOARD_BASE_PATH%/}"
-          npx --yes firebase-tools@15.25.1 emulators:exec --only auth,firestore --project demo-flowboard-browser "npx playwright test tests/emulator/emulator-browser.spec.mjs --reporter=line"
+          npx --yes firebase-tools@15.25.1 emulators:exec --only auth,firestore --project demo-flowboard-browser "npx playwright test tests/emulator/emulator-browser.spec.mjs tests/emulator/deletion-engine.spec.mjs --reporter=line --workers=1"
+          npx --yes firebase-tools@15.25.1 emulators:exec --only auth,firestore --project demo-flowboard-browser "npx playwright test tests/emulator/board-lifecycle-ui.spec.mjs --reporter=line --workers=1"
       - name: Automated accessibility check
         run: |
           npx lighthouse "http://127.0.0.1:4173${FLOWBOARD_BASE_PATH}" --only-categories=accessibility --chrome-flags='--headless --no-sandbox' --output=json --output-path=lighthouse-report.json

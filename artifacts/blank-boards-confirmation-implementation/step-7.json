@@ -1,0 +1,36 @@
+{
+  "step": 7,
+  "scope": "CI integration and final local qualification matrix",
+  "commands": [
+    {"command": "npm.cmd run validate", "exitCode": 0, "unitPassed": 41, "assetIsolationAssets": 17},
+    {"command": "npm.cmd run test:rules", "exitCode": 0, "rulesPassed": 46},
+    {"command": "npm.cmd run test:emulator-browser", "exitCode": 0, "multiUserDeletionPassed": 19, "boardLifecyclePassed": 4},
+    {"command": "configured CI browser selection", "exitCode": 0, "passed": 11},
+    {"command": "configured focused blank-board and confirmation suite", "exitCode": 0, "passed": 8},
+    {"command": "configured Lighthouse accessibility plus scripts/assert-lighthouse.mjs", "exitCode": 0, "score": 1, "failedAudits": 0},
+    {"command": "node scripts/validate-workflow-gating.mjs", "exitCode": 0}
+  ],
+  "configuredBudget": {
+    "rawSourceBytes": 286513,
+    "rawCapBytes": 300000,
+    "initialShellGzipBytes": 25918,
+    "initialShellGzipCapBytes": 26250,
+    "firstPartyLazyGzipBytes": 56019,
+    "firstPartyLazyGzipCapBytes": 60000,
+    "documentGzipBytes": 4927,
+    "confirmationModuleBytes": 3978
+  },
+  "unconfiguredBudget": {
+    "rawSourceBytes": 286513,
+    "rawCapBytes": 300000,
+    "initialShellGzipBytes": 25878,
+    "initialShellGzipCapBytes": 26250,
+    "firstPartyLazyGzipBytes": 56019,
+    "firstPartyLazyGzipCapBytes": 60000,
+    "documentGzipBytes": 4928
+  },
+  "rulesBlob": "296b595276122918f521d3f86ee6820a5cc876b7",
+  "indexesBlob": "79fc192e9b71eb3c18b7fd504b77fc9b07bcd18a",
+  "rulesOrIndexesChanged": false,
+  "productionDataAccessed": false
+}
