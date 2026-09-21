@@ -22,7 +22,7 @@ After each verified step, report:
 - [x] Step 3: Remove duplicate New board shortcut.
 - [x] Step 4: Replace Board actions with direct Archived cards.
 - [x] Step 5: Widen Board access and owner forms through the real opening path.
-- [ ] Step 6: Qualify archive interaction and responsive accessibility.
+- [x] Step 6: Qualify archive interaction and responsive accessibility.
 - [ ] Step 7: Prove fresh Emulator workflows.
 - [ ] Step 8: Integrate CI and run final qualification.
 - [ ] Step 9: Package evidence and stop before publication.
@@ -36,7 +36,7 @@ After each verified step, report:
 | 3 | complete | `artifacts/board-controls-simplification/step-3.json`; lower form and creation regressions pass; three later-scope expected failures remain |
 | 4 | complete | `artifacts/board-controls-simplification/step-4.json`; direct archive/browser smoke selection 8/8; static/workflow/budget gates pass |
 | 5 | complete | `artifacts/board-controls-simplification/step-5.json`; real opening-path geometry 1440/960/680/390, viewer/no-mutation checks, lazy budget pass |
-| 6 | pending | |
+| 6 | complete | `artifacts/board-controls-simplification/step-6.json`; populated archive/viewer/responsive tests pass; configured coarse-pointer test pass |
 | 7 | pending | |
 | 8 | pending | |
 | 9 | pending | |

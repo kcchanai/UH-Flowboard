@@ -955,7 +955,7 @@ test('touch controls meet 44px targets and the board keeps intentional scrolling
   const context = await browser.newContext({viewport:{width:390,height:844}, hasTouch:true, isMobile:true});
   const page = await context.newPage();
   try {
-    await openReady(page);
+    await openReady(page);await page.evaluate(()=>FlowboardApp.openCloudWorkspace(FlowboardState.makeWorkspace(),{id:'touch-synthetic-board',name:'Synthetic board',role:'owner'}));
     const evidence = await page.locator('button:visible').evaluateAll(elements => elements.map(element => {
       const box = element.getBoundingClientRect();
       return {name:element.getAttribute('aria-label') || element.textContent.trim().slice(0,30), width:box.width, height:box.height};

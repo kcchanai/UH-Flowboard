@@ -69,6 +69,17 @@ test('Archived cards opens from List view without a menu',async({page})=>{
   await expect(page.locator('#board-menu')).toHaveCount(0);await page.locator('#archived-cards-button').click();await expect(page.getByRole('dialog',{name:'Archived cards'})).toBeVisible();
 });
 
+test('Archived cards stays scoped to the current board and is read-only for viewers',async({page})=>{
+  await openReady(page);const workspace=await page.evaluate(()=>{const value=FlowboardState.makeWorkspace(),card=FlowboardState.makeCard('Archived synthetic card');card.archived=true;card.archivedAt=new Date().toISOString();value.boards[0].lists[0].cards.push(card);return value;});
+  await page.evaluate(value=>FlowboardApp.openCloudWorkspace(value,{id:'archive-scope-synthetic',name:'Synthetic board',role:'owner'}),workspace);await page.locator('#search').fill('not the archived title');await page.locator('#archived-cards-button').click();let archive=page.getByRole('dialog',{name:'Archived cards'});await expect(archive).toContainText('Archived synthetic card');await expect(archive.getByRole('button',{name:'Restore'})).toBeVisible();await expect(archive.getByRole('button',{name:'Delete permanently'})).toBeVisible();await page.locator('#close-archive-dialog').click();await expect(archive).toBeHidden();
+  await page.evaluate(value=>FlowboardApp.openCloudPreview(value,{id:'archive-scope-synthetic',name:'Synthetic board',role:'viewer'}),workspace);await page.locator('#archived-cards-button').click();archive=page.getByRole('dialog',{name:'Archived cards'});await expect(archive).toContainText('Archived synthetic card');await expect(archive.getByRole('button',{name:'Restore'})).toBeHidden();await expect(archive.getByRole('button',{name:'Delete permanently'})).toBeHidden();await page.keyboard.press('Escape');await expect(archive).toBeHidden();
+});
+
+test('Archived cards and its dialog remain bounded across responsive widths',async({page})=>{
+  await openReady(page);await openSyntheticBoard(page);const archive=page.getByRole('dialog',{name:'Archived cards'});
+  for(const viewport of [{width:1440,height:900},{width:960,height:540},{width:390,height:844},{width:320,height:720}]){await page.setViewportSize(viewport);const button=page.locator('#archived-cards-button');await expect(button).toBeVisible();const box=await button.boundingBox();expect(box.width).toBeGreaterThan(0);expect(box.height).toBeGreaterThan(0);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth)).toBe(true);await button.click();await expect(archive).toBeVisible();const dialogBox=await archive.boundingBox();expect(dialogBox.width).toBeLessThanOrEqual(viewport.width);expect(dialogBox.height).toBeLessThanOrEqual(viewport.height);await page.locator('#close-archive-dialog').click();await expect(archive).toBeHidden();}
+});
+
 test('trailing Add another list remains available as the list creation control',async({page})=>{
   await openReady(page);await openSyntheticBoard(page);const addList=page.locator('#add-list');await expect(addList).toBeVisible();await expect(addList).toBeEnabled();
 });
