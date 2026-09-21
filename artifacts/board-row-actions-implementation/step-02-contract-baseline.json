@@ -1,0 +1,37 @@
+{
+  "step": "2 of 6",
+  "status": "complete",
+  "suite": "tests/board-row-actions.spec.mjs",
+  "selection": {
+    "command": "PLAYWRIGHT_EXECUTABLE_PATH=C:/Program Files (x86)/Google/Chrome/Application/chrome.exe PLAYWRIGHT_BASE_URL=http://127.0.0.1:4175 npx.cmd playwright test tests/board-row-actions.spec.mjs --reporter=line",
+    "listExitCode": 0,
+    "syntaxExitCode": 0,
+    "listedTests": 4
+  },
+  "baselineRun": {
+    "managedBrowserAttemptExitCode": 1,
+    "managedBrowserBlocker": "Playwright managed Chromium executable absent",
+    "systemBrowserExitCode": 1,
+    "tests": 4,
+    "passed": 1,
+    "expectedContractFailures": 3,
+    "expectedContractFailureReasons": [
+      "active and archived row entry points still say Delete permanently",
+      "archived Restore and Delete are separate outer-grid children with no compact group",
+      "active Archive retains quiet translucent canvas styling and transparent border"
+    ],
+    "safetyTestPassed": true,
+    "safetyAssertions": [
+      "Delete row trigger opened the existing Delete board permanently? dialog",
+      "descendant counts and irreversible warning remained visible",
+      "final confirmation remained Delete permanently",
+      "Cancel left deletion counter at zero",
+      "synthetic current and legacy local-storage sentinel strings were unchanged"
+    ]
+  },
+  "infrastructure": {
+    "preview": "fresh owned Vite preview on port 4175",
+    "systemBrowser": "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe",
+    "realAccountsOrProductionData": false
+  }
+}

@@ -55,6 +55,8 @@ jobs:
         run: npx playwright test tests/board-creation-confirmation.spec.mjs --reporter=line
       - name: Board controls and access regressions
         run: npx playwright test tests/board-controls-simplification.spec.mjs --reporter=line
+      - name: Board row actions regressions
+        run: npx playwright test tests/board-row-actions.spec.mjs --reporter=line
       - name: Card details edge and comments regressions
         run: npx playwright test tests/card-details-edges-comments.spec.mjs --reporter=line
       - name: Emulator-backed multi-user browser workflow

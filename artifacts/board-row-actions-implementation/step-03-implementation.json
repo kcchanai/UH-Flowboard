@@ -1,0 +1,42 @@
+{
+  "step": "3 of 6",
+  "status": "complete",
+  "implementation": {
+    "source": "src/board-lifecycle-ui.js",
+    "styles": "styles.css",
+    "testsUpdated": [
+      "tests/board-row-actions.spec.mjs",
+      "tests/single-workspace-board-ux.spec.mjs",
+      "tests/board-creation-confirmation.spec.mjs",
+      "tests/emulator/board-lifecycle-ui.spec.mjs"
+    ],
+    "rowLabels": "active and archived entry points now say Delete",
+    "archivedLayout": "board-archived-actions wrapper with Restore above Delete and 6rem equal-width tracks",
+    "activeArchive": "board-archive-action uses workspace-dialog-scoped surface, border, and ink tokens",
+    "confirmation": "Delete board permanently? and final Delete permanently remain unchanged"
+  },
+  "commands": [
+    {"command": "npm.cmd run build", "exitCode": 0},
+    {"command": "node --check changed source and test modules", "exitCode": 0},
+    {"command": "npx.cmd playwright test tests/board-row-actions.spec.mjs", "exitCode": 0, "passed": 4, "total": 4},
+    {"command": "npx.cmd playwright test tests/board-row-actions.spec.mjs tests/single-workspace-board-ux.spec.mjs tests/board-creation-confirmation.spec.mjs", "exitCode": 0, "passed": 16, "total": 16},
+    {"command": "node scripts/validate-static.mjs", "exitCode": 0, "guards": 10},
+    {"command": "node scripts/measure-mvp-v2-budgets.mjs", "exitCode": 0},
+    {"command": "git diff --check", "exitCode": 0},
+    {"command": "git diff --exit-code -- firestore.rules firestore.indexes.json", "exitCode": 0}
+  ],
+  "budgets": {
+    "sourceBytes": 285391,
+    "sourceCapBytes": 300000,
+    "sourceHeadroomBytes": 14609,
+    "stylesBytes": 34600,
+    "stylesCapBytes": 40000,
+    "initialShellGzipBytes": 25611,
+    "initialShellGzipCapBytes": 26250,
+    "firstPartyLazyGzipBytes": 56788,
+    "firstPartyLazyGzipCapBytes": 60000,
+    "documentGzipBytes": 4802,
+    "warningBytes": 210000
+  },
+  "productionDataOrAccounts": false
+}

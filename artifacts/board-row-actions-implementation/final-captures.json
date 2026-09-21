@@ -1,0 +1,312 @@
+{
+  "generatedFrom": {
+    "origin": "http://127.0.0.1:4176",
+    "basePath": "/UH-Flowboard/",
+    "asset": "cloud-ui-CDEcBNJZ.js",
+    "syntheticFixture": true,
+    "productionData": false
+  },
+  "captures": [
+    {
+      "scenario": "desktop-light-active",
+      "file": "final-desktop-light-active.png",
+      "httpStatus": 200,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "surface": "active",
+      "labels": [
+        "Archive",
+        "Delete"
+      ],
+      "geometry": {
+        "row": {
+          "left": 433,
+          "top": 391.5,
+          "right": 1007,
+          "bottom": 512.6875,
+          "width": 574,
+          "height": 121.1875,
+          "background": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(23, 43, 77)"
+        },
+        "details": {
+          "left": 433,
+          "top": 474.6875,
+          "right": 933.65625,
+          "bottom": 512.6875,
+          "width": 500.65625,
+          "height": 38,
+          "background": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(23, 43, 77)"
+        },
+        "archive": {
+          "left": 741.65625,
+          "top": 474.6875,
+          "right": 837.65625,
+          "bottom": 512.6875,
+          "width": 96,
+          "height": 38,
+          "background": "rgb(229, 235, 242)",
+          "borderColor": "rgb(214, 222, 233)"
+        },
+        "delete": {
+          "left": 837.65625,
+          "top": 474.6875,
+          "right": 933.65625,
+          "bottom": 512.6875,
+          "width": 96,
+          "height": 38,
+          "background": "rgb(174, 46, 36)",
+          "borderColor": "rgba(0, 0, 0, 0)"
+        }
+      },
+      "errors": {
+        "console": [],
+        "page": [],
+        "requests": []
+      }
+    },
+    {
+      "scenario": "desktop-dark-active",
+      "file": "final-desktop-dark-active.png",
+      "httpStatus": 200,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "dark",
+      "surface": "active",
+      "labels": [
+        "Archive",
+        "Delete"
+      ],
+      "geometry": {
+        "row": {
+          "left": 433,
+          "top": 391.5,
+          "right": 1007,
+          "bottom": 512.6875,
+          "width": 574,
+          "height": 121.1875,
+          "background": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(232, 237, 245)"
+        },
+        "details": {
+          "left": 433,
+          "top": 474.6875,
+          "right": 933.65625,
+          "bottom": 512.6875,
+          "width": 500.65625,
+          "height": 38,
+          "background": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(232, 237, 245)"
+        },
+        "archive": {
+          "left": 741.65625,
+          "top": 474.6875,
+          "right": 837.65625,
+          "bottom": 512.6875,
+          "width": 96,
+          "height": 38,
+          "background": "rgb(53, 66, 86)",
+          "borderColor": "rgb(67, 81, 103)"
+        },
+        "delete": {
+          "left": 837.65625,
+          "top": 474.6875,
+          "right": 933.65625,
+          "bottom": 512.6875,
+          "width": 96,
+          "height": 38,
+          "background": "rgb(255, 179, 170)",
+          "borderColor": "rgba(0, 0, 0, 0)"
+        }
+      },
+      "errors": {
+        "console": [],
+        "page": [],
+        "requests": []
+      }
+    },
+    {
+      "scenario": "short-dark-archived",
+      "file": "final-short-dark-archived.png",
+      "httpStatus": 200,
+      "viewport": {
+        "width": 960,
+        "height": 540
+      },
+      "theme": "dark",
+      "surface": "archived",
+      "labels": [
+        "Restore",
+        "Delete"
+      ],
+      "geometry": {
+        "row": {
+          "left": 193,
+          "top": 442.5,
+          "right": 767,
+          "bottom": 526.5,
+          "width": 574,
+          "height": 84,
+          "background": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(232, 237, 245)"
+        },
+        "card": {
+          "left": 193,
+          "top": 448.90625,
+          "right": 659,
+          "bottom": 520.09375,
+          "width": 466,
+          "height": 71.1875,
+          "background": "rgb(41, 53, 72)",
+          "borderColor": "rgb(67, 81, 103)"
+        },
+        "group": {
+          "left": 671,
+          "top": 442.5,
+          "right": 767,
+          "bottom": 526.5,
+          "width": 96,
+          "height": 84,
+          "background": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(232, 237, 245)"
+        },
+        "restore": {
+          "left": 671,
+          "top": 442.5,
+          "right": 767,
+          "bottom": 480.5,
+          "width": 96,
+          "height": 38,
+          "background": "rgb(76, 154, 255)",
+          "borderColor": "rgba(0, 0, 0, 0)"
+        },
+        "delete": {
+          "left": 671,
+          "top": 488.5,
+          "right": 767,
+          "bottom": 526.5,
+          "width": 96,
+          "height": 38,
+          "background": "rgb(255, 143, 130)",
+          "borderColor": "rgba(0, 0, 0, 0)"
+        }
+      },
+      "errors": {
+        "console": [],
+        "page": [],
+        "requests": []
+      }
+    },
+    {
+      "scenario": "phone-light-archived",
+      "file": "final-phone-light-archived.png",
+      "httpStatus": 200,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "theme": "light",
+      "surface": "archived",
+      "labels": [
+        "Restore",
+        "Delete"
+      ],
+      "geometry": {
+        "row": {
+          "left": 34,
+          "top": 523.359375,
+          "right": 356,
+          "bottom": 688.546875,
+          "width": 322,
+          "height": 165.1875,
+          "background": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(23, 43, 77)"
+        },
+        "card": {
+          "left": 34,
+          "top": 523.359375,
+          "right": 356,
+          "bottom": 594.546875,
+          "width": 322,
+          "height": 71.1875,
+          "background": "rgb(255, 255, 255)",
+          "borderColor": "rgb(214, 222, 233)"
+        },
+        "group": {
+          "left": 260,
+          "top": 604.546875,
+          "right": 356,
+          "bottom": 688.546875,
+          "width": 96,
+          "height": 84,
+          "background": "rgba(0, 0, 0, 0)",
+          "borderColor": "rgb(23, 43, 77)"
+        },
+        "restore": {
+          "left": 260,
+          "top": 604.546875,
+          "right": 356,
+          "bottom": 642.546875,
+          "width": 96,
+          "height": 38,
+          "background": "rgb(15, 108, 189)",
+          "borderColor": "rgba(0, 0, 0, 0)"
+        },
+        "delete": {
+          "left": 260,
+          "top": 650.546875,
+          "right": 356,
+          "bottom": 688.546875,
+          "width": 96,
+          "height": 38,
+          "background": "rgb(201, 55, 44)",
+          "borderColor": "rgba(0, 0, 0, 0)"
+        }
+      },
+      "errors": {
+        "console": [],
+        "page": [],
+        "requests": []
+      }
+    },
+    {
+      "scenario": "desktop-light-confirmation",
+      "file": "final-desktop-light-confirmation.png",
+      "httpStatus": 200,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "theme": "light",
+      "surface": "confirmation",
+      "labels": [
+        "Cancel",
+        "Delete permanently"
+      ],
+      "copy": "Delete board permanently?“Synthetic active board” contains 2 lists, 3 cards and 1 comments. This cannot be undone.Type Synthetic active board to confirmCancelDelete permanently",
+      "geometry": {
+        "confirmation": {
+          "left": 500,
+          "top": 327.21875,
+          "right": 940,
+          "bottom": 572.78125,
+          "width": 440,
+          "height": 245.5625,
+          "background": "rgb(255, 255, 255)",
+          "borderColor": "rgb(214, 222, 233)"
+        }
+      },
+      "errors": {
+        "console": [],
+        "page": [],
+        "requests": []
+      }
+    }
+  ]
+}

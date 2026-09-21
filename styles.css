@@ -166,6 +166,14 @@ main { min-height:0;display:flex;flex-direction:column;overflow:hidden;padding:c
 .cloud-workspace-card strong { min-width:0;overflow:hidden;text-overflow:clip;white-space:normal;overflow-wrap:anywhere;font-size:15px; }
 .cloud-workspace-card span { color:var(--muted);font-size:12px;line-height:1.35;overflow-wrap:anywhere;white-space:normal;text-align:left; }
 .workspace-lifecycle-actions { display:flex;align-items:center;justify-content:flex-end;gap:8px;min-width:0;flex-wrap:wrap; }
+.workspace-dialog .board-archived-actions { display:grid;grid-template-columns:6rem;gap:8px;align-self:center;justify-self:end; }
+.workspace-dialog .board-archived-actions > .button { width:100%;min-height:38px;padding:8px 10px; }
+.workspace-dialog .board-archive-action,.workspace-dialog .workspace-lifecycle-actions > .button-danger { min-width:6rem;min-height:38px; }
+.workspace-dialog .board-archive-action { color:var(--ink);border-color:var(--line);background:var(--surface-hover); }
+.workspace-dialog .board-archive-action:hover { background:var(--line); }
+@media (pointer:coarse) {
+  .workspace-dialog .board-archived-actions > .button,.workspace-dialog .board-archive-action,.workspace-dialog .workspace-lifecycle-actions > .button-danger { min-height:44px; }
+}
 .cloud-workspaces-dialog > .archive-dialog-card > .dialog-actions { justify-content:space-between;margin-top:20px;padding-top:16px;border-top:1px solid var(--line); }
 .cloud-workspaces-dialog > .archive-dialog-card > .dialog-actions > .button { min-width:0; }
 .cloud-workspaces-dialog .account-status { margin-top:12px!important; }

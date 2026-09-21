@@ -1,0 +1,34 @@
+{
+  "step": "4 of 6",
+  "status": "complete",
+  "commands": [
+    {"command": "npx.cmd playwright test tests/board-row-actions.spec.mjs --reporter=line", "exitCode": 0, "passed": 8, "total": 8},
+    {"command": "npx.cmd playwright test tests/board-creation-confirmation.spec.mjs tests/single-workspace-board-ux.spec.mjs --reporter=line", "exitCode": 0, "passed": 12, "total": 12}
+  ],
+  "coverage": {
+    "responsiveSamples": 14,
+    "viewports": [
+      "1280x720",
+      "1440x900",
+      "1920x1080",
+      "960x720",
+      "960x540",
+      "390x844",
+      "320x740"
+    ],
+    "themes": ["light", "dark"],
+    "media": ["forced-colors active", "prefers-reduced-motion reduce"],
+    "zoomEquivalent": "document zoom 2 at 960x720",
+    "coarsePointerControls": 4,
+    "longSyntheticTitles": true,
+    "documentHorizontalOverflow": 0,
+    "ownerLifecycleControls": "present and usable",
+    "editorViewerLifecycleControls": "absent",
+    "sentinelStoragePreserved": true,
+    "axeStates": ["Your boards", "expanded More", "Delete board permanently? confirmation"],
+    "axeViolations": 0,
+    "unexpectedConsoleOrPageErrors": 0,
+    "confirmationFailureRetryAndPendingCoverage": "passed through existing 12-test regression selection"
+  },
+  "productionDataOrAccounts": false
+}
