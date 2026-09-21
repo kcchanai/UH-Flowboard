@@ -13,7 +13,7 @@ Plan: `FLOWBOARD_CARD_DETAILS_EDGES_AND_COMMENTS_LUNA_PLAN.md`
 
 - [x] Step 1 of 8: Pin the current baseline and validation tools.
 - [x] Step 2 of 8: Add focused production-markup regressions.
-- [ ] Step 3 of 8: Repair the card-only header/body/footer layout.
+- [x] Step 3 of 8: Repair the card-only header/body/footer layout.
 - [ ] Step 4 of 8: Remove only the redundant comments sentences.
 - [ ] Step 5 of 8: Qualify keyboard, draft, theme, and responsive behavior.
 - [ ] Step 6 of 8: Verify real Emulator card/comment workflows.
@@ -26,7 +26,7 @@ Plan: `FLOWBOARD_CARD_DETAILS_EDGES_AND_COMMENTS_LUNA_PLAN.md`
 |---:|---|---|
 | 1 | complete | `artifacts/card-details-edges-implementation/baseline.json`; base and remote main `ffea4adc`; baseline aggregate passed |
 | 2 | complete | `tests/card-details-edges-comments.spec.mjs`; `artifacts/card-details-edges-implementation/step-2-baseline.json`; baseline 1 passed, 2 expected failures |
-| 3 | pending | |
+| 3 | complete | `index.html`, `styles.css`, and focused edge contract; 3/3 passed across 9 viewport/scroll cases; zero-gap geometry and fixed budgets pass |
 | 4 | pending | |
 | 5 | pending | |
 | 6 | pending | |

@@ -41,9 +41,9 @@ async function edgeMetrics(page,position){
     const form=document.querySelector('#card-form'),header=document.querySelector('#card-dialog .card-dialog-header'),footer=document.querySelector('#card-dialog .card-dialog-footer'),body=document.querySelector('#card-dialog-body');
     const scroll=body||form;const max=Math.max(0,scroll.scrollHeight-scroll.clientHeight);scroll.scrollTop=position==='top'?0:position==='middle'?Math.round(max*.45):Math.max(0,max-2);await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
     const rect=element=>{const value=element.getBoundingClientRect();return{x:value.x,y:value.y,width:value.width,height:value.height,right:value.right,bottom:value.bottom};};
-    const point=(x,y)=>{const node=document.elementFromPoint(x,y);return{tag:node?.tagName||'',id:node?.id||'',className:node?.className||'',inHeader:Boolean(node&&header.contains(node)),inFooter:Boolean(node&&footer.contains(node))};};
-    const formRect=rect(form),headerRect=rect(header),footerRect=rect(footer),bodyRect=body?rect(body):null;
-    return{position,bodyPresent:Boolean(body),scrollTop:scroll.scrollTop,maxScroll:max,form:formRect,header:headerRect,footer:footerRect,body:bodyRect,topGap:headerRect.y-formRect.y,bottomGap:formRect.bottom-footerRect.bottom,topCovered:point(formRect.x+formRect.width/2,formRect.y+1),bottomCovered:point(formRect.x+formRect.width/2,formRect.bottom-1),bodyOverflow:body?getComputedStyle(body).overflowY:'missing'};
+    const point=(x,y)=>{const nodes=document.elementsFromPoint(x,y),node=nodes[0];return{tag:node?.tagName||'',id:node?.id||'',className:node?.className||'',inHeader:nodes.some(item=>header.contains(item)),inFooter:nodes.some(item=>footer.contains(item))};};
+    const formRect=rect(form),headerRect=rect(header),footerRect=rect(footer),bodyRect=body?rect(body):null,footerButton=footer.querySelector('button'),footerButtonRect=footerButton?.getBoundingClientRect();
+    return{position,bodyPresent:Boolean(body),scrollTop:scroll.scrollTop,maxScroll:max,form:formRect,header:headerRect,footer:footerRect,body:bodyRect,topGap:headerRect.y-formRect.y,bottomGap:formRect.bottom-footerRect.bottom,topCovered:point(formRect.x+formRect.width/2,formRect.y+1),bottomCovered:footerButtonRect?point(footerButtonRect.x+footerButtonRect.width/2,footerButtonRect.y+footerButtonRect.height/2):point(formRect.x+formRect.width/2,formRect.bottom-2),bodyOverflow:body?getComputedStyle(body).overflowY:'missing'};
   },position);
 }
 
