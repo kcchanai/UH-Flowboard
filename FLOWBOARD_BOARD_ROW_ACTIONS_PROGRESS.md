@@ -19,7 +19,7 @@ Base SHA: `5a40a6376c028f8a35f5d8c0ae67d98b30b7a502`
 | 3 | complete | scoped source/CSS implementation; affected browser matrix `16/16`; budgets and immutable files pass |
 | 4 | complete | responsive/media/role/a11y suites `8/8` plus confirmation/directory regressions `12/12` |
 | 5 | complete | fresh Rules `46`; packaged Emulator `19 + 1 + 4`; cleanup and protected resources verified |
-| 6 | complete | configured repository/browser gates pass; evidence captures `5/5`; local-only stop before push/deployment |
+| 6 | complete | configured repository/browser gates pass; evidence captures `5/5`; local commit `293739e`; stop before push/deployment |
 
 ## Baseline identity
 

@@ -1,6 +1,9 @@
 {
   "step": "6 of 6",
   "status": "complete",
+  "implementationCommit": "293739e330d679b21fa22aa4d322811ebcfc8328",
+  "pushed": false,
+  "deployed": false,
   "commands": [
     {"command": "npm.cmd run validate", "exitCode": 0, "unitTests": 41, "configured": true},
     {"command": "node --check tests/board-row-actions.spec.mjs", "exitCode": 0},

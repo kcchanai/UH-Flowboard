@@ -6,7 +6,8 @@ Plan: `../../FLOWBOARD_BOARD_ROW_ACTIONS_LUNA_PLAN.md`
 
 - Branch: `fix/board-row-actions`
 - Base SHA: `5a40a6376c028f8a35f5d8c0ae67d98b30b7a502`
-- Final implementation commit is recorded after the local commit; no push or deployment was authorized.
+- Final implementation commit: `293739e330d679b21fa22aa4d322811ebcfc8328`.
+- This local commit is not pushed and has no PR or deployment associated with it.
 - Rules blob remained `296b595276122918f521d3f86ee6820a5cc876b7`.
 - Indexes blob remained `79fc192e9b71eb3c18b7fd504b77fc9b07bcd18a`.
 - No Rules/index publication, real-account acceptance, production Firestore access, or existing browser-profile access occurred.
