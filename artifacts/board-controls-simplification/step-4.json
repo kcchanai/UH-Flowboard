@@ -1,0 +1,23 @@
+{
+  "step": 4,
+  "status": "complete",
+  "candidateSourceChanges": [
+    "Replaced Board actions/menu with #archived-cards-button linked to #archive-dialog.",
+    "Removed menu-only Add a list and CSV runtime branches and private CSV download wrappers.",
+    "Removed Board actions keyboard/outside-dismiss handlers while preserving list-menu/filter behavior.",
+    "Preserved the trailing #add-list composer and archive restore/delete paths.",
+    "Updated active browser, Emulator lifecycle, README, validation checklist, privacy, static, and workflow-gating contracts."
+  ],
+  "commands": [
+    {"command":"node --check app.js and affected modules/tests/scripts","exitCode":0},
+    {"command":"npm.cmd run build","exitCode":0},
+    {"command":"direct archive/browser smoke selection","exitCode":0,"selected":8,"passed":8},
+    {"command":"node scripts/validate-static.mjs","exitCode":0},
+    {"command":"node scripts/validate-workflow-gating.mjs","exitCode":0},
+    {"command":"npm.cmd run measure:mvp-v2","exitCode":0,"sourceBytes":283310,"sourceCap":300000,"initialShellGzip":25378,"initialShellGzipCap":26250,"firstPartyLazyGzip":55971,"firstPartyLazyGzipCap":60000,"documentGzip":4809},
+    {"command":"git diff --check","exitCode":0}
+  ],
+  "retiredProductionTokens": ["#board-menu","#board-menu-panel","Board actions","data-action=add-list","data-action=export-csv","data-action=show-archive","exportCsv","safeFilename"],
+  "retainedContracts": ["state-core csvForBoard helper", "trailing #add-list composer", "per-list menus", "archive restore/delete", "filter/search controls"],
+  "boundary":"Local/synthetic only; not published. No real account, production data, Rules/index publication, push, PR, merge, or deployment."
+}
