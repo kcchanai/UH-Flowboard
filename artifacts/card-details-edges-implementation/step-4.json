@@ -1,0 +1,13 @@
+{
+  "step":4,
+  "status":"complete",
+  "sourceChanges":["Removed the static authenticated cloud comments explanation from index.html.","Cleared the successful subscription idle status instead of rendering Comments are current.","Kept the live status node and loading, failure, saving, pagination, and mutation status paths.","Added exact static absence guards for both retired sentences.","Collapsed only the empty comments status spacing."] ,
+  "focusedCommand":"PLAYWRIGHT_BASE_URL=http://127.0.0.1:4192 PLAYWRIGHT_EXECUTABLE_PATH=C:/Program Files (x86)/Google/Chrome/Application/chrome.exe node node_modules/@playwright/test/cli.js test tests/card-details-edges-comments.spec.mjs --reporter=line",
+  "focusedExitCode":0,
+  "focusedTests":3,
+  "focusedPassed":3,
+  "coverage":["populated comments","Load older comments pagination","idle success status clears","failure status remains actionable","success recovery clears idle status","close and reopen","retired sentence absence"],
+  "staticValidation":"passed",
+  "build":"passed",
+  "boundary":"Built local preview with synthetic in-memory fixtures; no sign-in or production data."
+}

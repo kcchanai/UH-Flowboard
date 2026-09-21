@@ -21,11 +21,11 @@ async function installSyntheticCard(page,{commentCount=12,defer=false}={}){
     board.lists=[S.makeList('Synthetic list',[first,second])];workspace.boards=[board];workspace.activeBoardId=board.id;
     FlowboardApp.openCloudWorkspace(workspace,{id:'synthetic-card-details',name:'Synthetic card details',role:'owner'});
     const entries=Array.from({length:commentCount},(_,index)=>({id:`comment-${index}`,authorUid:'synthetic-owner',body:`Synthetic comment ${index+1}: edge coverage sentinel.`,createdAt:new Date('2026-01-01T12:00:00Z'),revision:0}));
-    const fixture={entries,subscribeOptions:null,subscribeCount:0,unsubscribed:0};globalThis.__cardDetailsFixture=fixture;
+    const fixture={entries,olderEntries:[{id:'older-comment',authorUid:'synthetic-owner',body:'Synthetic older comment: pagination sentinel.',createdAt:new Date('2025-12-31T12:00:00Z'),revision:0}],subscribeOptions:null,subscribeCount:0,unsubscribed:0};globalThis.__cardDetailsFixture=fixture;
     const adapter={
       listMembers:async()=>[{uid:'synthetic-owner',displayName:'Synthetic Owner',role:'owner'}],
-      subscribeComments:async options=>{fixture.subscribeOptions=options;fixture.subscribeCount+=1;if(!defer)options.onComments({entries:fixture.entries,cursor:null,hasMore:false});return()=>{fixture.unsubscribed+=1;};},
-      listOlderComments:async()=>({entries:[],cursor:null,hasMore:false}),
+      subscribeComments:async options=>{fixture.subscribeOptions=options;fixture.subscribeCount+=1;if(!defer)options.onComments({entries:fixture.entries,cursor:{id:'synthetic-cursor'},hasMore:true});return()=>{fixture.unsubscribed+=1;};},
+      listOlderComments:async()=>({entries:fixture.olderEntries,cursor:null,hasMore:false}),
       createComment:async()=>{throw Error('Synthetic comment writes are disabled in this UI fixture.');},
       updateComment:async()=>{throw Error('Synthetic comment writes are disabled in this UI fixture.');},
       removeComment:async()=>{throw Error('Synthetic comment writes are disabled in this UI fixture.');}
@@ -64,7 +64,7 @@ test('card-details header and footer cover the inner window at every scroll posi
 
 test('comments remove retired explanatory and idle copy but retain operational status',async({page})=>{
   const consoleErrors=[];page.on('console',message=>{if(message.type()==='error')consoleErrors.push(message.text());});await openShell(page);await installSyntheticCard(page,{commentCount:2});await openCard(page);const section=page.locator('#cloud-comments-section'),status=page.locator('#cloud-comments-status');
-  await expect(section).not.toContainText('Authenticated cloud comments are separate from older card-local activity.');await expect(status).toHaveText('');await expect(section).toContainText('Synthetic comment 1');
+  await expect(section).not.toContainText('Authenticated cloud comments are separate from older card-local activity.');await expect(status).toHaveText('');await expect(section).toContainText('Synthetic comment 1');await page.locator('#load-older-comments').click();await expect(section).toContainText('Synthetic older comment');
   await page.evaluate(()=>globalThis.__cardDetailsFixture.subscribeOptions.onError(new Error('Synthetic comments failure')));await expect(status).toContainText('Synthetic comments failure');
   await page.evaluate(()=>globalThis.__cardDetailsFixture.subscribeOptions.onComments({entries:globalThis.__cardDetailsFixture.entries,cursor:null,hasMore:false}));await expect(status).toHaveText('');
   await page.locator('#close-card-dialog').click();await openCard(page);await expect(status).toHaveText('');await expect(section).not.toContainText('Comments are current.');
