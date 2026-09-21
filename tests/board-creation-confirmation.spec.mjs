@@ -87,6 +87,12 @@ test('archive and restore confirmations remain pointer-operable after same-page 
   await expect.poll(()=>page.evaluate(()=>globalThis.__blankConfirmationFixture.archiveCalls)).toBe(2);
 });
 
+test('delete and Repair confirmations keep usable width at a narrow viewport',async({page})=>{
+  await openShell(page);await installFixture(page,{repairAfterDelete:true});await page.setViewportSize({width:320,height:720});const manager=await openBoards(page);const row=manager.locator('#workspace-board-list .workspace-entry').filter({hasText:'Confirm board'});await row.locator('.workspace-lifecycle-actions summary').click();await row.getByRole('button',{name:'Delete permanently'}).click();
+  const confirmation=page.getByRole('dialog',{name:'Delete board permanently?'});const metrics=await confirmation.locator('form.confirmation-dialog-card').evaluate(form=>{const body=form.firstElementChild.getBoundingClientRect(),input=form.querySelector('input').getBoundingClientRect();return{bodyWidth:body.width,inputWidth:input.width};});expect(metrics.bodyWidth).toBeGreaterThan(200);expect(metrics.inputWidth).toBeGreaterThan(180);
+  await confirmation.locator('input').fill('Confirm board');await confirmation.getByRole('button',{name:'Delete permanently',exact:true}).click();await expect(confirmation).toBeHidden();const repair=manager.getByRole('button',{name:'Repair account setup',exact:true});await expect(repair).toBeVisible();await repair.click();const repairConfirmation=page.getByRole('dialog',{name:'Repair account setup?'});const repairWidth=await repairConfirmation.locator('form.confirmation-dialog-card > :first-child').evaluate(node=>node.getBoundingClientRect().width);expect(repairWidth).toBeGreaterThan(200);
+});
+
 test('pending confirmation owns Escape until the remote action settles',async({page})=>{
   await openShell(page);await installFixture(page,{pendingArchive:true});const manager=await openBoards(page),confirmation=await openArchiveConfirmation(page,manager);await confirmation.getByRole('button',{name:'Archive board',exact:true}).click();
   await expect(confirmation.getByRole('button',{name:'Cancel',exact:true})).toBeDisabled();
