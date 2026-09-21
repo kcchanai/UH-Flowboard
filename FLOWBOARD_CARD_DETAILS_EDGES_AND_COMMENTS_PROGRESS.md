@@ -17,7 +17,7 @@ Plan: `FLOWBOARD_CARD_DETAILS_EDGES_AND_COMMENTS_LUNA_PLAN.md`
 - [x] Step 4 of 8: Remove only the redundant comments sentences.
 - [x] Step 5 of 8: Qualify keyboard, draft, theme, and responsive behavior.
 - [x] Step 6 of 8: Verify real Emulator card/comment workflows.
-- [ ] Step 7 of 8: Integrate CI and run the final candidate gates.
+- [x] Step 7 of 8: Integrate CI and run the final candidate gates.
 - [ ] Step 8 of 8: Package evidence and stop before publication.
 
 ## Evidence ledger
@@ -30,5 +30,5 @@ Plan: `FLOWBOARD_CARD_DETAILS_EDGES_AND_COMMENTS_LUNA_PLAN.md`
 | 4 | complete | `index.html`, `src/comments-ui.js`, `scripts/validate-static.mjs`, `artifacts/card-details-edges-implementation/step-4.json`; focused 3/3 and static/build pass |
 | 5 | complete | `tests/card-details-edges-comments.spec.mjs` 5/5; configured axe 2/2; confirmation/board-controls 17/17; responsive/media matrix passed |
 | 6 | complete | `tests/emulator/card-details-ui.spec.mjs`; packaged Emulator 19+1+4; Rules Emulator 46; separate Vite ports and Emulator shutdown settling |
-| 7 | pending | |
+| 7 | complete | `artifacts/card-details-edges-implementation/step-7.json`; unconfigured aggregate pass; configured browser 11+24; Lighthouse 1.0; Emulator 19+1+4; Rules 46 |
 | 8 | pending | |

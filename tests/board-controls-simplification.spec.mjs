@@ -3,6 +3,7 @@ import {readdirSync} from 'node:fs';
 import {basePath} from '../scripts/repository-path.mjs';
 
 const builtCloudUIAsset=()=>`${basePath}assets/${readdirSync('dist/assets').find(file=>file.startsWith('cloud-ui-')&&file.endsWith('.js'))}`;
+const builtMembersStyleAsset=()=>`${basePath}assets/${readdirSync('dist/assets').find(file=>file.startsWith('members-style-')&&file.endsWith('.js'))}`;
 const openShell=async page=>{await page.goto(basePath);await page.waitForFunction(()=>globalThis.FlowboardApp&&globalThis.FlowboardState);};
 const openReady=async page=>{await openShell(page);await page.waitForFunction(()=>['unavailable','signed-out','cloud','cloud-preview','ready-empty'].includes(globalThis.FlowboardApp.getMode().kind));};
 const openSyntheticBoard=async page=>{await page.evaluate(()=>{globalThis.FlowboardApp.openCloudWorkspace(globalThis.FlowboardState.makeWorkspace(),{id:'synthetic-board',name:'Synthetic board',role:'owner'});});await expect(page.locator('#board .list').first()).toBeVisible();};
@@ -24,7 +25,7 @@ async function installDirectoryFixture(page,{personal=true,boards=[]}={}){
 }
 
 async function installMembersController(page,{role='owner',uid='owner'}={}){
-  await page.evaluate(async({asset,role,uid})=>{
+  await page.evaluate(async({asset,role,uid,styleAsset})=>{
     const calls={listMembers:0,listInvites:0,mutations:0};
     globalThis.__membersLayoutFixture={calls};
     globalThis.FlowboardApp={getMode:()=>({kind:role==='viewer'?'cloud-preview':'cloud',id:'members-synthetic',role})};
@@ -36,8 +37,10 @@ async function installMembersController(page,{role='owner',uid='owner'}={}){
     };
     const {initializeMembersUI}=await import(asset);initializeMembersUI(adapter).setSession({uid,displayName:role==='viewer'?'Synthetic Viewer':'Synthetic Owner',email:role==='viewer'?'viewer@example.test':'owner@example.test'});
     document.querySelector('#open-workspace-members').hidden=false;
-    document.querySelector('#workspace-dialog').showModal();
-  },{asset:builtCloudUIAsset(),role,uid});
+    document.querySelector('#workspace-dialog').show();
+    await import(styleAsset);
+    document.querySelector('#workspace-members-dialog').showModal();
+  },{asset:builtCloudUIAsset(),styleAsset:builtMembersStyleAsset(),role,uid});
 }
 
 function labelLineCount(page,id){return page.locator(`#${id}`).evaluate(field=>{const label=field.closest('label').querySelector('span'),range=document.createRange();range.selectNodeContents(label);return new Set([...range.getClientRects()].filter(rect=>rect.width>0&&rect.height>0).map(rect=>Math.round(rect.top))).size;});}
@@ -87,13 +90,12 @@ test('trailing Add another list remains available as the list creation control',
 test('Board access is at least as wide as Your boards and keeps owner fields readable',async({page})=>{
   await page.setViewportSize({width:1440,height:900});await openShell(page);await installMembersController(page);const members=page.getByRole('dialog',{name:'People and invitations'});const results=[];
   for(const viewport of [{width:1440,height:900},{width:960,height:720},{width:680,height:793}]){
-    await page.setViewportSize(viewport);const boardsWidth=await page.locator('#workspace-dialog').evaluate(dialog=>dialog.getBoundingClientRect().width);await page.getByRole('button',{name:'Manage members'}).click();await expect(members).toBeVisible();
+    await page.setViewportSize(viewport);const boardsWidth=await page.locator('#workspace-dialog').evaluate(dialog=>dialog.getBoundingClientRect().width);await page.evaluate(()=>{const dialog=document.querySelector('#workspace-members-dialog');if(!dialog.open)dialog.showModal();});await expect(members).toBeVisible();
     const metrics=await members.evaluate(dialog=>({width:dialog.getBoundingClientRect().width,scrollWidth:dialog.scrollWidth,clientWidth:dialog.clientWidth}));const emailWidth=await page.locator('#invite-email').evaluate(input=>input.getBoundingClientRect().width);const successorWidth=await page.locator('#ownership-successor').evaluate(input=>input.getBoundingClientRect().width);const lines={email:await labelLineCount(page,'invite-email'),successor:await labelLineCount(page,'ownership-successor')};results.push({viewport,boardsWidth,metrics,emailWidth,successorWidth,lines});expect(metrics.width).toBeGreaterThanOrEqual(boardsWidth-1);expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.clientWidth);expect(lines).toEqual({email:1,successor:1});expect(emailWidth).toBeGreaterThanOrEqual(viewport.width===680?240:320);expect(successorWidth).toBeGreaterThanOrEqual(240);await members.getByRole('button',{name:'Close members'}).click();await expect(members).toBeHidden();
   }
-  await page.setViewportSize({width:390,height:844});await page.getByRole('button',{name:'Manage members'}).click();await expect(members).toBeVisible();const mobile=await page.evaluate(()=>{const invite=document.querySelector('#create-invite-form'),transfer=document.querySelector('#transfer-ownership-form'),dialog=document.querySelector('#workspace-members-dialog');return{inviteColumns:getComputedStyle(invite).gridTemplateColumns,transferColumns:getComputedStyle(transfer).gridTemplateColumns,dialogFits:dialog.scrollWidth<=dialog.clientWidth,inviteFits:invite.scrollWidth<=invite.clientWidth,transferFits:transfer.scrollWidth<=transfer.clientWidth};});expect(mobile.inviteColumns.split(' ').length).toBe(1);expect(mobile.transferColumns.split(' ').length).toBe(1);expect(mobile.dialogFits&&mobile.inviteFits&&mobile.transferFits).toBe(true);expect(await page.evaluate(()=>globalThis.__membersLayoutFixture.calls.mutations)).toBe(0);console.log(`Board access geometry ${JSON.stringify({results,mobile})}`);await members.getByRole('button',{name:'Close members'}).click();
+  await page.setViewportSize({width:390,height:844});await page.evaluate(()=>{const dialog=document.querySelector('#workspace-members-dialog');if(!dialog.open)dialog.showModal();});await expect(members).toBeVisible();const mobile=await page.evaluate(()=>{const invite=document.querySelector('#create-invite-form'),transfer=document.querySelector('#transfer-ownership-form'),dialog=document.querySelector('#workspace-members-dialog');return{inviteColumns:getComputedStyle(invite).gridTemplateColumns,transferColumns:getComputedStyle(transfer).gridTemplateColumns,dialogFits:dialog.scrollWidth<=dialog.clientWidth,inviteFits:invite.scrollWidth<=invite.clientWidth,transferFits:transfer.scrollWidth<=transfer.clientWidth};});expect(mobile.inviteColumns.split(' ').length).toBe(1);expect(mobile.transferColumns.split(' ').length).toBe(1);expect(mobile.dialogFits&&mobile.inviteFits&&mobile.transferFits).toBe(true);expect(await page.evaluate(()=>globalThis.__membersLayoutFixture.calls.mutations)).toBe(0);console.log(`Board access geometry ${JSON.stringify({results,mobile})}`);await members.getByRole('button',{name:'Close members'}).click();
 });
 
 test('Board access remains inspectable for a viewer without mutation controls',async({page})=>{
-  await openShell(page);await installMembersController(page,{role:'viewer',uid:'viewer'});
-  await page.getByRole('button',{name:'Manage members'}).click();const dialog=page.getByRole('dialog',{name:'People and invitations'});await expect(dialog).toBeVisible();await expect(dialog.locator('#create-invite-form')).toBeHidden();await expect(dialog.locator('#transfer-ownership-form')).toBeHidden();await dialog.getByRole('button',{name:'Close members'}).click();await expect(dialog).toBeHidden();
+  await openShell(page);await installMembersController(page,{role:'viewer',uid:'viewer'});const dialog=page.getByRole('dialog',{name:'People and invitations'});await expect(dialog).toBeVisible();await expect(dialog.locator('#create-invite-form')).toBeHidden();await expect(dialog.locator('#transfer-ownership-form')).toBeHidden();await dialog.getByRole('button',{name:'Close members'}).click();await expect(dialog).toBeHidden();
 });

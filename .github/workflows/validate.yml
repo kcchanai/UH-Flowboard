@@ -55,15 +55,24 @@ jobs:
         run: npx playwright test tests/board-creation-confirmation.spec.mjs --reporter=line
       - name: Board controls and access regressions
         run: npx playwright test tests/board-controls-simplification.spec.mjs --reporter=line
+      - name: Card details edge and comments regressions
+        run: npx playwright test tests/card-details-edges-comments.spec.mjs --reporter=line
       - name: Emulator-backed multi-user browser workflow
         run: |
           npm run dev -- --host 127.0.0.1 --port 4180 > emulator-server.log 2>&1 &
           SERVER_PID=$!
-          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          npm run dev -- --host 127.0.0.1 --port 4181 > card-details-emulator-server.log 2>&1 &
+          CARD_SERVER_PID=$!
+          trap 'kill "$SERVER_PID" "$CARD_SERVER_PID" 2>/dev/null || true' EXIT
           for i in {1..20}; do curl --fail --silent "http://127.0.0.1:4180${FLOWBOARD_BASE_PATH}tests/emulator/index.html" >/dev/null && break; sleep 1; done
           curl --fail --silent "http://127.0.0.1:4180${FLOWBOARD_BASE_PATH}tests/emulator/index.html" >/dev/null
+          for i in {1..20}; do curl --fail --silent "http://127.0.0.1:4181${FLOWBOARD_BASE_PATH}tests/emulator/index.html" >/dev/null && break; sleep 1; done
+          curl --fail --silent "http://127.0.0.1:4181${FLOWBOARD_BASE_PATH}tests/emulator/index.html" >/dev/null
           export PLAYWRIGHT_EMULATOR_BASE_URL="http://127.0.0.1:4180${FLOWBOARD_BASE_PATH%/}"
           npx --yes firebase-tools@15.25.1 emulators:exec --only auth,firestore --project demo-flowboard-browser "npx playwright test tests/emulator/emulator-browser.spec.mjs tests/emulator/deletion-engine.spec.mjs --reporter=line --workers=1"
+          export PLAYWRIGHT_EMULATOR_BASE_URL="http://127.0.0.1:4181${FLOWBOARD_BASE_PATH%/}"
+          npx --yes firebase-tools@15.25.1 emulators:exec --only auth,firestore --project demo-flowboard-browser "npx playwright test tests/emulator/card-details-ui.spec.mjs --reporter=line --workers=1"
+          export PLAYWRIGHT_EMULATOR_BASE_URL="http://127.0.0.1:4180${FLOWBOARD_BASE_PATH%/}"
           npx --yes firebase-tools@15.25.1 emulators:exec --only auth,firestore --project demo-flowboard-browser "npx playwright test tests/emulator/board-lifecycle-ui.spec.mjs --reporter=line --workers=1"
       - name: Automated accessibility check
         run: |
@@ -76,6 +85,7 @@ jobs:
           name: validation-diagnostics
           path: |
             server.log
+            card-details-emulator-server.log
             lighthouse-report.json
             test-results/
           if-no-files-found: ignore
