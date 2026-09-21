@@ -11,5 +11,5 @@
   "indexesBlob":"79fc192e9b71eb3c18b7fd504b77fc9b07bcd18a",
   "publication":{"pushed":false,"pullRequest":false,"merged":false,"deployed":false,"rulesPublished":false,"indexesPublished":false,"realAccountAcceptance":false},
   "limitations":["Synthetic browser fixtures and disposable demo Auth/Firestore Emulators only.","No real-account acceptance or production data access.","Touch and mobile keyboard hardware were not tested on physical devices.","One historical browser-smoke expectation remains outside this plan: it expects an archive confirmation from the Delete control while current app.js routes that control to permanent-delete preflight."],
-  "evidenceCommit":"to be set after the first local evidence-package commit"
+  "evidenceCommit":"343282f1053d790a16e2147e96e8a402e59cd4a0"
 }
