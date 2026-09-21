@@ -1,0 +1,16 @@
+{
+  "scope": "Focused built-preview regression suite added before production edits",
+  "command": "PLAYWRIGHT_BASE_URL=http://127.0.0.1:4190 PLAYWRIGHT_EXECUTABLE_PATH=C:/Program Files (x86)/Google/Chrome/Application/chrome.exe node node_modules/@playwright/test/cli.js test tests/board-creation-confirmation.spec.mjs --reporter=line",
+  "exitCode": 1,
+  "collected": 5,
+  "failed": 5,
+  "expectedBaselineFailures": [
+    "blank creation removes Start from and keeps the blank command explicit: app.js still calls makeBoard(template)",
+    "confirmation uses the available content width instead of the icon track: measured content width is 40px",
+    "archive and restore confirmations remain pointer-operable after same-page reuse: second confirmation submit remains disabled",
+    "pending confirmation owns Escape until the remote action settles: Escape closes pending confirmation",
+    "delete then Repair account setup uses a fresh confirmation state: reused Cancel remains disabled"
+  ],
+  "productionChangesAtRun": 0,
+  "rulesOrIndexesChanged": false
+}
