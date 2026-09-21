@@ -5,7 +5,7 @@ This package records the local implementation and qualification of `FLOWBOARD_BL
 ## Release boundary
 
 - Branch: `fix/blank-boards-and-confirmations`
-- Application and test candidate SHA: `633a00de2485c9f85f8e3c22fd4f8cccb7cefe6c`
+- Application and test candidate SHA: `1cc2323c9d70507be3c501cc2fc7e590894b47fd`
 - Evidence package is committed separately after this candidate.
 - Work stayed under `C:/Code/Stacie-Hermes/UH-Trello`.
 - Only synthetic browser fixtures and disposable demo Firebase Emulators were used.

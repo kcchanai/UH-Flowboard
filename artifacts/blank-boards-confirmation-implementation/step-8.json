@@ -1,7 +1,7 @@
 {
   "step": 8,
   "scope": "Evidence package and release gate",
-  "candidateSha": "633a00de2485c9f85f8e3c22fd4f8cccb7cefe6c",
+  "candidateSha": "1cc2323c9d70507be3c501cc2fc7e590894b47fd",
   "commands": [
     {"command": "final focused suite including evidence capture", "exitCode": 0, "passed": 9},
     {"command": "synthetic screenshot count and size verification", "exitCode": 0, "count": 5},

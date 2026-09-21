@@ -1,5 +1,5 @@
 {
-  "candidateSha": "633a00de2485c9f85f8e3c22fd4f8cccb7cefe6c",
+  "candidateSha": "1cc2323c9d70507be3c501cc2fc7e590894b47fd",
   "branch": "fix/blank-boards-and-confirmations",
   "evidencePackage": "artifacts/blank-boards-confirmation-implementation",
   "results": {
