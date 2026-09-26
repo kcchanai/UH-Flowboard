@@ -1,0 +1,1590 @@
+{
+  "checks": [
+    {
+      "name": "320x720 light board bounded",
+      "pass": true,
+      "detail": {
+        "header": {
+          "left": 14,
+          "right": 306,
+          "top": 91,
+          "bottom": 367.34375,
+          "width": 292,
+          "height": 276.34375
+        },
+        "heading": {
+          "left": 14,
+          "right": 306,
+          "top": 91,
+          "bottom": 135.796875,
+          "width": 292,
+          "height": 44.796875
+        },
+        "search": {
+          "left": 14,
+          "right": 306,
+          "top": 143.796875,
+          "bottom": 183.796875,
+          "width": 292,
+          "height": 40
+        },
+        "summary": {
+          "left": 14,
+          "right": 306,
+          "top": 191.796875,
+          "bottom": 209.34375,
+          "width": 292,
+          "height": 17.546875
+        },
+        "actions": {
+          "left": 14,
+          "right": 227.5625,
+          "top": 321.34375,
+          "bottom": 365.34375,
+          "width": 213.5625,
+          "height": 44
+        },
+        "board": {
+          "left": 14,
+          "right": 306,
+          "top": 381.34375,
+          "bottom": 702,
+          "width": 292,
+          "height": 320.65625
+        },
+        "overflow": false,
+        "listCount": 3
+      }
+    },
+    {
+      "name": "320x720 light header summary stays within board heading",
+      "pass": true,
+      "detail": {
+        "header": {
+          "left": 14,
+          "right": 306,
+          "top": 91,
+          "bottom": 367.34375,
+          "width": 292,
+          "height": 276.34375
+        },
+        "heading": {
+          "left": 14,
+          "right": 306,
+          "top": 91,
+          "bottom": 135.796875,
+          "width": 292,
+          "height": 44.796875
+        },
+        "search": {
+          "left": 14,
+          "right": 306,
+          "top": 143.796875,
+          "bottom": 183.796875,
+          "width": 292,
+          "height": 40
+        },
+        "summary": {
+          "left": 14,
+          "right": 306,
+          "top": 191.796875,
+          "bottom": 209.34375,
+          "width": 292,
+          "height": 17.546875
+        },
+        "actions": {
+          "left": 14,
+          "right": 227.5625,
+          "top": 321.34375,
+          "bottom": 365.34375,
+          "width": 213.5625,
+          "height": 44
+        },
+        "board": {
+          "left": 14,
+          "right": 306,
+          "top": 381.34375,
+          "bottom": 702,
+          "width": 292,
+          "height": 320.65625
+        },
+        "overflow": false,
+        "listCount": 3
+      }
+    },
+    {
+      "name": "320x720 dark board bounded",
+      "pass": true,
+      "detail": {
+        "header": {
+          "left": 14,
+          "right": 306,
+          "top": 91,
+          "bottom": 367.34375,
+          "width": 292,
+          "height": 276.34375
+        },
+        "heading": {
+          "left": 14,
+          "right": 306,
+          "top": 91,
+          "bottom": 135.796875,
+          "width": 292,
+          "height": 44.796875
+        },
+        "search": {
+          "left": 14,
+          "right": 306,
+          "top": 143.796875,
+          "bottom": 183.796875,
+          "width": 292,
+          "height": 40
+        },
+        "summary": {
+          "left": 14,
+          "right": 306,
+          "top": 191.796875,
+          "bottom": 209.34375,
+          "width": 292,
+          "height": 17.546875
+        },
+        "actions": {
+          "left": 14,
+          "right": 227.5625,
+          "top": 321.34375,
+          "bottom": 365.34375,
+          "width": 213.5625,
+          "height": 44
+        },
+        "board": {
+          "left": 14,
+          "right": 306,
+          "top": 381.34375,
+          "bottom": 702,
+          "width": 292,
+          "height": 320.65625
+        },
+        "overflow": false,
+        "listCount": 3
+      }
+    },
+    {
+      "name": "320x720 dark header summary stays within board heading",
+      "pass": true,
+      "detail": {
+        "header": {
+          "left": 14,
+          "right": 306,
+          "top": 91,
+          "bottom": 367.34375,
+          "width": 292,
+          "height": 276.34375
+        },
+        "heading": {
+          "left": 14,
+          "right": 306,
+          "top": 91,
+          "bottom": 135.796875,
+          "width": 292,
+          "height": 44.796875
+        },
+        "search": {
+          "left": 14,
+          "right": 306,
+          "top": 143.796875,
+          "bottom": 183.796875,
+          "width": 292,
+          "height": 40
+        },
+        "summary": {
+          "left": 14,
+          "right": 306,
+          "top": 191.796875,
+          "bottom": 209.34375,
+          "width": 292,
+          "height": 17.546875
+        },
+        "actions": {
+          "left": 14,
+          "right": 227.5625,
+          "top": 321.34375,
+          "bottom": 365.34375,
+          "width": 213.5625,
+          "height": 44
+        },
+        "board": {
+          "left": 14,
+          "right": 306,
+          "top": 381.34375,
+          "bottom": 702,
+          "width": 292,
+          "height": 320.65625
+        },
+        "overflow": false,
+        "listCount": 3
+      }
+    },
+    {
+      "name": "390x844 light board bounded",
+      "pass": true,
+      "detail": {
+        "header": {
+          "left": 14,
+          "right": 376,
+          "top": 91,
+          "bottom": 315.34375,
+          "width": 362,
+          "height": 224.34375
+        },
+        "heading": {
+          "left": 14,
+          "right": 376,
+          "top": 91,
+          "bottom": 135.796875,
+          "width": 362,
+          "height": 44.796875
+        },
+        "search": {
+          "left": 14,
+          "right": 376,
+          "top": 143.796875,
+          "bottom": 183.796875,
+          "width": 362,
+          "height": 40
+        },
+        "summary": {
+          "left": 14,
+          "right": 376,
+          "top": 191.796875,
+          "bottom": 209.34375,
+          "width": 362,
+          "height": 17.546875
+        },
+        "actions": {
+          "left": 125.25,
+          "right": 338.8125,
+          "top": 269.34375,
+          "bottom": 313.34375,
+          "width": 213.5625,
+          "height": 44
+        },
+        "board": {
+          "left": 14,
+          "right": 376,
+          "top": 329.34375,
+          "bottom": 826,
+          "width": 362,
+          "height": 496.65625
+        },
+        "overflow": false,
+        "listCount": 3
+      }
+    },
+    {
+      "name": "390x844 light header summary stays within board heading",
+      "pass": true,
+      "detail": {
+        "header": {
+          "left": 14,
+          "right": 376,
+          "top": 91,
+          "bottom": 315.34375,
+          "width": 362,
+          "height": 224.34375
+        },
+        "heading": {
+          "left": 14,
+          "right": 376,
+          "top": 91,
+          "bottom": 135.796875,
+          "width": 362,
+          "height": 44.796875
+        },
+        "search": {
+          "left": 14,
+          "right": 376,
+          "top": 143.796875,
+          "bottom": 183.796875,
+          "width": 362,
+          "height": 40
+        },
+        "summary": {
+          "left": 14,
+          "right": 376,
+          "top": 191.796875,
+          "bottom": 209.34375,
+          "width": 362,
+          "height": 17.546875
+        },
+        "actions": {
+          "left": 125.25,
+          "right": 338.8125,
+          "top": 269.34375,
+          "bottom": 313.34375,
+          "width": 213.5625,
+          "height": 44
+        },
+        "board": {
+          "left": 14,
+          "right": 376,
+          "top": 329.34375,
+          "bottom": 826,
+          "width": 362,
+          "height": 496.65625
+        },
+        "overflow": false,
+        "listCount": 3
+      }
+    },
+    {
+      "name": "390x844 dark board bounded",
+      "pass": true,
+      "detail": {
+        "header": {
+          "left": 14,
+          "right": 376,
+          "top": 91,
+          "bottom": 315.34375,
+          "width": 362,
+          "height": 224.34375
+        },
+        "heading": {
+          "left": 14,
+          "right": 376,
+          "top": 91,
+          "bottom": 135.796875,
+          "width": 362,
+          "height": 44.796875
+        },
+        "search": {
+          "left": 14,
+          "right": 376,
+          "top": 143.796875,
+          "bottom": 183.796875,
+          "width": 362,
+          "height": 40
+        },
+        "summary": {
+          "left": 14,
+          "right": 376,
+          "top": 191.796875,
+          "bottom": 209.34375,
+          "width": 362,
+          "height": 17.546875
+        },
+        "actions": {
+          "left": 125.25,
+          "right": 338.8125,
+          "top": 269.34375,
+          "bottom": 313.34375,
+          "width": 213.5625,
+          "height": 44
+        },
+        "board": {
+          "left": 14,
+          "right": 376,
+          "top": 329.34375,
+          "bottom": 826,
+          "width": 362,
+          "height": 496.65625
+        },
+        "overflow": false,
+        "listCount": 3
+      }
+    },
+    {
+      "name": "390x844 dark header summary stays within board heading",
+      "pass": true,
+      "detail": {
+        "header": {
+          "left": 14,
+          "right": 376,
+          "top": 91,
+          "bottom": 315.34375,
+          "width": 362,
+          "height": 224.34375
+        },
+        "heading": {
+          "left": 14,
+          "right": 376,
+          "top": 91,
+          "bottom": 135.796875,
+          "width": 362,
+          "height": 44.796875
+        },
+        "search": {
+          "left": 14,
+          "right": 376,
+          "top": 143.796875,
+          "bottom": 183.796875,
+          "width": 362,
+          "height": 40
+        },
+        "summary": {
+          "left": 14,
+          "right": 376,
+          "top": 191.796875,
+          "bottom": 209.34375,
+          "width": 362,
+          "height": 17.546875
+        },
+        "actions": {
+          "left": 125.25,
+          "right": 338.8125,
+          "top": 269.34375,
+          "bottom": 313.34375,
+          "width": 213.5625,
+          "height": 44
+        },
+        "board": {
+          "left": 14,
+          "right": 376,
+          "top": 329.34375,
+          "bottom": 826,
+          "width": 362,
+          "height": 496.65625
+        },
+        "overflow": false,
+        "listCount": 3
+      }
+    },
+    {
+      "name": "960x720 light board bounded",
+      "pass": true,
+      "detail": {
+        "header": {
+          "left": 28.796875,
+          "right": 931.203125,
+          "top": 92.796875,
+          "bottom": 239.796875,
+          "width": 902.40625,
+          "height": 147
+        },
+        "heading": {
+          "left": 28.796875,
+          "right": 428.796875,
+          "top": 92.796875,
+          "bottom": 141.796875,
+          "width": 400,
+          "height": 49
+        },
+        "search": {
+          "left": 440.796875,
+          "right": 760.796875,
+          "top": 97.296875,
+          "bottom": 137.296875,
+          "width": 320,
+          "height": 40
+        },
+        "summary": {
+          "left": 28.796875,
+          "right": 310.890625,
+          "top": 161.703125,
+          "bottom": 179.890625,
+          "width": 282.09375,
+          "height": 18.1875
+        },
+        "actions": {
+          "left": 28.796875,
+          "right": 242.359375,
+          "top": 199.796875,
+          "bottom": 237.796875,
+          "width": 213.5625,
+          "height": 38
+        },
+        "board": {
+          "left": 28.796875,
+          "right": 931.203125,
+          "top": 261.796875,
+          "bottom": 691.203125,
+          "width": 902.40625,
+          "height": 429.40625
+        },
+        "overflow": false,
+        "listCount": 3
+      }
+    },
+    {
+      "name": "960x720 light header summary stays within board heading",
+      "pass": true,
+      "detail": {
+        "header": {
+          "left": 28.796875,
+          "right": 931.203125,
+          "top": 92.796875,
+          "bottom": 239.796875,
+          "width": 902.40625,
+          "height": 147
+        },
+        "heading": {
+          "left": 28.796875,
+          "right": 428.796875,
+          "top": 92.796875,
+          "bottom": 141.796875,
+          "width": 400,
+          "height": 49
+        },
+        "search": {
+          "left": 440.796875,
+          "right": 760.796875,
+          "top": 97.296875,
+          "bottom": 137.296875,
+          "width": 320,
+          "height": 40
+        },
+        "summary": {
+          "left": 28.796875,
+          "right": 310.890625,
+          "top": 161.703125,
+          "bottom": 179.890625,
+          "width": 282.09375,
+          "height": 18.1875
+        },
+        "actions": {
+          "left": 28.796875,
+          "right": 242.359375,
+          "top": 199.796875,
+          "bottom": 237.796875,
+          "width": 213.5625,
+          "height": 38
+        },
+        "board": {
+          "left": 28.796875,
+          "right": 931.203125,
+          "top": 261.796875,
+          "bottom": 691.203125,
+          "width": 902.40625,
+          "height": 429.40625
+        },
+        "overflow": false,
+        "listCount": 3
+      }
+    },
+    {
+      "name": "960x720 dark board bounded",
+      "pass": true,
+      "detail": {
+        "header": {
+          "left": 28.796875,
+          "right": 931.203125,
+          "top": 92.796875,
+          "bottom": 239.796875,
+          "width": 902.40625,
+          "height": 147
+        },
+        "heading": {
+          "left": 28.796875,
+          "right": 428.796875,
+          "top": 92.796875,
+          "bottom": 141.796875,
+          "width": 400,
+          "height": 49
+        },
+        "search": {
+          "left": 440.796875,
+          "right": 760.796875,
+          "top": 97.296875,
+          "bottom": 137.296875,
+          "width": 320,
+          "height": 40
+        },
+        "summary": {
+          "left": 28.796875,
+          "right": 310.890625,
+          "top": 161.703125,
+          "bottom": 179.890625,
+          "width": 282.09375,
+          "height": 18.1875
+        },
+        "actions": {
+          "left": 28.796875,
+          "right": 242.359375,
+          "top": 199.796875,
+          "bottom": 237.796875,
+          "width": 213.5625,
+          "height": 38
+        },
+        "board": {
+          "left": 28.796875,
+          "right": 931.203125,
+          "top": 261.796875,
+          "bottom": 691.203125,
+          "width": 902.40625,
+          "height": 429.40625
+        },
+        "overflow": false,
+        "listCount": 3
+      }
+    },
+    {
+      "name": "960x720 dark header summary stays within board heading",
+      "pass": true,
+      "detail": {
+        "header": {
+          "left": 28.796875,
+          "right": 931.203125,
+          "top": 92.796875,
+          "bottom": 239.796875,
+          "width": 902.40625,
+          "height": 147
+        },
+        "heading": {
+          "left": 28.796875,
+          "right": 428.796875,
+          "top": 92.796875,
+          "bottom": 141.796875,
+          "width": 400,
+          "height": 49
+        },
+        "search": {
+          "left": 440.796875,
+          "right": 760.796875,
+          "top": 97.296875,
+          "bottom": 137.296875,
+          "width": 320,
+          "height": 40
+        },
+        "summary": {
+          "left": 28.796875,
+          "right": 310.890625,
+          "top": 161.703125,
+          "bottom": 179.890625,
+          "width": 282.09375,
+          "height": 18.1875
+        },
+        "actions": {
+          "left": 28.796875,
+          "right": 242.359375,
+          "top": 199.796875,
+          "bottom": 237.796875,
+          "width": 213.5625,
+          "height": 38
+        },
+        "board": {
+          "left": 28.796875,
+          "right": 931.203125,
+          "top": 261.796875,
+          "bottom": 691.203125,
+          "width": 902.40625,
+          "height": 429.40625
+        },
+        "overflow": false,
+        "listCount": 3
+      }
+    },
+    {
+      "name": "960x400 light board bounded",
+      "pass": true,
+      "detail": {
+        "header": {
+          "left": 28.796875,
+          "right": 931.203125,
+          "top": 76,
+          "bottom": 210.796875,
+          "width": 902.40625,
+          "height": 134.796875
+        },
+        "heading": {
+          "left": 28.796875,
+          "right": 385.796875,
+          "top": 76,
+          "bottom": 120.796875,
+          "width": 357,
+          "height": 44.796875
+        },
+        "search": {
+          "left": 397.796875,
+          "right": 717.796875,
+          "top": 78.390625,
+          "bottom": 118.390625,
+          "width": 320,
+          "height": 40
+        },
+        "summary": {
+          "left": 28.796875,
+          "right": 310.890625,
+          "top": 136.703125,
+          "bottom": 154.890625,
+          "width": 282.09375,
+          "height": 18.1875
+        },
+        "actions": {
+          "left": 28.796875,
+          "right": 242.359375,
+          "top": 170.796875,
+          "bottom": 208.796875,
+          "width": 213.5625,
+          "height": 38
+        },
+        "board": {
+          "left": 28.796875,
+          "right": 931.203125,
+          "top": 220.796875,
+          "bottom": 388,
+          "width": 902.40625,
+          "height": 167.203125
+        },
+        "overflow": false,
+        "listCount": 3
+      }
+    },
+    {
+      "name": "960x400 light header summary stays within board heading",
+      "pass": true,
+      "detail": {
+        "header": {
+          "left": 28.796875,
+          "right": 931.203125,
+          "top": 76,
+          "bottom": 210.796875,
+          "width": 902.40625,
+          "height": 134.796875
+        },
+        "heading": {
+          "left": 28.796875,
+          "right": 385.796875,
+          "top": 76,
+          "bottom": 120.796875,
+          "width": 357,
+          "height": 44.796875
+        },
+        "search": {
+          "left": 397.796875,
+          "right": 717.796875,
+          "top": 78.390625,
+          "bottom": 118.390625,
+          "width": 320,
+          "height": 40
+        },
+        "summary": {
+          "left": 28.796875,
+          "right": 310.890625,
+          "top": 136.703125,
+          "bottom": 154.890625,
+          "width": 282.09375,
+          "height": 18.1875
+        },
+        "actions": {
+          "left": 28.796875,
+          "right": 242.359375,
+          "top": 170.796875,
+          "bottom": 208.796875,
+          "width": 213.5625,
+          "height": 38
+        },
+        "board": {
+          "left": 28.796875,
+          "right": 931.203125,
+          "top": 220.796875,
+          "bottom": 388,
+          "width": 902.40625,
+          "height": 167.203125
+        },
+        "overflow": false,
+        "listCount": 3
+      }
+    },
+    {
+      "name": "960x400 dark board bounded",
+      "pass": true,
+      "detail": {
+        "header": {
+          "left": 28.796875,
+          "right": 931.203125,
+          "top": 76,
+          "bottom": 210.796875,
+          "width": 902.40625,
+          "height": 134.796875
+        },
+        "heading": {
+          "left": 28.796875,
+          "right": 385.796875,
+          "top": 76,
+          "bottom": 120.796875,
+          "width": 357,
+          "height": 44.796875
+        },
+        "search": {
+          "left": 397.796875,
+          "right": 717.796875,
+          "top": 78.390625,
+          "bottom": 118.390625,
+          "width": 320,
+          "height": 40
+        },
+        "summary": {
+          "left": 28.796875,
+          "right": 310.890625,
+          "top": 136.703125,
+          "bottom": 154.890625,
+          "width": 282.09375,
+          "height": 18.1875
+        },
+        "actions": {
+          "left": 28.796875,
+          "right": 242.359375,
+          "top": 170.796875,
+          "bottom": 208.796875,
+          "width": 213.5625,
+          "height": 38
+        },
+        "board": {
+          "left": 28.796875,
+          "right": 931.203125,
+          "top": 220.796875,
+          "bottom": 388,
+          "width": 902.40625,
+          "height": 167.203125
+        },
+        "overflow": false,
+        "listCount": 3
+      }
+    },
+    {
+      "name": "960x400 dark header summary stays within board heading",
+      "pass": true,
+      "detail": {
+        "header": {
+          "left": 28.796875,
+          "right": 931.203125,
+          "top": 76,
+          "bottom": 210.796875,
+          "width": 902.40625,
+          "height": 134.796875
+        },
+        "heading": {
+          "left": 28.796875,
+          "right": 385.796875,
+          "top": 76,
+          "bottom": 120.796875,
+          "width": 357,
+          "height": 44.796875
+        },
+        "search": {
+          "left": 397.796875,
+          "right": 717.796875,
+          "top": 78.390625,
+          "bottom": 118.390625,
+          "width": 320,
+          "height": 40
+        },
+        "summary": {
+          "left": 28.796875,
+          "right": 310.890625,
+          "top": 136.703125,
+          "bottom": 154.890625,
+          "width": 282.09375,
+          "height": 18.1875
+        },
+        "actions": {
+          "left": 28.796875,
+          "right": 242.359375,
+          "top": 170.796875,
+          "bottom": 208.796875,
+          "width": 213.5625,
+          "height": 38
+        },
+        "board": {
+          "left": 28.796875,
+          "right": 931.203125,
+          "top": 220.796875,
+          "bottom": 388,
+          "width": 902.40625,
+          "height": 167.203125
+        },
+        "overflow": false,
+        "listCount": 3
+      }
+    },
+    {
+      "name": "1280x720 light board bounded",
+      "pass": true,
+      "detail": {
+        "header": {
+          "left": 32,
+          "right": 1248,
+          "top": 96,
+          "bottom": 195,
+          "width": 1216,
+          "height": 99
+        },
+        "heading": {
+          "left": 32,
+          "right": 432,
+          "top": 96,
+          "bottom": 145,
+          "width": 400,
+          "height": 49
+        },
+        "search": {
+          "left": 444,
+          "right": 764,
+          "top": 100.5,
+          "bottom": 140.5,
+          "width": 320,
+          "height": 40
+        },
+        "summary": {
+          "left": 776,
+          "right": 1058.09375,
+          "top": 111.40625,
+          "bottom": 129.59375,
+          "width": 282.09375,
+          "height": 18.1875
+        },
+        "actions": {
+          "left": 470.375,
+          "right": 683.9375,
+          "top": 155,
+          "bottom": 193,
+          "width": 213.5625,
+          "height": 38
+        },
+        "board": {
+          "left": 32,
+          "right": 1248,
+          "top": 217,
+          "bottom": 688,
+          "width": 1216,
+          "height": 471
+        },
+        "overflow": false,
+        "listCount": 3
+      }
+    },
+    {
+      "name": "1280x720 light header summary stays within board heading",
+      "pass": true,
+      "detail": {
+        "header": {
+          "left": 32,
+          "right": 1248,
+          "top": 96,
+          "bottom": 195,
+          "width": 1216,
+          "height": 99
+        },
+        "heading": {
+          "left": 32,
+          "right": 432,
+          "top": 96,
+          "bottom": 145,
+          "width": 400,
+          "height": 49
+        },
+        "search": {
+          "left": 444,
+          "right": 764,
+          "top": 100.5,
+          "bottom": 140.5,
+          "width": 320,
+          "height": 40
+        },
+        "summary": {
+          "left": 776,
+          "right": 1058.09375,
+          "top": 111.40625,
+          "bottom": 129.59375,
+          "width": 282.09375,
+          "height": 18.1875
+        },
+        "actions": {
+          "left": 470.375,
+          "right": 683.9375,
+          "top": 155,
+          "bottom": 193,
+          "width": 213.5625,
+          "height": 38
+        },
+        "board": {
+          "left": 32,
+          "right": 1248,
+          "top": 217,
+          "bottom": 688,
+          "width": 1216,
+          "height": 471
+        },
+        "overflow": false,
+        "listCount": 3
+      }
+    },
+    {
+      "name": "1280x720 dark board bounded",
+      "pass": true,
+      "detail": {
+        "header": {
+          "left": 32,
+          "right": 1248,
+          "top": 96,
+          "bottom": 195,
+          "width": 1216,
+          "height": 99
+        },
+        "heading": {
+          "left": 32,
+          "right": 432,
+          "top": 96,
+          "bottom": 145,
+          "width": 400,
+          "height": 49
+        },
+        "search": {
+          "left": 444,
+          "right": 764,
+          "top": 100.5,
+          "bottom": 140.5,
+          "width": 320,
+          "height": 40
+        },
+        "summary": {
+          "left": 776,
+          "right": 1058.09375,
+          "top": 111.40625,
+          "bottom": 129.59375,
+          "width": 282.09375,
+          "height": 18.1875
+        },
+        "actions": {
+          "left": 470.375,
+          "right": 683.9375,
+          "top": 155,
+          "bottom": 193,
+          "width": 213.5625,
+          "height": 38
+        },
+        "board": {
+          "left": 32,
+          "right": 1248,
+          "top": 217,
+          "bottom": 688,
+          "width": 1216,
+          "height": 471
+        },
+        "overflow": false,
+        "listCount": 3
+      }
+    },
+    {
+      "name": "1280x720 dark header summary stays within board heading",
+      "pass": true,
+      "detail": {
+        "header": {
+          "left": 32,
+          "right": 1248,
+          "top": 96,
+          "bottom": 195,
+          "width": 1216,
+          "height": 99
+        },
+        "heading": {
+          "left": 32,
+          "right": 432,
+          "top": 96,
+          "bottom": 145,
+          "width": 400,
+          "height": 49
+        },
+        "search": {
+          "left": 444,
+          "right": 764,
+          "top": 100.5,
+          "bottom": 140.5,
+          "width": 320,
+          "height": 40
+        },
+        "summary": {
+          "left": 776,
+          "right": 1058.09375,
+          "top": 111.40625,
+          "bottom": 129.59375,
+          "width": 282.09375,
+          "height": 18.1875
+        },
+        "actions": {
+          "left": 470.375,
+          "right": 683.9375,
+          "top": 155,
+          "bottom": 193,
+          "width": 213.5625,
+          "height": 38
+        },
+        "board": {
+          "left": 32,
+          "right": 1248,
+          "top": 217,
+          "bottom": 688,
+          "width": 1216,
+          "height": 471
+        },
+        "overflow": false,
+        "listCount": 3
+      }
+    },
+    {
+      "name": "1440x900 light board bounded",
+      "pass": true,
+      "detail": {
+        "header": {
+          "left": 32,
+          "right": 1408,
+          "top": 96,
+          "bottom": 195,
+          "width": 1376,
+          "height": 99
+        },
+        "heading": {
+          "left": 32,
+          "right": 432,
+          "top": 96,
+          "bottom": 145,
+          "width": 400,
+          "height": 49
+        },
+        "search": {
+          "left": 444,
+          "right": 764,
+          "top": 100.5,
+          "bottom": 140.5,
+          "width": 320,
+          "height": 40
+        },
+        "summary": {
+          "left": 776,
+          "right": 1058.09375,
+          "top": 111.40625,
+          "bottom": 129.59375,
+          "width": 282.09375,
+          "height": 18.1875
+        },
+        "actions": {
+          "left": 143.25,
+          "right": 356.8125,
+          "top": 155,
+          "bottom": 193,
+          "width": 213.5625,
+          "height": 38
+        },
+        "board": {
+          "left": 32,
+          "right": 1408,
+          "top": 217,
+          "bottom": 868,
+          "width": 1376,
+          "height": 651
+        },
+        "overflow": false,
+        "listCount": 3
+      }
+    },
+    {
+      "name": "1440x900 light header summary stays within board heading",
+      "pass": true,
+      "detail": {
+        "header": {
+          "left": 32,
+          "right": 1408,
+          "top": 96,
+          "bottom": 195,
+          "width": 1376,
+          "height": 99
+        },
+        "heading": {
+          "left": 32,
+          "right": 432,
+          "top": 96,
+          "bottom": 145,
+          "width": 400,
+          "height": 49
+        },
+        "search": {
+          "left": 444,
+          "right": 764,
+          "top": 100.5,
+          "bottom": 140.5,
+          "width": 320,
+          "height": 40
+        },
+        "summary": {
+          "left": 776,
+          "right": 1058.09375,
+          "top": 111.40625,
+          "bottom": 129.59375,
+          "width": 282.09375,
+          "height": 18.1875
+        },
+        "actions": {
+          "left": 143.25,
+          "right": 356.8125,
+          "top": 155,
+          "bottom": 193,
+          "width": 213.5625,
+          "height": 38
+        },
+        "board": {
+          "left": 32,
+          "right": 1408,
+          "top": 217,
+          "bottom": 868,
+          "width": 1376,
+          "height": 651
+        },
+        "overflow": false,
+        "listCount": 3
+      }
+    },
+    {
+      "name": "1440x900 dark board bounded",
+      "pass": true,
+      "detail": {
+        "header": {
+          "left": 32,
+          "right": 1408,
+          "top": 96,
+          "bottom": 195,
+          "width": 1376,
+          "height": 99
+        },
+        "heading": {
+          "left": 32,
+          "right": 432,
+          "top": 96,
+          "bottom": 145,
+          "width": 400,
+          "height": 49
+        },
+        "search": {
+          "left": 444,
+          "right": 764,
+          "top": 100.5,
+          "bottom": 140.5,
+          "width": 320,
+          "height": 40
+        },
+        "summary": {
+          "left": 776,
+          "right": 1058.09375,
+          "top": 111.40625,
+          "bottom": 129.59375,
+          "width": 282.09375,
+          "height": 18.1875
+        },
+        "actions": {
+          "left": 143.25,
+          "right": 356.8125,
+          "top": 155,
+          "bottom": 193,
+          "width": 213.5625,
+          "height": 38
+        },
+        "board": {
+          "left": 32,
+          "right": 1408,
+          "top": 217,
+          "bottom": 868,
+          "width": 1376,
+          "height": 651
+        },
+        "overflow": false,
+        "listCount": 3
+      }
+    },
+    {
+      "name": "1440x900 dark header summary stays within board heading",
+      "pass": true,
+      "detail": {
+        "header": {
+          "left": 32,
+          "right": 1408,
+          "top": 96,
+          "bottom": 195,
+          "width": 1376,
+          "height": 99
+        },
+        "heading": {
+          "left": 32,
+          "right": 432,
+          "top": 96,
+          "bottom": 145,
+          "width": 400,
+          "height": 49
+        },
+        "search": {
+          "left": 444,
+          "right": 764,
+          "top": 100.5,
+          "bottom": 140.5,
+          "width": 320,
+          "height": 40
+        },
+        "summary": {
+          "left": 776,
+          "right": 1058.09375,
+          "top": 111.40625,
+          "bottom": 129.59375,
+          "width": 282.09375,
+          "height": 18.1875
+        },
+        "actions": {
+          "left": 143.25,
+          "right": 356.8125,
+          "top": 155,
+          "bottom": 193,
+          "width": 213.5625,
+          "height": 38
+        },
+        "board": {
+          "left": 32,
+          "right": 1408,
+          "top": 217,
+          "bottom": 868,
+          "width": 1376,
+          "height": 651
+        },
+        "overflow": false,
+        "listCount": 3
+      }
+    },
+    {
+      "name": "1920x1080 light board bounded",
+      "pass": true,
+      "detail": {
+        "header": {
+          "left": 32,
+          "right": 1888,
+          "top": 96,
+          "bottom": 147,
+          "width": 1856,
+          "height": 51
+        },
+        "heading": {
+          "left": 32,
+          "right": 432,
+          "top": 96,
+          "bottom": 145,
+          "width": 400,
+          "height": 49
+        },
+        "search": {
+          "left": 444,
+          "right": 764,
+          "top": 100.5,
+          "bottom": 140.5,
+          "width": 320,
+          "height": 40
+        },
+        "summary": {
+          "left": 776,
+          "right": 1058.09375,
+          "top": 111.40625,
+          "bottom": 129.59375,
+          "width": 282.09375,
+          "height": 18.1875
+        },
+        "actions": {
+          "left": 1520.46875,
+          "right": 1734.03125,
+          "top": 101.5,
+          "bottom": 139.5,
+          "width": 213.5625,
+          "height": 38
+        },
+        "board": {
+          "left": 32,
+          "right": 1888,
+          "top": 169,
+          "bottom": 1048,
+          "width": 1856,
+          "height": 879
+        },
+        "overflow": false,
+        "listCount": 3
+      }
+    },
+    {
+      "name": "1920x1080 light header summary stays within board heading",
+      "pass": true,
+      "detail": {
+        "header": {
+          "left": 32,
+          "right": 1888,
+          "top": 96,
+          "bottom": 147,
+          "width": 1856,
+          "height": 51
+        },
+        "heading": {
+          "left": 32,
+          "right": 432,
+          "top": 96,
+          "bottom": 145,
+          "width": 400,
+          "height": 49
+        },
+        "search": {
+          "left": 444,
+          "right": 764,
+          "top": 100.5,
+          "bottom": 140.5,
+          "width": 320,
+          "height": 40
+        },
+        "summary": {
+          "left": 776,
+          "right": 1058.09375,
+          "top": 111.40625,
+          "bottom": 129.59375,
+          "width": 282.09375,
+          "height": 18.1875
+        },
+        "actions": {
+          "left": 1520.46875,
+          "right": 1734.03125,
+          "top": 101.5,
+          "bottom": 139.5,
+          "width": 213.5625,
+          "height": 38
+        },
+        "board": {
+          "left": 32,
+          "right": 1888,
+          "top": 169,
+          "bottom": 1048,
+          "width": 1856,
+          "height": 879
+        },
+        "overflow": false,
+        "listCount": 3
+      }
+    },
+    {
+      "name": "1920x1080 dark board bounded",
+      "pass": true,
+      "detail": {
+        "header": {
+          "left": 32,
+          "right": 1888,
+          "top": 96,
+          "bottom": 147,
+          "width": 1856,
+          "height": 51
+        },
+        "heading": {
+          "left": 32,
+          "right": 432,
+          "top": 96,
+          "bottom": 145,
+          "width": 400,
+          "height": 49
+        },
+        "search": {
+          "left": 444,
+          "right": 764,
+          "top": 100.5,
+          "bottom": 140.5,
+          "width": 320,
+          "height": 40
+        },
+        "summary": {
+          "left": 776,
+          "right": 1058.09375,
+          "top": 111.40625,
+          "bottom": 129.59375,
+          "width": 282.09375,
+          "height": 18.1875
+        },
+        "actions": {
+          "left": 1520.46875,
+          "right": 1734.03125,
+          "top": 101.5,
+          "bottom": 139.5,
+          "width": 213.5625,
+          "height": 38
+        },
+        "board": {
+          "left": 32,
+          "right": 1888,
+          "top": 169,
+          "bottom": 1048,
+          "width": 1856,
+          "height": 879
+        },
+        "overflow": false,
+        "listCount": 3
+      }
+    },
+    {
+      "name": "1920x1080 dark header summary stays within board heading",
+      "pass": true,
+      "detail": {
+        "header": {
+          "left": 32,
+          "right": 1888,
+          "top": 96,
+          "bottom": 147,
+          "width": 1856,
+          "height": 51
+        },
+        "heading": {
+          "left": 32,
+          "right": 432,
+          "top": 96,
+          "bottom": 145,
+          "width": 400,
+          "height": 49
+        },
+        "search": {
+          "left": 444,
+          "right": 764,
+          "top": 100.5,
+          "bottom": 140.5,
+          "width": 320,
+          "height": 40
+        },
+        "summary": {
+          "left": 776,
+          "right": 1058.09375,
+          "top": 111.40625,
+          "bottom": 129.59375,
+          "width": 282.09375,
+          "height": 18.1875
+        },
+        "actions": {
+          "left": 1520.46875,
+          "right": 1734.03125,
+          "top": 101.5,
+          "bottom": 139.5,
+          "width": 213.5625,
+          "height": 38
+        },
+        "board": {
+          "left": 32,
+          "right": 1888,
+          "top": 169,
+          "bottom": 1048,
+          "width": 1856,
+          "height": 879
+        },
+        "overflow": false,
+        "listCount": 3
+      }
+    }
+  ],
+  "errors": [],
+  "screenshots": [
+    "board-320x720-light.png",
+    "board-320x720-dark.png",
+    "board-390x844-light.png",
+    "board-390x844-dark.png",
+    "board-960x720-light.png",
+    "board-960x720-dark.png",
+    "board-960x400-light.png",
+    "board-960x400-dark.png",
+    "board-1280x720-light.png",
+    "board-1280x720-dark.png",
+    "board-1440x900-light.png",
+    "board-1440x900-dark.png",
+    "board-1920x1080-light.png",
+    "board-1920x1080-dark.png"
+  ],
+  "port": 4205
+}

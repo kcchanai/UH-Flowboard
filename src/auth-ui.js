@@ -38,7 +38,7 @@ export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
   const status = document.querySelector('#account-status');
   const cloudStatus = document.querySelector('#cloud-status');
   const announcer = document.querySelector('#announcer');
-  let currentSession = null;
+  let currentSession = null, dialogTrigger = button;
 
   const announce = text => {
     status.textContent = text;
@@ -82,10 +82,12 @@ export function initializeAuthUI(adapter, {onSessionChange = () => {}} = {}) {
     if (notify) onSessionChange(session);
   };
 
-  button.addEventListener('click', async () => { await styleReady; render(currentSession, false); dialog.showModal(); close.focus(); });
+  const openAccountDialog = async trigger => { dialogTrigger = trigger || button; await styleReady; render(currentSession, false); if (!dialog.open) dialog.showModal(); close.focus(); };
+  button.addEventListener('click', event => openAccountDialog(event.currentTarget));
+  window.addEventListener('flowboard:open-account-dialog', event => openAccountDialog(event.detail?.trigger));
   close.addEventListener('click', () => dialog.close());
   dialog.addEventListener('cancel', event => { event.preventDefault(); dialog.close(); });
-  dialog.addEventListener('close', () => button.focus());
+  dialog.addEventListener('close', () => { const trigger = dialogTrigger; dialogTrigger = button; trigger?.focus(); });
   signIn.addEventListener('click', async () => {
     signIn.disabled = true;
     announce('Opening Google sign-in…');
