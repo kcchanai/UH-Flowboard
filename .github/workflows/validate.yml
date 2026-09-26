@@ -59,6 +59,8 @@ jobs:
         run: npx playwright test tests/board-row-actions.spec.mjs --reporter=line
       - name: Card details edge and comments regressions
         run: npx playwright test tests/card-details-edges-comments.spec.mjs --reporter=line
+      - name: Approved accessibility and responsive UI regressions
+        run: npx playwright test tests/audit-access-and-entry.spec.mjs tests/audit-visual.spec.mjs --reporter=line --workers=1
       - name: Emulator-backed multi-user browser workflow
         run: |
           npm run dev -- --host 127.0.0.1 --port 4180 > emulator-server.log 2>&1 &

@@ -1,0 +1,1383 @@
+{
+  "url": "http://127.0.0.1:4204/UH-Flowboard/",
+  "checks": [
+    {
+      "name": "local HTTP 200",
+      "passed": true,
+      "detail": 200
+    },
+    {
+      "name": "320px brand/Boards don't collide",
+      "passed": true,
+      "detail": {
+        "brand": {
+          "left": 14,
+          "right": 79.1875,
+          "top": 19,
+          "bottom": 45,
+          "width": 65.1875,
+          "height": 26
+        },
+        "text": {
+          "left": 0,
+          "right": 0,
+          "top": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "mark": {
+          "left": 14,
+          "right": 40,
+          "top": 19,
+          "bottom": 45,
+          "width": 26,
+          "height": 26
+        },
+        "boards": {
+          "left": 87.1875,
+          "right": 170,
+          "top": 10,
+          "bottom": 54,
+          "width": 82.8125,
+          "height": 44
+        },
+        "appearance": {
+          "left": 178,
+          "right": 222,
+          "top": 10,
+          "bottom": 54,
+          "width": 44,
+          "height": 44
+        },
+        "account": {
+          "left": 230,
+          "right": 306,
+          "top": 10,
+          "bottom": 54,
+          "width": 76,
+          "height": 44
+        },
+        "overflow": false,
+        "coarse": true
+      }
+    },
+    {
+      "name": "320px mark remains recognizable",
+      "passed": true,
+      "detail": {
+        "left": 14,
+        "right": 40,
+        "top": 19,
+        "bottom": 45,
+        "width": 26,
+        "height": 26
+      }
+    },
+    {
+      "name": "320px page has no horizontal overflow",
+      "passed": true
+    },
+    {
+      "name": "320px Account target >=44px",
+      "passed": true,
+      "detail": {
+        "left": 230,
+        "right": 306,
+        "top": 10,
+        "bottom": 54,
+        "width": 76,
+        "height": 44
+      }
+    },
+    {
+      "name": "320px Boards target >=44px",
+      "passed": true,
+      "detail": {
+        "left": 87.1875,
+        "right": 170,
+        "top": 10,
+        "bottom": 54,
+        "width": 82.8125,
+        "height": 44
+      }
+    },
+    {
+      "name": "320px Appearance target >=44px",
+      "passed": true,
+      "detail": {
+        "left": 178,
+        "right": 222,
+        "top": 10,
+        "bottom": 54,
+        "width": 44,
+        "height": 44
+      }
+    },
+    {
+      "name": "320px Appearance actions visible without scrolling",
+      "passed": true,
+      "detail": {
+        "form": {
+          "top": 13,
+          "bottom": 709
+        },
+        "save": {
+          "top": 652,
+          "bottom": 692
+        },
+        "close": {
+          "top": 30,
+          "bottom": 74
+        },
+        "viewport": 720
+      }
+    },
+    {
+      "name": "320px Appearance visible close",
+      "passed": true
+    },
+    {
+      "name": "local HTTP 200",
+      "passed": true,
+      "detail": 200
+    },
+    {
+      "name": "360px brand/Boards don't collide",
+      "passed": true,
+      "detail": {
+        "brand": {
+          "left": 14,
+          "right": 119.1875,
+          "top": 19,
+          "bottom": 45,
+          "width": 105.1875,
+          "height": 26
+        },
+        "text": {
+          "left": 0,
+          "right": 0,
+          "top": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "mark": {
+          "left": 14,
+          "right": 40,
+          "top": 19,
+          "bottom": 45,
+          "width": 26,
+          "height": 26
+        },
+        "boards": {
+          "left": 127.1875,
+          "right": 210,
+          "top": 10,
+          "bottom": 54,
+          "width": 82.8125,
+          "height": 44
+        },
+        "appearance": {
+          "left": 218,
+          "right": 262,
+          "top": 10,
+          "bottom": 54,
+          "width": 44,
+          "height": 44
+        },
+        "account": {
+          "left": 270,
+          "right": 346,
+          "top": 10,
+          "bottom": 54,
+          "width": 76,
+          "height": 44
+        },
+        "overflow": false,
+        "coarse": true
+      }
+    },
+    {
+      "name": "360px mark remains recognizable",
+      "passed": true,
+      "detail": {
+        "left": 14,
+        "right": 40,
+        "top": 19,
+        "bottom": 45,
+        "width": 26,
+        "height": 26
+      }
+    },
+    {
+      "name": "360px page has no horizontal overflow",
+      "passed": true
+    },
+    {
+      "name": "360px Account target >=44px",
+      "passed": true,
+      "detail": {
+        "left": 270,
+        "right": 346,
+        "top": 10,
+        "bottom": 54,
+        "width": 76,
+        "height": 44
+      }
+    },
+    {
+      "name": "360px Boards target >=44px",
+      "passed": true,
+      "detail": {
+        "left": 127.1875,
+        "right": 210,
+        "top": 10,
+        "bottom": 54,
+        "width": 82.8125,
+        "height": 44
+      }
+    },
+    {
+      "name": "360px Appearance target >=44px",
+      "passed": true,
+      "detail": {
+        "left": 218,
+        "right": 262,
+        "top": 10,
+        "bottom": 54,
+        "width": 44,
+        "height": 44
+      }
+    },
+    {
+      "name": "local HTTP 200",
+      "passed": true,
+      "detail": 200
+    },
+    {
+      "name": "375px brand/Boards don't collide",
+      "passed": true,
+      "detail": {
+        "brand": {
+          "left": 14,
+          "right": 134.1875,
+          "top": 19,
+          "bottom": 45,
+          "width": 120.1875,
+          "height": 26
+        },
+        "text": {
+          "left": 0,
+          "right": 0,
+          "top": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "mark": {
+          "left": 14,
+          "right": 40,
+          "top": 19,
+          "bottom": 45,
+          "width": 26,
+          "height": 26
+        },
+        "boards": {
+          "left": 142.1875,
+          "right": 225,
+          "top": 10,
+          "bottom": 54,
+          "width": 82.8125,
+          "height": 44
+        },
+        "appearance": {
+          "left": 233,
+          "right": 277,
+          "top": 10,
+          "bottom": 54,
+          "width": 44,
+          "height": 44
+        },
+        "account": {
+          "left": 285,
+          "right": 361,
+          "top": 10,
+          "bottom": 54,
+          "width": 76,
+          "height": 44
+        },
+        "overflow": false,
+        "coarse": true
+      }
+    },
+    {
+      "name": "375px mark remains recognizable",
+      "passed": true,
+      "detail": {
+        "left": 14,
+        "right": 40,
+        "top": 19,
+        "bottom": 45,
+        "width": 26,
+        "height": 26
+      }
+    },
+    {
+      "name": "375px page has no horizontal overflow",
+      "passed": true
+    },
+    {
+      "name": "375px Account target >=44px",
+      "passed": true,
+      "detail": {
+        "left": 285,
+        "right": 361,
+        "top": 10,
+        "bottom": 54,
+        "width": 76,
+        "height": 44
+      }
+    },
+    {
+      "name": "375px Boards target >=44px",
+      "passed": true,
+      "detail": {
+        "left": 142.1875,
+        "right": 225,
+        "top": 10,
+        "bottom": 54,
+        "width": 82.8125,
+        "height": 44
+      }
+    },
+    {
+      "name": "375px Appearance target >=44px",
+      "passed": true,
+      "detail": {
+        "left": 233,
+        "right": 277,
+        "top": 10,
+        "bottom": 54,
+        "width": 44,
+        "height": 44
+      }
+    },
+    {
+      "name": "local HTTP 200",
+      "passed": true,
+      "detail": 200
+    },
+    {
+      "name": "390px brand/Boards don't collide",
+      "passed": true,
+      "detail": {
+        "brand": {
+          "left": 14,
+          "right": 149.1875,
+          "top": 19,
+          "bottom": 45,
+          "width": 135.1875,
+          "height": 26
+        },
+        "text": {
+          "left": 0,
+          "right": 0,
+          "top": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "mark": {
+          "left": 14,
+          "right": 40,
+          "top": 19,
+          "bottom": 45,
+          "width": 26,
+          "height": 26
+        },
+        "boards": {
+          "left": 157.1875,
+          "right": 240,
+          "top": 10,
+          "bottom": 54,
+          "width": 82.8125,
+          "height": 44
+        },
+        "appearance": {
+          "left": 248,
+          "right": 292,
+          "top": 10,
+          "bottom": 54,
+          "width": 44,
+          "height": 44
+        },
+        "account": {
+          "left": 300,
+          "right": 376,
+          "top": 10,
+          "bottom": 54,
+          "width": 76,
+          "height": 44
+        },
+        "overflow": false,
+        "coarse": true
+      }
+    },
+    {
+      "name": "390px mark remains recognizable",
+      "passed": true,
+      "detail": {
+        "left": 14,
+        "right": 40,
+        "top": 19,
+        "bottom": 45,
+        "width": 26,
+        "height": 26
+      }
+    },
+    {
+      "name": "390px page has no horizontal overflow",
+      "passed": true
+    },
+    {
+      "name": "390px Account target >=44px",
+      "passed": true,
+      "detail": {
+        "left": 300,
+        "right": 376,
+        "top": 10,
+        "bottom": 54,
+        "width": 76,
+        "height": 44
+      }
+    },
+    {
+      "name": "390px Boards target >=44px",
+      "passed": true,
+      "detail": {
+        "left": 157.1875,
+        "right": 240,
+        "top": 10,
+        "bottom": 54,
+        "width": 82.8125,
+        "height": 44
+      }
+    },
+    {
+      "name": "390px Appearance target >=44px",
+      "passed": true,
+      "detail": {
+        "left": 248,
+        "right": 292,
+        "top": 10,
+        "bottom": 54,
+        "width": 44,
+        "height": 44
+      }
+    },
+    {
+      "name": "390px Appearance actions visible without scrolling",
+      "passed": true,
+      "detail": {
+        "form": {
+          "top": 13,
+          "bottom": 709
+        },
+        "save": {
+          "top": 652,
+          "bottom": 692
+        },
+        "close": {
+          "top": 30,
+          "bottom": 74
+        },
+        "viewport": 720
+      }
+    },
+    {
+      "name": "390px Appearance visible close",
+      "passed": true
+    },
+    {
+      "name": "local HTTP 200",
+      "passed": true,
+      "detail": 200
+    },
+    {
+      "name": "412px brand/Boards don't collide",
+      "passed": true,
+      "detail": {
+        "brand": {
+          "left": 14,
+          "right": 171.1875,
+          "top": 19,
+          "bottom": 45,
+          "width": 157.1875,
+          "height": 26
+        },
+        "text": {
+          "left": 0,
+          "right": 0,
+          "top": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "mark": {
+          "left": 14,
+          "right": 40,
+          "top": 19,
+          "bottom": 45,
+          "width": 26,
+          "height": 26
+        },
+        "boards": {
+          "left": 179.1875,
+          "right": 262,
+          "top": 10,
+          "bottom": 54,
+          "width": 82.8125,
+          "height": 44
+        },
+        "appearance": {
+          "left": 270,
+          "right": 314,
+          "top": 10,
+          "bottom": 54,
+          "width": 44,
+          "height": 44
+        },
+        "account": {
+          "left": 322,
+          "right": 398,
+          "top": 10,
+          "bottom": 54,
+          "width": 76,
+          "height": 44
+        },
+        "overflow": false,
+        "coarse": true
+      }
+    },
+    {
+      "name": "412px mark remains recognizable",
+      "passed": true,
+      "detail": {
+        "left": 14,
+        "right": 40,
+        "top": 19,
+        "bottom": 45,
+        "width": 26,
+        "height": 26
+      }
+    },
+    {
+      "name": "412px page has no horizontal overflow",
+      "passed": true
+    },
+    {
+      "name": "412px Account target >=44px",
+      "passed": true,
+      "detail": {
+        "left": 322,
+        "right": 398,
+        "top": 10,
+        "bottom": 54,
+        "width": 76,
+        "height": 44
+      }
+    },
+    {
+      "name": "412px Boards target >=44px",
+      "passed": true,
+      "detail": {
+        "left": 179.1875,
+        "right": 262,
+        "top": 10,
+        "bottom": 54,
+        "width": 82.8125,
+        "height": 44
+      }
+    },
+    {
+      "name": "412px Appearance target >=44px",
+      "passed": true,
+      "detail": {
+        "left": 270,
+        "right": 314,
+        "top": 10,
+        "bottom": 54,
+        "width": 44,
+        "height": 44
+      }
+    },
+    {
+      "name": "local HTTP 200",
+      "passed": true,
+      "detail": 200
+    },
+    {
+      "name": "430px brand/Boards don't collide",
+      "passed": true,
+      "detail": {
+        "brand": {
+          "left": 14,
+          "right": 189.1875,
+          "top": 19,
+          "bottom": 45,
+          "width": 175.1875,
+          "height": 26
+        },
+        "text": {
+          "left": 0,
+          "right": 0,
+          "top": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "mark": {
+          "left": 14,
+          "right": 40,
+          "top": 19,
+          "bottom": 45,
+          "width": 26,
+          "height": 26
+        },
+        "boards": {
+          "left": 197.1875,
+          "right": 280,
+          "top": 10,
+          "bottom": 54,
+          "width": 82.8125,
+          "height": 44
+        },
+        "appearance": {
+          "left": 288,
+          "right": 332,
+          "top": 10,
+          "bottom": 54,
+          "width": 44,
+          "height": 44
+        },
+        "account": {
+          "left": 340,
+          "right": 416,
+          "top": 10,
+          "bottom": 54,
+          "width": 76,
+          "height": 44
+        },
+        "overflow": false,
+        "coarse": true
+      }
+    },
+    {
+      "name": "430px mark remains recognizable",
+      "passed": true,
+      "detail": {
+        "left": 14,
+        "right": 40,
+        "top": 19,
+        "bottom": 45,
+        "width": 26,
+        "height": 26
+      }
+    },
+    {
+      "name": "430px page has no horizontal overflow",
+      "passed": true
+    },
+    {
+      "name": "430px Account target >=44px",
+      "passed": true,
+      "detail": {
+        "left": 340,
+        "right": 416,
+        "top": 10,
+        "bottom": 54,
+        "width": 76,
+        "height": 44
+      }
+    },
+    {
+      "name": "430px Boards target >=44px",
+      "passed": true,
+      "detail": {
+        "left": 197.1875,
+        "right": 280,
+        "top": 10,
+        "bottom": 54,
+        "width": 82.8125,
+        "height": 44
+      }
+    },
+    {
+      "name": "430px Appearance target >=44px",
+      "passed": true,
+      "detail": {
+        "left": 288,
+        "right": 332,
+        "top": 10,
+        "bottom": 54,
+        "width": 44,
+        "height": 44
+      }
+    },
+    {
+      "name": "local HTTP 200",
+      "passed": true,
+      "detail": 200
+    },
+    {
+      "name": "700px brand/Boards don't collide",
+      "passed": true,
+      "detail": {
+        "brand": {
+          "left": 14,
+          "right": 459.1875,
+          "top": 16,
+          "bottom": 44,
+          "width": 445.1875,
+          "height": 28
+        },
+        "text": {
+          "left": 51,
+          "right": 150.46875,
+          "top": 16,
+          "bottom": 44,
+          "width": 99.46875,
+          "height": 28
+        },
+        "mark": {
+          "left": 14,
+          "right": 42,
+          "top": 16,
+          "bottom": 44,
+          "width": 28,
+          "height": 28
+        },
+        "boards": {
+          "left": 467.1875,
+          "right": 550,
+          "top": 10,
+          "bottom": 50,
+          "width": 82.8125,
+          "height": 40
+        },
+        "appearance": {
+          "left": 558,
+          "right": 602,
+          "top": 11,
+          "bottom": 49,
+          "width": 44,
+          "height": 38
+        },
+        "account": {
+          "left": 610,
+          "right": 686,
+          "top": 12,
+          "bottom": 48,
+          "width": 76,
+          "height": 36
+        },
+        "overflow": false,
+        "coarse": false
+      }
+    },
+    {
+      "name": "700px mark remains recognizable",
+      "passed": true,
+      "detail": {
+        "left": 14,
+        "right": 42,
+        "top": 16,
+        "bottom": 44,
+        "width": 28,
+        "height": 28
+      }
+    },
+    {
+      "name": "700px page has no horizontal overflow",
+      "passed": true
+    },
+    {
+      "name": "local HTTP 200",
+      "passed": true,
+      "detail": 200
+    },
+    {
+      "name": "960px brand/Boards don't collide",
+      "passed": true,
+      "detail": {
+        "brand": {
+          "left": 28,
+          "right": 164.46875,
+          "top": 17.5,
+          "bottom": 45.5,
+          "width": 136.46875,
+          "height": 28
+        },
+        "text": {
+          "left": 65,
+          "right": 164.46875,
+          "top": 17.5,
+          "bottom": 45.5,
+          "width": 99.46875,
+          "height": 28
+        },
+        "mark": {
+          "left": 28,
+          "right": 56,
+          "top": 17.5,
+          "bottom": 45.5,
+          "width": 28,
+          "height": 28
+        },
+        "boards": {
+          "left": 176.46875,
+          "right": 262.515625,
+          "top": 12.40625,
+          "bottom": 50.59375,
+          "width": 86.046875,
+          "height": 38.1875
+        },
+        "appearance": {
+          "left": 729.984375,
+          "right": 844,
+          "top": 12.5,
+          "bottom": 50.5,
+          "width": 114.015625,
+          "height": 38
+        },
+        "account": {
+          "left": 856,
+          "right": 932,
+          "top": 13.5,
+          "bottom": 49.5,
+          "width": 76,
+          "height": 36
+        },
+        "overflow": false,
+        "coarse": false
+      }
+    },
+    {
+      "name": "960px mark remains recognizable",
+      "passed": true,
+      "detail": {
+        "left": 28,
+        "right": 56,
+        "top": 17.5,
+        "bottom": 45.5,
+        "width": 28,
+        "height": 28
+      }
+    },
+    {
+      "name": "960px page has no horizontal overflow",
+      "passed": true
+    },
+    {
+      "name": "960px Appearance actions visible without scrolling",
+      "passed": true,
+      "detail": {
+        "form": {
+          "top": 90,
+          "bottom": 810
+        },
+        "save": {
+          "top": 748,
+          "bottom": 788
+        },
+        "close": {
+          "top": 112,
+          "bottom": 152
+        },
+        "viewport": 900
+      }
+    },
+    {
+      "name": "960px Appearance visible close",
+      "passed": true
+    },
+    {
+      "name": "local HTTP 200",
+      "passed": true,
+      "detail": 200
+    },
+    {
+      "name": "1280px brand/Boards don't collide",
+      "passed": true,
+      "detail": {
+        "brand": {
+          "left": 28,
+          "right": 164.46875,
+          "top": 17.5,
+          "bottom": 45.5,
+          "width": 136.46875,
+          "height": 28
+        },
+        "text": {
+          "left": 65,
+          "right": 164.46875,
+          "top": 17.5,
+          "bottom": 45.5,
+          "width": 99.46875,
+          "height": 28
+        },
+        "mark": {
+          "left": 28,
+          "right": 56,
+          "top": 17.5,
+          "bottom": 45.5,
+          "width": 28,
+          "height": 28
+        },
+        "boards": {
+          "left": 176.46875,
+          "right": 262.515625,
+          "top": 12.40625,
+          "bottom": 50.59375,
+          "width": 86.046875,
+          "height": 38.1875
+        },
+        "appearance": {
+          "left": 1049.984375,
+          "right": 1164,
+          "top": 12.5,
+          "bottom": 50.5,
+          "width": 114.015625,
+          "height": 38
+        },
+        "account": {
+          "left": 1176,
+          "right": 1252,
+          "top": 13.5,
+          "bottom": 49.5,
+          "width": 76,
+          "height": 36
+        },
+        "overflow": false,
+        "coarse": false
+      }
+    },
+    {
+      "name": "1280px mark remains recognizable",
+      "passed": true,
+      "detail": {
+        "left": 28,
+        "right": 56,
+        "top": 17.5,
+        "bottom": 45.5,
+        "width": 28,
+        "height": 28
+      }
+    },
+    {
+      "name": "1280px page has no horizontal overflow",
+      "passed": true
+    },
+    {
+      "name": "local HTTP 200",
+      "passed": true,
+      "detail": 200
+    },
+    {
+      "name": "1440px brand/Boards don't collide",
+      "passed": true,
+      "detail": {
+        "brand": {
+          "left": 28,
+          "right": 164.46875,
+          "top": 17.5,
+          "bottom": 45.5,
+          "width": 136.46875,
+          "height": 28
+        },
+        "text": {
+          "left": 65,
+          "right": 164.46875,
+          "top": 17.5,
+          "bottom": 45.5,
+          "width": 99.46875,
+          "height": 28
+        },
+        "mark": {
+          "left": 28,
+          "right": 56,
+          "top": 17.5,
+          "bottom": 45.5,
+          "width": 28,
+          "height": 28
+        },
+        "boards": {
+          "left": 176.46875,
+          "right": 262.515625,
+          "top": 12.40625,
+          "bottom": 50.59375,
+          "width": 86.046875,
+          "height": 38.1875
+        },
+        "appearance": {
+          "left": 1209.984375,
+          "right": 1324,
+          "top": 12.5,
+          "bottom": 50.5,
+          "width": 114.015625,
+          "height": 38
+        },
+        "account": {
+          "left": 1336,
+          "right": 1412,
+          "top": 13.5,
+          "bottom": 49.5,
+          "width": 76,
+          "height": 36
+        },
+        "overflow": false,
+        "coarse": false
+      }
+    },
+    {
+      "name": "1440px mark remains recognizable",
+      "passed": true,
+      "detail": {
+        "left": 28,
+        "right": 56,
+        "top": 17.5,
+        "bottom": 45.5,
+        "width": 28,
+        "height": 28
+      }
+    },
+    {
+      "name": "1440px page has no horizontal overflow",
+      "passed": true
+    },
+    {
+      "name": "1440px Appearance actions visible without scrolling",
+      "passed": true,
+      "detail": {
+        "form": {
+          "top": 90,
+          "bottom": 810
+        },
+        "save": {
+          "top": 748,
+          "bottom": 788
+        },
+        "close": {
+          "top": 112,
+          "bottom": 152
+        },
+        "viewport": 900
+      }
+    },
+    {
+      "name": "1440px Appearance visible close",
+      "passed": true
+    },
+    {
+      "name": "local HTTP 200",
+      "passed": true,
+      "detail": 200
+    },
+    {
+      "name": "1920px brand/Boards don't collide",
+      "passed": true,
+      "detail": {
+        "brand": {
+          "left": 28,
+          "right": 164.46875,
+          "top": 17.5,
+          "bottom": 45.5,
+          "width": 136.46875,
+          "height": 28
+        },
+        "text": {
+          "left": 65,
+          "right": 164.46875,
+          "top": 17.5,
+          "bottom": 45.5,
+          "width": 99.46875,
+          "height": 28
+        },
+        "mark": {
+          "left": 28,
+          "right": 56,
+          "top": 17.5,
+          "bottom": 45.5,
+          "width": 28,
+          "height": 28
+        },
+        "boards": {
+          "left": 176.46875,
+          "right": 262.515625,
+          "top": 12.40625,
+          "bottom": 50.59375,
+          "width": 86.046875,
+          "height": 38.1875
+        },
+        "appearance": {
+          "left": 1689.984375,
+          "right": 1804,
+          "top": 12.5,
+          "bottom": 50.5,
+          "width": 114.015625,
+          "height": 38
+        },
+        "account": {
+          "left": 1816,
+          "right": 1892,
+          "top": 13.5,
+          "bottom": 49.5,
+          "width": 76,
+          "height": 36
+        },
+        "overflow": false,
+        "coarse": false
+      }
+    },
+    {
+      "name": "1920px mark remains recognizable",
+      "passed": true,
+      "detail": {
+        "left": 28,
+        "right": 56,
+        "top": 17.5,
+        "bottom": 45.5,
+        "width": 28,
+        "height": 28
+      }
+    },
+    {
+      "name": "1920px page has no horizontal overflow",
+      "passed": true
+    },
+    {
+      "name": "local HTTP 200",
+      "passed": true,
+      "detail": 200
+    },
+    {
+      "name": "landscape Appearance close and Save stay within viewport",
+      "passed": true,
+      "detail": {
+        "close": {
+          "top": 35,
+          "bottom": 79
+        },
+        "save": {
+          "top": 317,
+          "bottom": 357
+        },
+        "bodyHeight": 200,
+        "viewportHeight": 390
+      }
+    },
+    {
+      "name": "local HTTP 200",
+      "passed": true,
+      "detail": 200
+    },
+    {
+      "name": "legacy raw sentinel remains byte-identical",
+      "passed": true
+    },
+    {
+      "name": "Filters controls its panel",
+      "passed": true
+    },
+    {
+      "name": "central sign-in entry exists",
+      "passed": true
+    },
+    {
+      "name": "central sign-in opens Account dialog",
+      "passed": true
+    },
+    {
+      "name": "central sign-in returns focus to opener",
+      "passed": true
+    },
+    {
+      "name": "light/classic-flow Appearance text contrast",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "light/ocean-slate Appearance text contrast",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "light/lagoon Appearance text contrast",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "light/sage-studio Appearance text contrast",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "light/warm-sand Appearance text contrast",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "light/lavender-mist Appearance text contrast",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "light/dusk-plum Appearance text contrast",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "light/graphite Appearance text contrast",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "dark/classic-flow Appearance text contrast",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "dark/ocean-slate Appearance text contrast",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "dark/lagoon Appearance text contrast",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "dark/sage-studio Appearance text contrast",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "dark/warm-sand Appearance text contrast",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "dark/lavender-mist Appearance text contrast",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "dark/dusk-plum Appearance text contrast",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "dark/graphite Appearance text contrast",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "dark board text contrast",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "dark card-details text contrast",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "forced-colors Appearance visible close",
+      "passed": true
+    }
+  ],
+  "violations": [
+    {
+      "mode": "light",
+      "canvas": "classic-flow",
+      "findings": []
+    },
+    {
+      "mode": "light",
+      "canvas": "ocean-slate",
+      "findings": []
+    },
+    {
+      "mode": "light",
+      "canvas": "lagoon",
+      "findings": []
+    },
+    {
+      "mode": "light",
+      "canvas": "sage-studio",
+      "findings": []
+    },
+    {
+      "mode": "light",
+      "canvas": "warm-sand",
+      "findings": []
+    },
+    {
+      "mode": "light",
+      "canvas": "lavender-mist",
+      "findings": []
+    },
+    {
+      "mode": "light",
+      "canvas": "dusk-plum",
+      "findings": []
+    },
+    {
+      "mode": "light",
+      "canvas": "graphite",
+      "findings": []
+    },
+    {
+      "mode": "dark",
+      "canvas": "classic-flow",
+      "findings": []
+    },
+    {
+      "mode": "dark",
+      "canvas": "ocean-slate",
+      "findings": []
+    },
+    {
+      "mode": "dark",
+      "canvas": "lagoon",
+      "findings": []
+    },
+    {
+      "mode": "dark",
+      "canvas": "sage-studio",
+      "findings": []
+    },
+    {
+      "mode": "dark",
+      "canvas": "warm-sand",
+      "findings": []
+    },
+    {
+      "mode": "dark",
+      "canvas": "lavender-mist",
+      "findings": []
+    },
+    {
+      "mode": "dark",
+      "canvas": "dusk-plum",
+      "findings": []
+    },
+    {
+      "mode": "dark",
+      "canvas": "graphite",
+      "findings": []
+    }
+  ],
+  "errors": []
+}

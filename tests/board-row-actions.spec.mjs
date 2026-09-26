@@ -118,6 +118,7 @@ test('row actions stay bounded across desktop, short, narrow, theme, media, and 
     }
   }
   await page.setViewportSize({width:640,height:720});
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
   const zoomRow=manager.locator('#archived-board-list .workspace-entry').filter({hasText:'Synthetic archived board'}),zoomGroup=zoomRow.locator('.board-archived-actions'),zoomRestore=zoomGroup.getByRole('button',{name:'Restore',exact:true}),zoomDelete=zoomGroup.getByRole('button',{name:'Delete',exact:true}),[zoomRowBox,zoomGroupBox,zoomRestoreBox,zoomDeleteBox]=await Promise.all([box(zoomRow),box(zoomGroup),box(zoomRestore),box(zoomDelete)]);
   expect(Math.abs(zoomRestoreBox.width-zoomDeleteBox.width)).toBeLessThanOrEqual(1);expect(zoomGroupBox.right).toBeLessThanOrEqual(zoomRowBox.right+1);expect(zoomGroupBox.bottom).toBeLessThanOrEqual(zoomRowBox.bottom+1);await page.evaluate(()=>document.documentElement.removeAttribute('data-theme'));await page.emulateMedia({reducedMotion:'no-preference',forcedColors:'none'});expect(await localSentinels(page)).toEqual(before);expect(samples).toHaveLength(14);
 });
