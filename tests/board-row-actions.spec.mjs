@@ -135,6 +135,7 @@ test('row actions stay bounded across desktop, short, narrow, theme, media, and 
     await page.evaluate(value=>{if(value==='light')delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=value;},theme);
     for(const viewport of viewports){
       await page.setViewportSize({width:viewport.width,height:viewport.height});
+      await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
       const row=manager.locator('#archived-board-list .workspace-entry').filter({hasText:'Synthetic archived board'}),group=row.locator('.board-archived-actions'),restore=group.getByRole('button',{name:'Restore',exact:true}),remove=group.getByRole('button',{name:'Delete',exact:true});
       const [rowBox,cardBox,groupBox,restoreBox,removeBox,activeRowBox,detailsBox]=await Promise.all([box(row),box(row.locator('.cloud-workspace-card')),box(group),box(restore),box(remove),box(active),box(details)]);
       const documentBox=await page.evaluate(()=>({width:document.documentElement.clientWidth,scrollWidth:document.documentElement.scrollWidth}));

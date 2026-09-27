@@ -638,20 +638,19 @@ test('card capture is IME-safe and returns focus for continued entry', async ({p
   await expect(firstList.getByRole('button', {name: /add a card/i})).toBeFocused();
 });
 
-test('quick add chooses a destination and can open existing card details', async ({page}) => {
+test('per-list card composer remains accessible without a top Add card shortcut', async ({page}) => {
   await openReady(page);
-  await page.locator('#quick-add-card').click();
-  const dialog = page.locator('#quick-add-dialog');
-  await expect(dialog).toBeVisible();
-  await dialog.locator('#quick-add-title').fill('Quick capture card');
-  const destination = await dialog.locator('#quick-add-list').evaluate(select => select.options[1]?.value);
-  await dialog.locator('#quick-add-list').selectOption(destination);
-  await dialog.locator('#quick-add-open').check();
-  await dialog.getByRole('button', {name:'Add card', exact:true}).click();
-  await expect(page.locator('#card-dialog')).toBeVisible();
-  await expect(page.locator('#card-title-input')).toHaveValue('Quick capture card');
-  await page.keyboard.press('Escape');
-  await expect(page.locator(`[data-list-id="${destination}"] .card-open`).filter({hasText:'Quick capture card'})).toBeVisible();
+  await page.evaluate(()=>FlowboardApp.openCloudWorkspace(FlowboardState.makeWorkspace(),{id:'demo-list-capture',name:'Synthetic board',role:'owner'}));
+  await expect(page.locator('#quick-add-card')).toHaveCount(0);
+  const destination=page.locator('#board .list').nth(1);
+  await destination.locator('.add-card').click();
+  const composer=destination.locator('.composer textarea');
+  await expect(composer).toBeVisible();
+  await expect(composer).toBeFocused();
+  await composer.fill('Quick capture card');
+  await expect(composer).toHaveValue('Quick capture card');
+  await destination.locator('.composer-cancel').click();
+  await expect(destination.locator('.add-card')).toBeVisible();
 });
 
 test('slash shortcut focuses board search outside text controls', async ({page}) => {

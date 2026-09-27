@@ -13,16 +13,18 @@ test('board header, card metadata, compact columns and scroll cue stay usable',a
   await openReady(page);await syntheticBoard(page);
   for(const width of [1280,1440,1920,960,390,320]){
     await page.setViewportSize({width,height:width===960?720:844});
-    const heading=await rect(page.locator('.board-heading')),create=await rect(page.locator('#quick-add-card')),actions=await rect(page.locator('.board-actions')),search=await rect(page.locator('.board-search')),board=await rect(page.locator('#board'));
-    expect(heading.bottom).toBeLessThanOrEqual(board.top);expect(create.bottom).toBeLessThanOrEqual(board.top);expect(actions.bottom).toBeLessThanOrEqual(board.top);expect(search.bottom).toBeLessThanOrEqual(board.top);
-    if(width>700){expect(heading.right).toBeLessThanOrEqual(create.left+1);expect(create.right).toBeLessThanOrEqual(actions.left+1);}
+    const heading=await rect(page.locator('.board-heading')),actions=await rect(page.locator('.board-actions')),search=await rect(page.locator('.board-search')),board=await rect(page.locator('#board')),toolbar=await rect(page.locator('.board-header')),top=await rect(page.locator('.topbar'));
+    expect(top.bottom).toBeLessThanOrEqual(toolbar.top+1);expect(toolbar.bottom).toBeLessThanOrEqual(board.top);expect(toolbar.height).toBeLessThanOrEqual(54);
+    expect(heading.top).toBeGreaterThanOrEqual(toolbar.top);expect(actions.top).toBeGreaterThanOrEqual(toolbar.top);expect(search.top).toBeGreaterThanOrEqual(toolbar.top);
+    expect(Math.abs(heading.top-search.top)).toBeLessThan(15);expect(Math.abs(actions.top-search.top)).toBeLessThan(15);
+    await expect(page.locator('#quick-add-card')).toHaveCount(0);
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   }
   await page.setViewportSize({width:960,height:720});
   const short=await page.locator('.list').first().evaluate(node=>({height:node.getBoundingClientRect().height,boardHeight:document.querySelector('#board').getBoundingClientRect().height,addTop:node.querySelector('.add-card').getBoundingClientRect().top,lastCardBottom:node.querySelector('.card:last-of-type').getBoundingClientRect().bottom}));
   expect(short.height).toBeLessThan(short.boardHeight*.8);expect(short.addTop-short.lastCardBottom).toBeLessThan(90);
   const first=page.locator('.card').first();await expect(first.locator('.card-title')).toBeVisible();const title=await rect(first.locator('.card-title')),labels=await rect(first.locator('.labels')),meta=await rect(first.locator('.card-meta'));expect(title.bottom).toBeLessThanOrEqual(labels.top+1);expect(labels.bottom).toBeLessThanOrEqual(meta.top+1);await expect(first.locator('.card-meta')).toContainText('Due:');
-  await expect(page.locator('#board-scroll-cue')).toBeVisible();await page.locator('#board').evaluate(node=>node.scrollLeft=node.scrollWidth);await expect(page.locator('#board-scroll-cue')).toBeHidden();
+  await page.setViewportSize({width:700,height:720});await expect(page.locator('#board-scroll-cue')).toBeVisible();await page.locator('#board').evaluate(node=>node.scrollLeft=node.scrollWidth);await expect(page.locator('#board-scroll-cue')).toBeHidden();
   await page.evaluate(()=>{const card=document.querySelector('.list .card'),destination=document.querySelectorAll('.list')[1].querySelector('.cards'),transfer=new DataTransfer();card.dispatchEvent(new DragEvent('dragstart',{bubbles:true,dataTransfer:transfer}));destination.dispatchEvent(new DragEvent('dragover',{bubbles:true,cancelable:true,dataTransfer:transfer}));});
   await expect(page.locator('.list').nth(1)).toHaveClass(/drop-target/);await page.locator('.list .card').first().evaluate(node=>node.dispatchEvent(new DragEvent('dragend',{bubbles:true})));
   await syntheticBoard(page,{dense:true});const long=page.locator('.list').first();await expect.poll(()=>long.locator('.cards').evaluate(node=>node.scrollHeight>node.clientHeight)).toBe(true);expect((await rect(long)).bottom).toBeLessThanOrEqual((await rect(page.locator('#board'))).bottom+1);

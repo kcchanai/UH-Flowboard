@@ -23,6 +23,7 @@ const requiredCurrentSpecs=[
   'tests/board-row-actions.spec.mjs',
   'tests/list-view-responsive.spec.mjs',
   'tests/visual-ux-polish.spec.mjs',
+  'tests/two-row-toolbar.spec.mjs',
   'tests/card-details-edges-comments.spec.mjs',
   'tests/board-first-copy.spec.mjs',
   'tests/single-workspace-board-ux.spec.mjs',

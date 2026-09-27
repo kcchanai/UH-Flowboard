@@ -113,10 +113,9 @@ test('all selected Appearance palettes and dark card actions meet text contrast'
     const rect=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width}};
     return {search:rect('.board-search'),summary:rect('#search-count'),list:getComputedStyle(document.querySelector('.list')).backgroundColor,card:getComputedStyle(document.querySelector('.card')).backgroundColor,passiveToast:document.querySelector('#toast').classList.contains('passive'),viewport:innerWidth};
   });
-  expect(narrow.summary.top).toBeGreaterThanOrEqual(narrow.search.bottom-1);
-  expect(narrow.summary.left).toBeGreaterThanOrEqual(narrow.search.left-1);
-  expect(narrow.summary.right).toBeLessThanOrEqual(narrow.viewport+1);
-  expect(narrow.search.width).toBeGreaterThan(300);
+  expect(Math.abs(narrow.summary.top-narrow.search.top)).toBeLessThan(15);
+  expect(narrow.summary.left).toBeGreaterThan(narrow.search.right);
+  expect(narrow.search.width).toBeGreaterThanOrEqual(75);
   expect(narrow.list).not.toBe(narrow.card);
   expect(narrow.passiveToast).toBe(true);
   await page.locator('.add-card').click();
