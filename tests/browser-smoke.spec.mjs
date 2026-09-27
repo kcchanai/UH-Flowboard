@@ -740,7 +740,8 @@ test('whole-list drops move precisely and self-drop does not persist', async ({p
 test('filtered cards use explicit Move instead of ambiguous drag reorder', async ({page}) => {
   await openReady(page);
   await page.locator('#search').fill('Write homepage copy');
-  await expect(page.locator('#search-count')).toContainText('use Move to reposition filtered cards');
+  await expect(page.locator('#search-count')).toContainText('cards shown');
+  await expect(page.locator('#search-count')).not.toContainText('use Move');
   const card = page.locator('.card').first();
   await expect(card).toHaveAttribute('draggable', 'false');
   const result = await card.evaluate(element => {
@@ -789,30 +790,33 @@ test('named labels, members, and completion filters combine and clear', async ({
   await page.locator('#completion-filter').selectOption('complete');
   await expect(page.locator('.card-open')).toHaveCount(1);
   await expect(page.locator('.card-open').first()).toContainText('Launch task');
-  await expect(page.locator('#filter-chips')).toContainText('Launch');
-  await expect(page.locator('#filter-chips')).toContainText('Assigned');
-  await expect(page.locator('#filter-chips')).toContainText('Complete');
-  await page.getByRole('button', {name:'Clear Launch filter'}).click();
-  await expect(page.locator('#filter-chips')).not.toContainText('Launch');
+  await expect(page.locator('#filter-toggle')).toHaveAttribute('data-active','true');
+  await expect(page.locator('#filter-toggle')).toHaveAttribute('aria-label','Filters active');
+  await label.selectOption('all');
+  await expect(page.locator('#label-filter')).toHaveValue('all');
+  await expect(page.locator('#member-filter')).toHaveValue('assigned');
+  await expect(page.locator('#completion-filter')).toHaveValue('complete');
   await page.locator('#clear-filters').click();
   await expect(page.locator('.card-open')).toHaveCount(3);
-  await expect(page.locator('#filter-chips')).toBeEmpty();
+  await expect(page.locator('#filter-toggle')).toHaveAttribute('data-active','false');
 });
 
-test('clearing all filters resets every control and chip', async ({page}) => {
+test('clearing all filters resets every control and active indicator', async ({page}) => {
   await openReady(page);
   await page.getByRole('button', {name:'Filters'}).click();
   await page.locator('#due-filter').selectOption('today');
   await page.locator('#member-filter').selectOption('assigned');
   await page.locator('#completion-filter').selectOption('complete');
   await expect(page.locator('#due-filter')).toHaveValue('today');
-  await expect(page.locator('#filter-chips')).toContainText('Due today');
+  await expect(page.locator('#filter-toggle')).toHaveAttribute('data-active','true');
+  await expect(page.locator('[data-quick-filter="today"]')).toHaveAttribute('aria-pressed','true');
   await page.locator('#clear-filters').click();
   await expect(page.locator('#due-filter')).toHaveValue('all');
   await expect(page.locator('#label-filter')).toHaveValue('all');
   await expect(page.locator('#member-filter')).toHaveValue('all');
   await expect(page.locator('#completion-filter')).toHaveValue('all');
-  await expect(page.locator('#filter-chips')).toBeEmpty();
+  await expect(page.locator('#filter-toggle')).toHaveAttribute('data-active','false');
+  await expect(page.locator('[data-quick-filter="today"]')).toHaveAttribute('aria-pressed','false');
   await expect(page.locator('.card-open')).toHaveCount(10);
 });
 
