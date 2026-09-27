@@ -121,6 +121,25 @@ test('quick filters are self-clearing and compact without duplicate chips or lon
   await expect(page.locator('.card-open')).toHaveCount(1);
 });
 
+test('per-list composer reserves Enter for submission, Shift+Enter for a newline, and ignores IME',async({page})=>{
+  await openSyntheticBoard(page);
+  const list=page.locator('#board .list').first();
+  await list.locator('.add-card').click();
+  const title=list.getByLabel('New card title');
+  await title.press('Enter');
+  await expect(title).toBeVisible();
+  await expect(title).toHaveValue('');
+  await title.fill('First line');
+  await title.press('Shift+Enter');
+  await title.type('Second line');
+  await expect(title).toHaveValue('First line\nSecond line');
+  await title.fill('Composed card');
+  await title.evaluate(element=>element.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true,isComposing:true})));
+  await expect(title).toHaveValue('Composed card');
+  const handled=await title.evaluate(element=>{const event=new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true});element.dispatchEvent(event);return event.defaultPrevented;});
+  expect(handled).toBe(true);
+});
+
 test('signed-out and viewer controls retain their access boundaries',async({page})=>{
   await page.setViewportSize({width:320,height:720});await page.goto(basePath);
   await page.waitForFunction(()=>globalThis.FlowboardApp&&globalThis.FlowboardState&&['unavailable','signed-out','cloud','cloud-preview','ready-empty'].includes(FlowboardApp.getMode().kind));
