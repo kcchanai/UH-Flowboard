@@ -53,6 +53,31 @@ const localSentinels=page=>page.evaluate(()=>({current:localStorage.getItem('boa
 const layoutEdgeTolerance=8;
 const audit=async page=>page.evaluate(async()=>{const result=await axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21aa']}});return result.violations.map(item=>({id:item.id,nodes:item.nodes.length}));});
 
+test('board status and row actions have consistent separation at desktop and narrow widths',async({page})=>{
+  await installFixture(page);
+  for(const viewport of [{width:1280,height:720},{width:390,height:844}]){
+    await page.setViewportSize(viewport);
+    const manager=await openBoards(page);
+    await expect(manager.locator('#cloud-workspaces-status')).toHaveText('Metadata synchronized.');
+    const intro=await box(manager.locator('#cloud-workspaces-safety'));
+    const status=await box(manager.locator('#cloud-workspaces-status'));
+    const search=await box(manager.locator('.workspace-search-field'));
+    expect(status.top-intro.bottom).toBeGreaterThanOrEqual(12);
+    expect(search.top-status.bottom).toBeGreaterThanOrEqual(12);
+    const active=manager.locator('#workspace-board-list .workspace-entry').first();
+    await active.locator('summary').click();
+    const archive=await box(active.getByRole('button',{name:'Archive',exact:true}));
+    const remove=await box(active.getByRole('button',{name:'Delete',exact:true}));
+    if(Math.abs(archive.top-remove.top)<2)expect(remove.left-archive.right).toBeGreaterThanOrEqual(10);
+    else expect(remove.top-archive.bottom).toBeGreaterThanOrEqual(10);
+    const archived=manager.locator('#archived-board-list .workspace-entry').first();
+    const restore=await box(archived.getByRole('button',{name:'Restore',exact:true}));
+    const archivedDelete=await box(archived.getByRole('button',{name:'Delete',exact:true}));
+    expect(archivedDelete.top-restore.bottom).toBeGreaterThanOrEqual(10);
+    await manager.getByRole('button',{name:'Close boards'}).click();
+  }
+});
+
 test('board rows use concise Delete entry points while permanent confirmation stays explicit',async({page})=>{
   await installFixture(page);const manager=await openBoards(page);
   const active=manager.locator('#workspace-board-list .workspace-entry').filter({hasText:'Synthetic active board'}),archived=manager.locator('#archived-board-list .workspace-entry').filter({hasText:'Synthetic archived board'});
