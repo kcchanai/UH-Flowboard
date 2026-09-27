@@ -626,14 +626,14 @@ test('card capture is IME-safe and returns focus for continued entry', async ({p
   await firstList.getByRole('button', {name: /add a card/i}).click();
   const input = firstList.getByLabel('New card title');
   await input.fill('Line one');
-  await input.press('Enter');
+  await input.press('Shift+Enter');
   await input.type('Line two');
   await expect(input).toHaveValue('Line one\nLine two');
   const before = await page.locator('.card-open').count();
   await input.fill('Composed card');
   await input.evaluate(element => element.dispatchEvent(new KeyboardEvent('keydown', {key:'Enter', bubbles:true, cancelable:true, isComposing:true})));
   await expect(page.locator('.card-open')).toHaveCount(before);
-  await input.press('Control+Enter');
+  await input.press('Enter');
   await expect(page.locator('.card-open').filter({hasText:'Composed card'})).toBeVisible();
   await expect(firstList.getByRole('button', {name: /add a card/i})).toBeFocused();
 });

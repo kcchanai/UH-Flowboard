@@ -1,9 +1,54 @@
 import {test,expect} from '@playwright/test';
 import {initializeTestEnvironment} from '@firebase/rules-unit-testing';
-import {deleteDoc,doc,getDoc,Timestamp,writeBatch} from 'firebase/firestore';
+import {collection,deleteDoc,doc,getDoc,getDocs,Timestamp,writeBatch} from 'firebase/firestore';
 import {previewUrl} from '../../scripts/repository-path.mjs';
 const baseURL=(process.env.PLAYWRIGHT_EMULATOR_BASE_URL||previewUrl(4174)).replace(/\/$/,'');
 const adminEnv=()=>{const[host,port]=process.env.FIRESTORE_EMULATOR_HOST.split(':');return initializeTestEnvironment({projectId:'demo-flowboard-browser',firestore:{host,port:Number(port)}});};
+
+test('Enter in a per-list composer persists one card through the real adapter and Rules',async({page})=>{
+  test.setTimeout(60000);
+  await page.goto(`${baseURL}/tests/emulator/index.html?role=owner`);
+  await page.waitForFunction(()=>globalThis.__flowboardEmulatorTest?.ready===true);
+  const owner=await page.evaluate(()=>globalThis.__flowboardEmulatorTest.signInRole('owner'));
+  const admin=await adminEnv(),workspaceId='composer-enter-ui',boardId='composer-board',listId='composer-list';
+  try{
+    await admin.withSecurityRulesDisabled(async context=>{
+      const db=context.firestore(),now=Timestamp.now(),root=doc(db,'workspaces',workspaceId),board=doc(root,'boards',boardId),batch=writeBatch(db);
+      batch.set(root,{name:'Composer workspace',ownerUid:owner.uid,schemaVersion:5,status:'ready',personal:false,lifecycleRevision:0,activeBoardId:boardId,migration:{version:1,state:'verified',counts:{boards:1,lists:1,cards:0}},updatedAt:now});
+      batch.set(doc(root,'members',owner.uid),{uid:owner.uid,role:'owner',emailLower:'owner@flowboard.test'});
+      batch.set(board,{id:boardId,title:'Composer board',rank:0,archived:false,lifecycleState:'active',revision:0,clientMutationId:'composer-board-seed-operation',updatedAt:now});
+      batch.set(doc(board,'lists',listId),{id:listId,title:'Composer queue',rank:0,lifecycleState:'active',revision:0,clientMutationId:'composer-list-seed-operation',updatedAt:now});
+      await batch.commit();
+    });
+    await page.evaluate(async({workspaceId,boardId})=>{
+      const workspace=await FlowboardRuntime.cloudAdapter.fetchWorkspace(workspaceId);
+      FlowboardApp.openCloudWorkspace(workspace,{id:workspaceId,name:'Composer workspace',role:'owner',status:'ready',migration:{state:'verified'}});
+      FlowboardApp.selectBoard(boardId);
+    },{workspaceId,boardId});
+    const list=page.locator('#board .list').first();
+    await expect(list).toBeVisible();
+    await list.locator('.add-card').click();
+    const title=list.getByLabel('New card title');
+    const cards=async()=>{let titles;await admin.withSecurityRulesDisabled(async context=>{const snapshot=await getDocs(collection(context.firestore(),'workspaces',workspaceId,'boards',boardId,'cards'));titles=snapshot.docs.map(item=>item.data().title).sort();});return titles;};
+    for(let attempt=0;attempt<3;attempt++){
+      if(!await title.isVisible())await list.locator('.add-card').click();
+      try{
+        await title.fill('Emulator composed card',{timeout:3000});
+        await expect(title).toHaveValue('Emulator composed card',{timeout:1500});
+        await title.press('Enter',{timeout:3000});
+        await expect.poll(cards,{timeout:2500}).toEqual(['Emulator composed card']);
+        break;
+      }catch(error){if(attempt===2||await cards().then(titles=>titles.length>0))throw error;}
+    }
+    await expect(list.locator('.card-open').filter({hasText:'Emulator composed card'})).toHaveCount(1);
+    await expect.poll(cards).toEqual(['Emulator composed card']);
+    await list.locator('.add-card').click();
+    await list.getByLabel('New card title').fill('Button composed card');
+    await list.locator('[data-action="save-card"]').click();
+    await expect(list.locator('.card-open').filter({hasText:'Button composed card'})).toHaveCount(1);
+    await expect.poll(cards).toEqual(['Button composed card','Emulator composed card']);
+  }finally{await admin.cleanup();}
+});
 
 test('My workspace archives, restores, and permanently deletes a board with verified descendants',async({page})=>{
   test.setTimeout(60000);await page.goto(`${baseURL}/tests/emulator/index.html?personal=1`);await page.waitForFunction(()=>globalThis.__flowboardEmulatorTest?.ready===true);const owner=await page.evaluate(()=>globalThis.__flowboardEmulatorTest.signInRole('owner')),admin=await adminEnv(),workspaceId='board-lifecycle-ui';
