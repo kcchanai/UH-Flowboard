@@ -74,8 +74,39 @@ test('Archived cards opens from List view without a menu',async({page})=>{
 
 test('Archived cards stays scoped to the current board and is read-only for viewers',async({page})=>{
   await openReady(page);const workspace=await page.evaluate(()=>{const value=FlowboardState.makeWorkspace(),card=FlowboardState.makeCard('Archived synthetic card');card.archived=true;card.archivedAt=new Date().toISOString();value.boards[0].lists[0].cards.push(card);return value;});
-  await page.evaluate(value=>FlowboardApp.openCloudWorkspace(value,{id:'archive-scope-synthetic',name:'Synthetic board',role:'owner'}),workspace);await page.locator('#search').fill('not the archived title');await page.locator('#archived-cards-button').click();let archive=page.getByRole('dialog',{name:'Archived cards'});await expect(archive).toContainText('Archived synthetic card');await expect(archive.getByRole('button',{name:'Restore'})).toBeVisible();await expect(archive.getByRole('button',{name:'Delete permanently'})).toBeVisible();await page.locator('#close-archive-dialog').click();await expect(archive).toBeHidden();
-  await page.evaluate(value=>FlowboardApp.openCloudPreview(value,{id:'archive-scope-synthetic',name:'Synthetic board',role:'viewer'}),workspace);await page.locator('#archived-cards-button').click();archive=page.getByRole('dialog',{name:'Archived cards'});await expect(archive).toContainText('Archived synthetic card');await expect(archive.getByRole('button',{name:'Restore'})).toBeHidden();await expect(archive.getByRole('button',{name:'Delete permanently'})).toBeHidden();await page.keyboard.press('Escape');await expect(archive).toBeHidden();
+  await page.evaluate(value=>FlowboardApp.openCloudWorkspace(value,{id:'archive-scope-synthetic',name:'Synthetic board',role:'owner'}),workspace);await page.locator('#search').fill('not the archived title');await page.locator('#archived-cards-button').click();let archive=page.getByRole('dialog',{name:'Archived cards'});await expect(archive).toContainText('Archived synthetic card');await expect(archive.getByRole('button',{name:'Restore'})).toBeVisible();await expect(archive.getByRole('button',{name:'Delete',exact:true})).toBeVisible();await expect(archive.getByRole('button',{name:'Delete permanently',exact:true})).toHaveCount(0);await page.locator('#close-archive-dialog').click();await expect(archive).toBeHidden();
+  await page.evaluate(value=>FlowboardApp.openCloudPreview(value,{id:'archive-scope-synthetic',name:'Synthetic board',role:'viewer'}),workspace);await page.locator('#archived-cards-button').click();archive=page.getByRole('dialog',{name:'Archived cards'});await expect(archive).toContainText('Archived synthetic card');await expect(archive.getByRole('button',{name:'Restore'})).toBeHidden();await expect(archive.getByRole('button',{name:'Delete',exact:true})).toBeHidden();await page.keyboard.press('Escape');await expect(archive).toBeHidden();
+});
+
+test('Archived card actions have a consistent gap and concise Delete label for mixed card lengths',async({page})=>{
+  await openReady(page);
+  const workspace=await page.evaluate(()=>{
+    const value=FlowboardState.makeWorkspace();
+    for(const title of ['Short card','A longer synthetic archived card title']){
+      const card=FlowboardState.makeCard(title);card.archived=true;card.archivedAt=new Date().toISOString();value.boards[0].lists[0].cards.push(card);
+    }
+    return value;
+  });
+  await page.evaluate(value=>FlowboardApp.openCloudWorkspace(value,{id:'synthetic-archive-layout',name:'Synthetic board',role:'owner'}),workspace);
+  for(const viewport of [{width:1280,height:720},{width:390,height:844},{width:320,height:720}]){
+    await page.setViewportSize(viewport);
+    await page.locator('#archived-cards-button').click();
+    const archive=page.getByRole('dialog',{name:'Archived cards'});
+    const rows=archive.locator('.archive-item');await expect(rows).toHaveCount(2);
+    let restoreLeft=[];
+    for(const row of await rows.all()){
+      const restore=row.getByRole('button',{name:'Restore',exact:true});
+      const remove=row.getByRole('button',{name:'Delete',exact:true});
+      await expect(restore).toBeVisible();await expect(remove).toBeVisible();
+      const restoreBox=await restore.boundingBox(),removeBox=await remove.boundingBox(),rowBox=await row.boundingBox();
+      expect(removeBox.x-(restoreBox.x+restoreBox.width)).toBeGreaterThanOrEqual(10);
+      expect(removeBox.x+removeBox.width).toBeLessThanOrEqual(rowBox.x+rowBox.width);
+      restoreLeft.push(restoreBox.x);
+    }
+    expect(Math.abs(restoreLeft[0]-restoreLeft[1])).toBeLessThanOrEqual(1);
+    await expect(archive.getByRole('button',{name:'Delete permanently',exact:true})).toHaveCount(0);
+    await archive.getByRole('button',{name:'Close archived cards'}).click();
+  }
 });
 
 test('Archived cards and its dialog remain bounded across responsive widths',async({page})=>{
