@@ -6,9 +6,9 @@ async function openSyntheticBoard(page,role='owner') {
   await page.waitForFunction(()=>globalThis.FlowboardApp&&globalThis.FlowboardState&&['unavailable','signed-out','cloud','cloud-preview','ready-empty'].includes(FlowboardApp.getMode().kind));
   await page.evaluate(role=>{
     const w=FlowboardState.makeWorkspace(),b=w.boards[0];
-    b.title='Testing';b.lists=[FlowboardState.makeList('New list',[FlowboardState.makeCard('Synthetic task')]),FlowboardState.makeList('New list 2',[])];
+    b.title='Fixture board';b.lists=[FlowboardState.makeList('Fixture queue',[FlowboardState.makeCard('Synthetic task')]),FlowboardState.makeList('Fixture next',[])];
     w.activeBoardId=b.id;
-    const scope={id:'demo-two-row',name:'Testing',role};
+    const scope={id:'demo-two-row',name:'Fixture workspace',role};
     if(role==='viewer')FlowboardApp.openCloudPreview(w,scope);
     else FlowboardApp.openCloudWorkspace(w,scope);
   },role);
@@ -68,6 +68,57 @@ test('narrow toolbar scrolls to real actions; popup, search, List view and archi
   await page.locator('#archived-cards-button').click();await expect(page.locator('#archive-dialog')).toBeVisible();
   await page.locator('#close-archive-dialog').click();await expect(page.locator('#archive-dialog')).toBeHidden();
   await page.locator('#view-toggle').click();await expect(page.locator('.add-card').first()).toBeVisible();
+});
+
+test('quick filters are self-clearing and compact without duplicate chips or long helper copy',async({page})=>{
+  await openSyntheticBoard(page);
+  await page.setViewportSize({width:1440,height:900});
+  const overdue=page.locator('[data-quick-filter="overdue"]'),filters=page.locator('#filter-toggle');
+  await expect(filters).toHaveAttribute('data-active','false');
+  await overdue.click();
+  await expect(overdue).toHaveAttribute('aria-pressed','true');
+  await expect(filters).toHaveAttribute('aria-label','Filters active');
+  await expect(page.locator('#filter-chips')).toHaveCount(0);
+  await expect(page.locator('#search-count')).toHaveText('0 of 1 cards shown · 0 overdue · 0 due today · 0 complete');
+  await expect(page.locator('#topbar-summary')).toHaveText('0 of 1 cards shown · 0 overdue · 0 due today · 0 complete');
+  await expect(page.locator('#topbar-summary')).toBeVisible();
+  await expect(page.locator('#search-count')).toBeHidden();
+  const activeBorder=await overdue.evaluate(node=>getComputedStyle(node).borderTopColor);
+  await overdue.click();
+  await expect(overdue).toHaveAttribute('aria-pressed','false');
+  expect(await overdue.evaluate(node=>getComputedStyle(node).borderTopColor)).not.toBe(activeBorder);
+  await expect(filters).toHaveAttribute('data-active','false');
+  await overdue.click();
+  for(const width of [1280,960,390,320]){
+    await page.setViewportSize({width,height:720});
+    await expect(filters).toHaveAttribute('data-active','true');
+    const geometry=await page.evaluate(()=>({top:document.querySelector('.topbar').getBoundingClientRect().bottom,toolbar:document.querySelector('.board-header').getBoundingClientRect(),overflow:document.documentElement.scrollWidth>innerWidth}));
+    expect(geometry.overflow).toBe(false);
+    expect(geometry.toolbar.top).toBeGreaterThanOrEqual(geometry.top);
+    expect(geometry.toolbar.height).toBeLessThanOrEqual(54);
+    if(width>1100){
+      const top=await page.locator('#topbar-summary').evaluate(node=>{const r=node.getBoundingClientRect(),boards=document.querySelector('#boards-button').getBoundingClientRect(),appearance=document.querySelector('#theme-toggle').getBoundingClientRect();return{left:r.left,right:r.right,boardsRight:boards.right,appearanceLeft:appearance.left,fullyVisible:node.scrollWidth<=node.clientWidth};});
+      expect(top.fullyVisible).toBe(true);
+      expect(top.left).toBeGreaterThanOrEqual(top.boardsRight);
+      expect(top.right).toBeLessThanOrEqual(top.appearanceLeft);
+    } else {
+      await expect(page.locator('#topbar-summary')).toBeHidden();
+      await expect(page.locator('#search-count')).toBeVisible();
+    }
+    if(width<=960)await expect(page.locator('#quick-filters')).toBeHidden();
+  }
+  await filters.click();
+  await expect(page.locator('#due-filter')).toHaveValue('overdue');
+  await page.locator('#clear-filters').click();
+  await expect(filters).toHaveAttribute('aria-label','Filters');
+  await expect(page.locator('#due-filter')).toHaveValue('all');
+  await expect(page.locator('.card-open')).toHaveCount(1);
+  await page.locator('#completion-filter').selectOption('complete');
+  await expect(filters).toHaveAttribute('data-active','true');
+  await expect(page.locator('.card-open')).toHaveCount(0);
+  await page.locator('#completion-filter').selectOption('all');
+  await expect(filters).toHaveAttribute('data-active','false');
+  await expect(page.locator('.card-open')).toHaveCount(1);
 });
 
 test('signed-out and viewer controls retain their access boundaries',async({page})=>{
