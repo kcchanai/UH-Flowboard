@@ -58,12 +58,11 @@ test('board status and row actions have consistent separation at desktop and nar
   for(const viewport of [{width:1280,height:720},{width:390,height:844}]){
     await page.setViewportSize(viewport);
     const manager=await openBoards(page);
-    await expect(manager.locator('#cloud-workspaces-status')).toHaveText('Metadata synchronized.');
+    await expect(manager.locator('#cloud-workspaces-status')).toBeEmpty();
+    await expect(manager.locator('#cloud-workspaces-status')).toBeHidden();
     const intro=await box(manager.locator('#cloud-workspaces-safety'));
-    const status=await box(manager.locator('#cloud-workspaces-status'));
     const search=await box(manager.locator('.workspace-search-field'));
-    expect(status.top-intro.bottom).toBeGreaterThanOrEqual(12);
-    expect(search.top-status.bottom).toBeGreaterThanOrEqual(12);
+    expect(search.top-intro.bottom).toBeGreaterThanOrEqual(12);
     const active=manager.locator('#workspace-board-list .workspace-entry').first();
     await active.locator('summary').click();
     const archive=await box(active.getByRole('button',{name:'Archive',exact:true}));
