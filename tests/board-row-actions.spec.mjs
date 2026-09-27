@@ -58,12 +58,11 @@ test('board status and row actions have consistent separation at desktop and nar
   for(const viewport of [{width:1280,height:720},{width:390,height:844}]){
     await page.setViewportSize(viewport);
     const manager=await openBoards(page);
-    await expect(manager.locator('#cloud-workspaces-status')).toHaveText('Metadata synchronized.');
+    await expect(manager.locator('#cloud-workspaces-status')).toBeEmpty();
+    await expect(manager.locator('#cloud-workspaces-status')).toBeHidden();
     const intro=await box(manager.locator('#cloud-workspaces-safety'));
-    const status=await box(manager.locator('#cloud-workspaces-status'));
     const search=await box(manager.locator('.workspace-search-field'));
-    expect(status.top-intro.bottom).toBeGreaterThanOrEqual(12);
-    expect(search.top-status.bottom).toBeGreaterThanOrEqual(12);
+    expect(search.top-intro.bottom).toBeGreaterThanOrEqual(12);
     const active=manager.locator('#workspace-board-list .workspace-entry').first();
     await active.locator('summary').click();
     const archive=await box(active.getByRole('button',{name:'Archive',exact:true}));
@@ -136,6 +135,7 @@ test('row actions stay bounded across desktop, short, narrow, theme, media, and 
     await page.evaluate(value=>{if(value==='light')delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=value;},theme);
     for(const viewport of viewports){
       await page.setViewportSize({width:viewport.width,height:viewport.height});
+      await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
       const row=manager.locator('#archived-board-list .workspace-entry').filter({hasText:'Synthetic archived board'}),group=row.locator('.board-archived-actions'),restore=group.getByRole('button',{name:'Restore',exact:true}),remove=group.getByRole('button',{name:'Delete',exact:true});
       const [rowBox,cardBox,groupBox,restoreBox,removeBox,activeRowBox,detailsBox]=await Promise.all([box(row),box(row.locator('.cloud-workspace-card')),box(group),box(restore),box(remove),box(active),box(details)]);
       const documentBox=await page.evaluate(()=>({width:document.documentElement.clientWidth,scrollWidth:document.documentElement.scrollWidth}));
