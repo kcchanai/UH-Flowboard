@@ -1,6 +1,12 @@
 import {test, expect} from '@playwright/test';
-import {readdirSync} from 'node:fs';
+import {readFileSync, readdirSync} from 'node:fs';
 import {basePath} from '../scripts/repository-path.mjs';
+const paletteSource=readFileSync(new URL('../src/canvas-palettes.js',import.meta.url),'utf8');
+const LIST_BACKGROUNDS=[...paletteSource.matchAll(/\{id:'([^']+)',name:'([^']+)',light:\['(#[0-9a-f]{6})','(#[0-9a-f]{6})'\],dark:\['(#[0-9a-f]{6})','(#[0-9a-f]{6})'\]\}/gi)].map(([,id,name,l1,l2,d1,d2])=>({id,name,light:[l1,l2],dark:[d1,d2]}));
+
+const contrastRatio=(first,second)=>{const luminance=hex=>{const rgb=hex.match(/[0-9a-f]{2}/gi).map(value=>parseInt(value,16)/255).map(value=>value<=.04045?value/12.92:((value+.055)/1.055)**2);return .2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2];};const a=luminance(first),b=luminance(second);return (Math.max(a,b)+.05)/(Math.min(a,b)+.05);};
+const midHex=(a,b)=>`#${a.slice(1).match(/../g).map((value,index)=>Math.round((parseInt(value,16)+parseInt(b.slice(1).match(/../g)[index],16))/2).toString(16).padStart(2,'0')).join('')}`;
+const cssHex=color=>/^#[0-9a-f]{3}$/i.test(color)?`#${[...color.slice(1)].map(value=>value+value).join('')}`:color.startsWith('#')?color:`#${color.match(/[0-9]+/g).slice(0,3).map(value=>Number(value).toString(16).padStart(2,'0')).join('')}`;
 
 const builtCloudUIAsset = () => `${basePath}assets/${readdirSync('dist/assets').find(file => file.startsWith('cloud-ui-') && file.endsWith('.js'))}`;
 const builtLifecycleAsset = builtCloudUIAsset;
@@ -13,6 +19,7 @@ const builtCommentsAsset = builtCloudUIAsset;
 const builtAuthAsset = builtCloudUIAsset;
 const builtRosterAsset = builtCloudUIAsset;
 const openReady = async page => { await page.goto(basePath); await page.waitForFunction(() => globalThis.FlowboardApp && globalThis.FlowboardState); await page.waitForFunction(() => ['unavailable','signed-out','cloud','cloud-preview','ready-empty'].includes(globalThis.FlowboardApp.getMode().kind)); };
+const seedAppearanceBoard = async page => { await page.evaluate(()=>{const workspace=FlowboardState.makeWorkspace();localStorage.setItem('flowboard-workspace','{"synthetic":"appearance-test-sentinel","raw":"keep bytes exactly"}');FlowboardApp.openCloudPreview(workspace,{id:'appearance-synthetic',name:'Appearance test fixture',role:'viewer'});}); await page.waitForFunction(()=>document.querySelector('.list')); };
 
 test('critical local-first card workflow persists after reload', async ({page}) => {
   await openReady(page);
@@ -1041,60 +1048,235 @@ test('curated canvas palettes render gradient and solid finishes', async ({page}
   }
 });
 
+test('curated list backgrounds render both finishes in light and dark without affecting canvas', async ({page}) => {
+  await openReady(page);
+  await seedAppearanceBoard(page);
+  await page.getByRole('button',{name:'Open appearance settings'}).click();
+  const colors=['standard','frost-blue','soft-sage','warm-sand','lavender','mist-slate'],results=[];
+  for (const mode of ['light','dark']) {
+    await page.locator(`input[name="appearance-mode"][value="${mode}"]`).check();
+    const canvas=await page.evaluate(()=>document.documentElement.style.getPropertyValue('--canvas-background'));
+    for (const color of colors) {
+      await page.locator(`input[name="appearance-list-color"][value="${color}"]`).check();
+      for (const finish of ['gradient','solid']) {
+        await page.locator(`input[name="appearance-list-finish"][value="${finish}"]`).check();
+        results.push(await page.evaluate(()=>{const root=document.documentElement,list=document.querySelector('.list'),card=document.querySelector('.card'),swatch=document.querySelector('#appearance-list-palettes input:checked').parentElement.querySelector('.palette-swatch');return{id:root.dataset.listColor,mode:root.dataset.theme,finish:root.dataset.listFinish,background:root.style.getPropertyValue('--list-background'),image:getComputedStyle(list).backgroundImage,swatchImage:getComputedStyle(swatch).backgroundImage,color:getComputedStyle(list).backgroundColor,canvas:root.style.getPropertyValue('--canvas-background'),ink:getComputedStyle(root).getPropertyValue('--ink').trim(),muted:getComputedStyle(root).getPropertyValue('--muted').trim(),titleColor:getComputedStyle(list.querySelector('.list-title')).color,countColor:getComputedStyle(list.querySelector('.list-count')).color,actionColor:getComputedStyle(list.querySelector('.list-menu')).color,hover:getComputedStyle(root).getPropertyValue('--surface-hover').trim(),cardBackground:getComputedStyle(card).backgroundColor,cardColor:getComputedStyle(card).color,focus:getComputedStyle(root).getPropertyValue('--focus').trim(),strong:getComputedStyle(root).getPropertyValue('--surface-strong').trim()};}));
+      }
+    }
+    expect(results.slice(-12).every(item=>item.canvas===canvas)).toBe(true);
+  }
+  expect(results).toHaveLength(24);
+  for (const item of results) {
+    expect(item.id).toBeTruthy();
+    expect(cssHex(item.titleColor)).toBe(item.ink);
+    expect(cssHex(item.countColor)).toBe(item.muted);
+    expect(cssHex(item.actionColor)).toBe(item.muted);
+    const palette=LIST_BACKGROUNDS.find(color=>color.id===item.id),stops=palette[item.mode],points=stops.length===1?stops:[stops[0],midHex(stops[0],stops[1]),stops[1]];
+    for (const point of points) {
+      expect(contrastRatio(item.ink,point)).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(item.muted,point)).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(cssHex(item.focus),point)).toBeGreaterThanOrEqual(3);
+    }
+    expect(contrastRatio(cssHex(item.focus),cssHex(item.strong))).toBeGreaterThanOrEqual(3);
+    expect(contrastRatio(item.ink,cssHex(item.hover))).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(cssHex(item.cardColor),cssHex(item.cardBackground))).toBeGreaterThanOrEqual(4.5);
+    if (item.id==='standard') {
+      expect(item.background).toBe(item.mode==='dark'?'#1d293b':'#edf1f6');
+      expect(item.image).toBe('none');
+    } else if (item.finish==='gradient') {
+      expect(item.background).toContain('linear-gradient');
+      expect(item.image).toContain('linear-gradient');
+      expect(item.swatchImage).toContain('linear-gradient');
+    } else {
+      expect(item.background).toContain('color-mix');
+      expect(item.color).not.toBe('rgba(0, 0, 0, 0)');
+      expect(item.image).toBe('none');
+      expect(item.swatchImage).toBe('none');
+    }
+  }
+  for (const mode of ['light','dark']) {
+    const themed=results.filter(item=>item.mode===mode),standard=themed.filter(item=>item.id==='standard');
+    expect(standard[0].background).toBe(standard[1].background);
+    for(const property of ['cardBackground','cardColor','strong','hover'])expect(new Set(themed.map(item=>item[property])).size).toBe(1);
+  }
+  await page.getByRole('button',{name:'Cancel',exact:true}).click();
+});
+
+test('legacy appearance records default to Standard lists without being rewritten', async ({page}) => {
+  const legacy=JSON.stringify({version:1,mode:'dark',canvas:'lagoon',finish:'solid',showPhotos:false});
+  await page.addInitScript(value => localStorage.setItem('flowboard-appearance',value),legacy);
+  await openReady(page);
+  await seedAppearanceBoard(page);
+  const before=await page.evaluate(()=>({appearance:localStorage.getItem('flowboard-appearance'),workspace:localStorage.getItem('flowboard-workspace'),background:getComputedStyle(document.querySelector('.list')).backgroundColor}));
+  expect(before.appearance).toBe(legacy);
+  expect(before.background).toBe('rgb(29, 41, 59)');
+  await page.getByRole('button',{name:'Open appearance settings'}).click();
+  await expect(page.locator('input[name="appearance-list-color"][value="standard"]')).toBeChecked();
+  await expect(page.locator('input[name="appearance-list-finish"][value="solid"]')).toBeChecked();
+  await page.getByRole('button',{name:'Cancel',exact:true}).click();
+  const after=await page.evaluate(()=>({appearance:localStorage.getItem('flowboard-appearance'),workspace:localStorage.getItem('flowboard-workspace')}));
+  expect(after.appearance).toBe(legacy);
+  expect(after.workspace).toBe(before.workspace);
+});
+
+test('invalid list preference fields fall back without losing legacy appearance or rewriting storage', async ({page}) => {
+  const invalid=JSON.stringify({version:1,mode:'dark',canvas:'lagoon',finish:'solid',showPhotos:false,listColor:'url(javascript:alert(1))',listFinish:'url(javascript:alert(1))'});
+  await page.addInitScript(value=>localStorage.setItem('flowboard-appearance',value),invalid);
+  await openReady(page);
+  await seedAppearanceBoard(page);
+  expect(await page.evaluate(()=>({mode:document.documentElement.dataset.theme,canvas:document.documentElement.dataset.canvas,list:document.documentElement.dataset.listColor,finish:document.documentElement.dataset.listFinish,background:getComputedStyle(document.querySelector('.list')).backgroundColor,raw:localStorage.getItem('flowboard-appearance')}))).toEqual({mode:'dark',canvas:'lagoon',list:'standard',finish:'solid',background:'rgb(29, 41, 59)',raw:invalid});
+  await page.getByRole('button',{name:'Open appearance settings'}).click();
+  await expect(page.locator('input[name="appearance-canvas"][value="lagoon"]')).toBeChecked();
+  await expect(page.locator('input[name="appearance-list-color"][value="standard"]')).toBeChecked();
+  await expect(page.locator('input[name="appearance-list-finish"][value="solid"]')).toBeChecked();
+  await page.getByRole('button',{name:'Cancel',exact:true}).click();
+  expect(await page.evaluate(()=>localStorage.getItem('flowboard-appearance'))).toBe(invalid);
+});
+
+test('list Reset, visible Close, and Escape all roll back draft appearance', async ({page}) => {
+  await openReady(page);
+  await seedAppearanceBoard(page);
+  const before=await page.evaluate(()=>({workspace:localStorage.getItem('flowboard-workspace'),appearance:localStorage.getItem('flowboard-appearance')}));
+  await page.getByRole('button',{name:'Open appearance settings'}).click();
+  await page.locator('input[name="appearance-list-color"][value="frost-blue"]').check();
+  await page.locator('input[name="appearance-list-finish"][value="gradient"]').check();
+  await page.getByRole('button',{name:'Reset to defaults'}).click();
+  await expect(page.locator('input[name="appearance-list-color"][value="standard"]')).toBeChecked();
+  await expect(page.locator('input[name="appearance-list-finish"][value="solid"]')).toBeChecked();
+  await page.locator('input[name="appearance-list-color"][value="soft-sage"]').check();
+  await page.locator('input[name="appearance-list-finish"][value="gradient"]').check();
+  await page.getByRole('button',{name:'Close appearance'}).click();
+  await expect(page.getByRole('button',{name:'Open appearance settings'})).toBeFocused();
+  expect(await page.evaluate(()=>({workspace:localStorage.getItem('flowboard-workspace'),appearance:localStorage.getItem('flowboard-appearance'),color:document.documentElement.dataset.listColor,finish:document.documentElement.dataset.listFinish}))).toEqual({...before,color:'standard',finish:'solid'});
+  await page.getByRole('button',{name:'Open appearance settings'}).click();
+  await page.locator('input[name="appearance-list-color"][value="frost-blue"]').check();
+  await page.locator('input[name="appearance-list-finish"][value="gradient"]').check();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#appearance-dialog')).toBeHidden();
+  await expect(page.getByRole('button',{name:'Open appearance settings'})).toBeFocused();
+  expect(await page.evaluate(()=>({workspace:localStorage.getItem('flowboard-workspace'),appearance:localStorage.getItem('flowboard-appearance'),color:document.documentElement.dataset.listColor,finish:document.documentElement.dataset.listFinish}))).toEqual({...before,color:'standard',finish:'solid'});
+});
+
+test('appearance dialog remains usable at target viewport sizes', async ({page}) => {
+  await openReady(page);
+  await seedAppearanceBoard(page);
+  const sizes=[{width:1440,height:900},{width:960,height:720},{width:390,height:844},{width:320,height:720},{width:844,height:390},{width:640,height:360}];
+  for(const size of sizes){
+    await page.setViewportSize(size);
+    await page.getByRole('button',{name:'Open appearance settings'}).click();
+    const dialog=page.locator('#appearance-dialog');
+    await expect(dialog).toBeVisible();
+    await expect(page.getByRole('button',{name:'Close appearance'})).toBeVisible();
+    await page.locator('#appearance-list-palettes input[value="mist-slate"]').scrollIntoViewIfNeeded();
+    await expect(page.locator('#appearance-list-palettes input[value="mist-slate"]')).toBeVisible();
+    await page.locator('input[name="appearance-list-finish"][value="gradient"]').scrollIntoViewIfNeeded();
+    await expect(page.locator('input[name="appearance-list-finish"][value="gradient"]')).toBeVisible();
+    if([1440,390,844].includes(size.width))await page.screenshot({path:`artifacts/list-appearance-plan/playwright-gpt6-luna/appearance-review-lists-${size.width}x${size.height}.png`});
+    await page.getByRole('button',{name:'Save appearance'}).scrollIntoViewIfNeeded();
+    await expect(page.getByRole('button',{name:'Cancel',exact:true})).toBeVisible();
+    const geometry=await page.evaluate(()=>{const dialog=document.querySelector('#appearance-dialog'),rect=dialog.getBoundingClientRect();return{width:rect.width,height:rect.height,innerWidth,innerHeight,documentWidth:document.documentElement.scrollWidth,bodyWidth:document.body.scrollWidth,dialogWidth:dialog.scrollWidth,dialogClientWidth:dialog.clientWidth};});
+    expect(geometry.width).toBeLessThanOrEqual(size.width);
+    expect(geometry.height).toBeLessThanOrEqual(size.height);
+    expect(geometry.documentWidth).toBeLessThanOrEqual(size.width);
+    expect(geometry.bodyWidth).toBeLessThanOrEqual(size.width);
+    expect(geometry.dialogWidth).toBeLessThanOrEqual(geometry.dialogClientWidth+1);
+    if([1440,390,844].includes(size.width)){
+      await page.locator('.appearance-body').evaluate(element=>element.scrollTop=0);
+      await page.screenshot({path:`artifacts/list-appearance-plan/playwright-gpt6-luna/appearance-review-${size.width}x${size.height}.png`});
+    }
+    await page.locator('.appearance-body').evaluate(element=>element.scrollTop=0);
+    await page.getByRole('button',{name:'Close appearance'}).click();
+  }
+});
+
+test('System theme changes update list colors and swatches live', async ({page}) => {
+  await page.emulateMedia({colorScheme:'light'});
+  await openReady(page);
+  await seedAppearanceBoard(page);
+  await page.getByRole('button',{name:'Open appearance settings'}).click();
+  await page.locator('input[name="appearance-mode"][value="system"]').check();
+  await page.locator('input[name="appearance-list-color"][value="soft-sage"]').check();
+  await page.locator('input[name="appearance-list-finish"][value="gradient"]').check();
+  const light=await page.evaluate(()=>({theme:document.documentElement.dataset.theme,bg:document.documentElement.style.getPropertyValue('--list-background'),swatch:document.querySelector('input[name="appearance-list-color"][value="soft-sage"]').parentElement.querySelector('.palette-swatch').style.getPropertyValue('--swatch-start'),canvas:document.documentElement.dataset.canvas}));
+  await page.emulateMedia({colorScheme:'dark'});
+  await expect.poll(()=>page.evaluate(()=>({theme:document.documentElement.dataset.theme,swatch:document.querySelector('input[name="appearance-list-color"][value="soft-sage"]').parentElement.querySelector('.palette-swatch').style.getPropertyValue('--swatch-start')}))).toEqual({theme:'dark',swatch:'#152224'});
+  const darkBackground=await page.evaluate(()=>document.documentElement.style.getPropertyValue('--list-background'));
+  expect(darkBackground).toContain('#152224');expect(darkBackground).toContain('#1a2628');
+  expect(light.theme).toBe('light');
+  expect(light.bg).not.toBe(darkBackground);
+  await expect(page.locator('input[name="appearance-list-color"][value="soft-sage"]')).toBeChecked();
+  expect(await page.evaluate(()=>document.documentElement.dataset.canvas)).toBe(light.canvas);
+  await page.getByRole('button',{name:'Cancel',exact:true}).click();
+});
+
 test('appearance preview is lazy, draft-only, and cancel preserves workspace bytes', async ({page}) => {
   await openReady(page);
+  await seedAppearanceBoard(page);
   const before = await page.evaluate(() => localStorage.getItem('flowboard-workspace'));
   await page.getByRole('button', {name:'Open appearance settings'}).click();
   const dialog = page.locator('#appearance-dialog');
   await expect(dialog).toBeVisible();
-  await expect(dialog.getByRole('radio')).toHaveCount(15);
-  await expect(page.locator('#appearance-palettes input[type="radio"]')).toHaveCount(8);
-  await expect(page.locator('#appearance-scope')).toContainText('changes only your view');
+  await expect(dialog.getByRole('radio')).toHaveCount(23);
+    await expect(page.locator('#appearance-palettes input[type="radio"]')).toHaveCount(8);
+    await expect(page.locator('#appearance-list-palettes input[type="radio"]')).toHaveCount(6);
+  await expect(page.locator('#appearance-scope')).toContainText('Applies only to this browser');
   await page.getByRole('radio', {name:/Ocean Slate/}).check();
   await page.getByRole('radio', {name:'Dark', exact:true}).check();
-  await page.getByRole('radio', {name:'Solid color', exact:true}).check();
-  await expect(page.locator('#appearance-status')).toContainText('Preview only');
-  await expect.poll(() => page.evaluate(() => ({canvas:document.documentElement.dataset.canvas,finish:document.documentElement.dataset.canvasFinish,theme:document.documentElement.dataset.theme}))).toEqual({canvas:'ocean-slate',finish:'solid',theme:'dark'});
+  await page.locator('input[name="appearance-finish"][value="solid"]').check();
+    await page.locator('input[name="appearance-list-color"][value="frost-blue"]').check();
+    await page.locator('input[name="appearance-list-finish"][value="gradient"]').check();
+    await expect(page.locator('#appearance-status')).toContainText('Preview only');
+    await expect.poll(() => page.evaluate(() => ({canvas:document.documentElement.dataset.canvas,finish:document.documentElement.dataset.canvasFinish,theme:document.documentElement.dataset.theme,listColor:document.documentElement.dataset.listColor,listFinish:document.documentElement.dataset.listFinish}))).toEqual({canvas:'ocean-slate',finish:'solid',theme:'dark',listColor:'frost-blue',listFinish:'gradient'});
   await page.getByRole('button', {name:'Cancel', exact:true}).click();
   await expect(dialog).toBeHidden();
   await expect(page.getByRole('button', {name:'Open appearance settings'})).toBeFocused();
-  const after = await page.evaluate(() => ({workspace:localStorage.getItem('flowboard-workspace'),appearance:localStorage.getItem('flowboard-appearance'),canvas:document.documentElement.dataset.canvas,finish:document.documentElement.dataset.canvasFinish}));
-  expect(after.workspace).toBe(before);
-  expect(after.appearance).toBeNull();
-  expect(after.canvas).toBe('classic-flow');
-  expect(after.finish).toBe('gradient');
+  const after = await page.evaluate(() => ({workspace:localStorage.getItem('flowboard-workspace'),appearance:localStorage.getItem('flowboard-appearance'),canvas:document.documentElement.dataset.canvas,finish:document.documentElement.dataset.canvasFinish,listColor:document.documentElement.dataset.listColor,listFinish:document.documentElement.dataset.listFinish}));
+    expect(after.workspace).toBe(before);
+    expect(after.appearance).toBeNull();
+    expect(after.canvas).toBe('classic-flow');
+    expect(after.finish).toBe('gradient');
+    expect(after.listColor).toBe('standard');
+    expect(after.listFinish).toBe('solid');
 });
 
 test('saved appearance persists independently through reload', async ({page}) => {
   await openReady(page);
+  await seedAppearanceBoard(page);
   const before = await page.evaluate(() => localStorage.getItem('flowboard-workspace'));
   await page.getByRole('button', {name:'Open appearance settings'}).click();
   await page.getByRole('radio', {name:/Lagoon/}).check();
   await page.getByRole('radio', {name:'Light', exact:true}).check();
-  await page.getByRole('radio', {name:'Solid color', exact:true}).check();
+  await page.locator('input[name="appearance-finish"][value="solid"]').check();
   await page.getByRole('radio', {name:'Use initials', exact:true}).check();
-  await page.getByRole('button', {name:'Save appearance'}).click();
+    await page.locator('input[name="appearance-list-color"][value="soft-sage"]').check();
+    await page.locator('input[name="appearance-list-finish"][value="gradient"]').check();
+    await page.getByRole('button', {name:'Save appearance'}).click();
   await expect(page.locator('#appearance-dialog')).toBeHidden();
-  const saved = await page.evaluate(() => ({workspace:localStorage.getItem('flowboard-workspace'),appearance:JSON.parse(localStorage.getItem('flowboard-appearance')),canvas:document.documentElement.dataset.canvas,finish:document.documentElement.dataset.canvasFinish,photos:document.documentElement.dataset.appearancePhotos}));
-  expect(saved.workspace).toBe(before);
-  expect(saved.appearance).toEqual({version:1,mode:'light',canvas:'lagoon',finish:'solid',showPhotos:false});
-  expect(saved.canvas).toBe('lagoon');
-  expect(saved.finish).toBe('solid');
-  expect(saved.photos).toBe('initials');
+  const saved = await page.evaluate(() => ({workspace:localStorage.getItem('flowboard-workspace'),appearance:JSON.parse(localStorage.getItem('flowboard-appearance')),canvas:document.documentElement.dataset.canvas,finish:document.documentElement.dataset.canvasFinish,photos:document.documentElement.dataset.appearancePhotos,listColor:document.documentElement.dataset.listColor,listFinish:document.documentElement.dataset.listFinish}));
+    expect(saved.workspace).toBe(before);
+    expect(saved.appearance).toEqual({version:1,mode:'light',canvas:'lagoon',finish:'solid',showPhotos:false,listColor:'soft-sage',listFinish:'gradient'});
+    expect(saved.canvas).toBe('lagoon');
+    expect(saved.finish).toBe('solid');
+    expect(saved.listColor).toBe('soft-sage');
+    expect(saved.listFinish).toBe('gradient');
+    expect(saved.photos).toBe('initials');
   await page.reload();
   await page.waitForFunction(() => globalThis.FlowboardApp && globalThis.FlowboardRuntime);
-  await expect.poll(() => page.evaluate(() => ({canvas:document.documentElement.dataset.canvas,finish:document.documentElement.dataset.canvasFinish,photos:document.documentElement.dataset.appearancePhotos}))).toEqual({canvas:'lagoon',finish:'solid',photos:'initials'});
+  await expect.poll(() => page.evaluate(() => ({canvas:document.documentElement.dataset.canvas,finish:document.documentElement.dataset.canvasFinish,photos:document.documentElement.dataset.appearancePhotos,listColor:document.documentElement.dataset.listColor,listFinish:document.documentElement.dataset.listFinish}))).toEqual({canvas:'lagoon',finish:'solid',photos:'initials',listColor:'soft-sage',listFinish:'gradient'});
   await page.getByRole('button', {name:'Open appearance settings'}).click();
   await expect(page.locator('input[name="appearance-canvas"][value="lagoon"]')).toBeChecked();
   await expect(page.locator('input[name="appearance-finish"][value="solid"]')).toBeChecked();
   await expect(page.locator('input[name="appearance-photos"][value="initials"]')).toBeChecked();
+  await expect(page.locator('input[name="appearance-list-color"][value="soft-sage"]')).toBeChecked();
+  await expect(page.locator('input[name="appearance-list-finish"][value="gradient"]')).toBeChecked();
 });
 
 test('appearance save failure keeps draft open and workspace unchanged', async ({page}) => {
   await openReady(page);
+  await seedAppearanceBoard(page);
   const before = await page.evaluate(() => { const workspace=localStorage.getItem('flowboard-workspace'); const original=Storage.prototype.setItem; Storage.prototype.setItem=function(key,value){ if(key==='flowboard-appearance') throw new Error('synthetic appearance storage failure'); return original.call(this,key,value); }; return workspace; });
   await page.getByRole('button', {name:'Open appearance settings'}).click();
-  await page.getByRole('radio', {name:/Warm Sand/}).check();
+  await page.locator('input[name="appearance-list-color"][value="warm-sand"]').check();
   await page.getByRole('button', {name:'Save appearance'}).click();
   await expect(page.locator('#appearance-dialog')).toBeVisible();
   await expect(page.locator('#appearance-status')).toContainText('could not be saved');
