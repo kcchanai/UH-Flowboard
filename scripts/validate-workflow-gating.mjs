@@ -12,6 +12,7 @@ const requiredValidation = [
   'emulators:exec --only auth,firestore',
   'tests/emulator/emulator-browser.spec.mjs tests/emulator/deletion-engine.spec.mjs --reporter=line --workers=1',
   'tests/emulator/board-lifecycle-ui.spec.mjs --reporter=line --workers=1',
+  'tests/emulator/invitations-member-ui.spec.mjs --reporter=line --workers=1',
   'tests/emulator/card-details-ui.spec.mjs --reporter=line --workers=1',
   'npx lighthouse', 'node scripts/assert-lighthouse.mjs'
 ];

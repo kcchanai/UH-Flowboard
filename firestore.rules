@@ -61,6 +61,7 @@ service cloud.firestore {
         && data.emailLower is string
         && data.emailLower.size() > 2
         && data.emailLower.size() <= 320
+        && data.emailLower == data.emailLower.lower()
         && data.role in ['editor', 'viewer']
         && data.createdBy == request.auth.uid
         && data.createdAt == request.time
@@ -72,7 +73,7 @@ service cloud.firestore {
     }
     function activeInviteForCurrentUser(data) {
       return verifiedEmail()
-        && request.auth.token.email == data.emailLower
+        && request.auth.token.email.lower() == data.emailLower
         && data.acceptedAt == null
         && data.acceptedBy == null
         && data.revokedAt == null

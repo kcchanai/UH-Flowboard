@@ -101,6 +101,7 @@ async function signInFreshPersonal() {
   else{const detail=await created.json();if(!String(detail?.error?.message||'').includes('EMAIL_EXISTS'))throw new Error('The Auth Emulator could not create the synthetic personal account.');}
   const credential=await signInWithEmailAndPassword(auth,account.email,account.password);if(!credential.user.displayName)await updateProfile(credential.user,{displayName:'Personal emulator user'});return credential.user;
 }
+async function signInInvitationIdentity(email,password){await signOut(auth);const{user}=await signInWithEmailAndPassword(auth,email,password),token=await user.getIdTokenResult(true);return{uid:user.uid,verified:token.claims.email_verified===true,emailLower:String(token.claims.email||user.email).toLowerCase()};}
 async function signInFreshHints() {
   const account={email:`hints-${crypto.randomUUID()}@flowboard.test`,password:'Flowboard-hints-123!'};
   if(auth.currentUser?.email!==account.email)await signOut(auth);
@@ -189,6 +190,9 @@ const testApi = {
   },
   async seedFixture() { try{return await seedFixture();}catch(error){throw Error(`${seedStage}:${error.code||'unknown'}`);} },
   async signInRole(role) { return {uid: (await signInRole(role)).uid}; },
+  async inviteFailure(workspaceId,inviteId){try{await cloudAdapter.acceptInvite({workspaceId,inviteId});return{code:'unexpected-success',stage:'none'};}catch(error){return{code:String(error?.code||error?.name||'unknown').split('/').at(-1),stage:String(error?.stage||'none')};}},
+  async signInInvitationIdentity(email,password){return signInInvitationIdentity(email,password);},
+  async ensureInvitationPersonalHome(){const choice=await cloudAdapter.ensurePersonalWorkspace();return{workspaceId:choice.workspaceId,state:choice.state};},
   async captureWorkspace() { capturedWorkspace = await workspaceFor(); return {revision: cardFor(capturedWorkspace)?.revision ?? -1}; },
   async fixtureSummary(){const workspace=await workspaceFor(),uid=auth.currentUser?.uid,adapterSession=await cloudAdapter.getSession(),currentRole=[...users.entries()].find(([,value])=>value.uid===uid)?.[0]||'unknown',adapterRole=[...users.entries()].find(([,value])=>value.uid===adapterSession?.uid)?.[0]||'unknown',entryRole=(await cloudAdapter.listWorkspaces()).find(entry=>entry.id===FIXTURE.workspaceId)?.role||'missing';return{boards:workspace.boards.length,lists:workspace.boards.reduce((n,board)=>n+board.lists.length,0),cards:workspace.boards.reduce((n,board)=>n+board.lists.reduce((m,list)=>m+list.cards.length,0),0),currentRole,adapterRole,entryRole};},
   async mutationRetryFixture(){await signInRole('owner');const before=await workspaceFor(),next=State.clone(before),created=State.makeBoard('blank'),clientMutationId='idempotent-create-operation-0001';created.id='idempotent-created-board';created.title='Idempotent created board';next.boards.push(created);next.activeBoardId=created.id;const first=await cloudAdapter.applyWorkspaceMutation({workspaceId:FIXTURE.workspaceId,before,next,clientMutationId}),second=await cloudAdapter.applyWorkspaceMutation({workspaceId:FIXTURE.workspaceId,before,next,clientMutationId}),activity=await getDoc(doc(db,'workspaces',FIXTURE.workspaceId,'activity',clientMutationId));return{firstCount:first.boards.filter(board=>board.id===created.id).length,secondCount:second.boards.filter(board=>board.id===created.id).length,activity:activity.exists()};},

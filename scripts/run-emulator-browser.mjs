@@ -8,10 +8,11 @@ const spawnOptions={stdio:['ignore','pipe','pipe'],shell:process.platform==='win
 const jobs=[
   {label:'multi-user and deletion',port:4180,specs:'tests/emulator/emulator-browser.spec.mjs tests/emulator/deletion-engine.spec.mjs'},
   {label:'card details UI',port:4181,specs:'tests/emulator/card-details-ui.spec.mjs'},
-  {label:'board lifecycle UI',port:4182,specs:'tests/emulator/board-lifecycle-ui.spec.mjs'}
+  {label:'board lifecycle UI',port:4182,specs:'tests/emulator/board-lifecycle-ui.spec.mjs'},
+  {label:'invitations and member management UI',port:4183,specs:'tests/emulator/invitations-member-ui.spec.mjs'}
 ];
 let server=null;
-function startServer(port){server=spawn(command,['--yes','vite','--host','127.0.0.1','--port',String(port),'--strictPort'],spawnOptions);server.stdout.on('data',()=>{});server.stderr.on('data',()=>{});}
+function startServer(port,inviteHarness=false){const env={...process.env};if(inviteHarness)env.FLOWBOARD_EMULATOR_INVITE_HARNESS='1';else delete env.FLOWBOARD_EMULATOR_INVITE_HARNESS;server=spawn(command,['--yes','vite','--host','127.0.0.1','--port',String(port),'--strictPort'],{...spawnOptions,env});server.stdout.on('data',()=>{});server.stderr.on('data',()=>{});}
 async function waitForServer(baseURL){for(let attempt=0;attempt<30;attempt+=1){try{const response=await fetch(`${baseURL}/tests/emulator/index.html`);if(response.ok)return;}catch{}await new Promise(resolve=>setTimeout(resolve,500));}throw new Error(`The Emulator browser Vite server did not become ready at ${baseURL}.`);}
 async function runEmulator(job,baseURL){
   const browserCommand=`${command} playwright test ${job.specs} --reporter=line --workers=1`,childOptions={stdio:['ignore','pipe','pipe'],shell:process.platform==='win32',env:{...process.env,PLAYWRIGHT_EMULATOR_BASE_URL:baseURL,PLAYWRIGHT_EXECUTABLE_PATH:process.env.PLAYWRIGHT_EXECUTABLE_PATH||(process.platform==='win32'?'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe':'')}};
@@ -21,4 +22,4 @@ async function runEmulator(job,baseURL){
 function portOpen(port){return new Promise(resolve=>{const socket=net.createConnection({host:'127.0.0.1',port},()=>{socket.destroy();resolve(true);});socket.on('error',()=>resolve(false));socket.setTimeout(500,()=>{socket.destroy();resolve(false);});});}
 async function waitForEmulatorPortsFree(){for(let attempt=0;attempt<40;attempt+=1){const states=await Promise.all([9099,8080,9150].map(portOpen));if(states.every(open=>!open))return;await new Promise(resolve=>setTimeout(resolve,500));}throw new Error('Auth/Firestore Emulator ports did not settle after shutdown.');}
 function stopServer(){if(!server?.pid)return;if(process.platform==='win32')spawnSync('taskkill.exe',['/PID',String(server.pid),'/T','/F'],{stdio:'ignore'});else server.kill('SIGTERM');server=null;}
-try{let code=0;for(const job of jobs){const baseURL=configuredBaseURL||previewUrl(job.port).replace(/\/$/,'');startServer(job.port);try{await waitForServer(baseURL);code=await runEmulator(job,baseURL);}finally{stopServer();await waitForEmulatorPortsFree();}if(code)break;}process.exitCode=code;}finally{stopServer();}
+try{let code=0;for(const job of jobs){const baseURL=configuredBaseURL||previewUrl(job.port).replace(/\/$/,'');startServer(job.port,job.label==='invitations and member management UI');try{await waitForServer(baseURL);code=await runEmulator(job,baseURL);}finally{stopServer();await waitForEmulatorPortsFree();}if(code)break;}process.exitCode=code;}finally{stopServer();}
