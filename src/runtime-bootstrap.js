@@ -6,7 +6,7 @@ export async function bootstrapFlowboard({cloudConfigured, cloudStatus, cloudIni
   if (cloudConfigured && !cloudInitializationError) {
     const {initializeAuthUI, initializeCloudWorkspaceUI, initializeInviteUI, initializeMembersUI, initializeCloudRosterUI, initializeCloudSyncController, initializeActivityUI, initializeAssignmentUI, initializeCommentsUI} = await import('./cloud-ui.js');
     const cloudUI = initializeCloudWorkspaceUI({localAdapter, cloudAdapter});
-    const inviteUI = initializeInviteUI(cloudAdapter);
+    const inviteUI = initializeInviteUI(cloudAdapter, cloudUI);
     const membersUI = initializeMembersUI(cloudAdapter);
     const rosterUI = initializeCloudRosterUI(cloudAdapter);
     const syncController = initializeCloudSyncController(cloudAdapter);

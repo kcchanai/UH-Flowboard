@@ -1,5 +1,6 @@
 import {granularizeBoard, rehydrateGranularWorkspace} from '../granular-workspace.js';
 export {importLegacyWorkspace,exportCloudBackup,migrateWorkspaceToGranular} from './firebase-migration.js';
+export {createInvite,acceptInvite} from './firebase-cloud-invitations.js';
 import {safePhotoURL} from '../person-badges.js';
 import {
   arrayRemove, arrayUnion, collection, deleteDoc, doc, documentId, getDoc, getDocFromServer, getDocs, getDocsFromServer, getFirestore, limit, onSnapshot, orderBy, query, where,
@@ -210,7 +211,7 @@ export async function applyCloudWorkspaceMutation(app, auth, {workspaceId, befor
 
 export async function listMembers(app, auth, workspaceId) {
   const {db}=context(app,auth);
-  const snapshots = await getDocs(collection(db, 'workspaces', workspaceId, 'members'));
+  const snapshots = await getDocsFromServer(collection(db, 'workspaces', workspaceId, 'members'));
   return snapshots.docs.map(item => ({id:item.id, ...item.data()}));
 }
 export async function updateOwnMemberProfile(app, auth, workspaceId, {displayName = '', photoURL = ''} = {}) {
@@ -221,38 +222,13 @@ export async function updateOwnMemberProfile(app, auth, workspaceId, {displayNam
 
 export async function listInvites(app, auth, workspaceId) {
   const {db}=context(app,auth);
-  const snapshots = await getDocs(collection(db, 'workspaces', workspaceId, 'invites'));
+  const snapshots = await getDocsFromServer(collection(db, 'workspaces', workspaceId, 'invites'));
   return snapshots.docs.map(item => ({id:item.id, ...item.data()}));
-}
-
-export async function createInvite(app, auth, {workspaceId, email, role, baseUrl}) {
-  const {db,user}=context(app,auth), emailLower = normalizeEmail(email);
-  if (!user.emailVerified) throw Object.assign(new Error('Verify your email first.'), {code:'EMAIL_NOT_VERIFIED'});
-  if (!/^\S+@\S+\.\S+$/.test(emailLower)) throw Object.assign(new Error('Enter a valid email.'), {code:'INVALID_EMAIL'});
-  if (!['editor', 'viewer'].includes(role)) throw Object.assign(new Error('Choose editor or viewer.'), {code:'INVALID_ROLE'});
-  const inviteId = randomId(), expiresAt = Timestamp.fromMillis(Date.now() + 7 * 86_400_000);
-  await writeBatch(db).set(doc(db, 'workspaces', workspaceId, 'invites', inviteId), {
-    emailLower, role, createdBy:user.uid, createdAt:serverTimestamp(), expiresAt, revokedAt:null, acceptedAt:null, acceptedBy:null
-  }).commit();
-  const url = new URL(baseUrl); url.searchParams.set('workspace', workspaceId); url.searchParams.set('invite', inviteId);
-  return {inviteId, emailLower, role, expiresAt, url:url.toString()};
 }
 
 export async function revokeInvite(app, auth, workspaceId, inviteId) {
   const {db}=context(app,auth);
   await updateDoc(doc(db, 'workspaces', workspaceId, 'invites', inviteId), {revokedAt:serverTimestamp()});
-}
-
-export async function acceptInvite(app, auth, {workspaceId, inviteId}) {
-  const {db,user}=context(app,auth);
-  if (!user.emailVerified) throw Object.assign(new Error('Verify your email first.'), {code:'EMAIL_NOT_VERIFIED'});
-  const invite = await getDoc(doc(db, 'workspaces', workspaceId, 'invites', inviteId));
-  if (!invite.exists()) throw Object.assign(new Error('Invitation unavailable.'), {code:'INVITE_UNAVAILABLE'});
-  const data = invite.data(), batch = writeBatch(db), emailLower = normalizeEmail(user.email);
-  batch.set(doc(db, 'workspaces', workspaceId, 'members', user.uid), {uid:user.uid, role:data.role, emailLower, inviteId});
-  batch.update(invite.ref, {acceptedAt:serverTimestamp(), acceptedBy:user.uid});
-  batch.set(doc(db, 'users', user.uid), {uid:user.uid, emailLower, workspaceIds:arrayUnion(workspaceId)}, {merge:true});
-  await batch.commit();
 }
 
 export async function changeMemberRole(app, auth, workspaceId, uid, role) {

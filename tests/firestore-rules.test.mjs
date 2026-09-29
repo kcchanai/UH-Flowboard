@@ -7,6 +7,7 @@ import {
   initializeTestEnvironment
 } from '@firebase/rules-unit-testing';
 import {
+  arrayUnion,
   collection,
   deleteDoc,
   deleteField,
@@ -108,7 +109,7 @@ async function acceptInvite(db, workspaceId, inviteId, uid, email, role, include
   batch.update(doc(db, 'workspaces', workspaceId, 'invites', inviteId), {
     acceptedAt:serverTimestamp(), acceptedBy:uid
   });
-  if (includeProfile) batch.set(doc(db, 'users', uid), {uid, emailLower:email, workspaceIds:[workspaceId]}, {merge:true});
+  if (includeProfile) batch.set(doc(db, 'users', uid), {uid, emailLower:email, workspaceIds:arrayUnion(workspaceId)}, {merge:true});
   return batch.commit();
 }
 
@@ -330,6 +331,52 @@ test('only a verified email addressed by an active invite can read or accept it'
   await assertFails(acceptInvite(invitee, 'alpha', 'invite-accept', 'invitee-uid', 'invitee@example.com', 'editor'));
 });
 
+test('invite acceptance normalizes verified token email and preserves an existing personal home', async () => {
+  await assertSucceeds(setDoc(doc(dbFor('owner-a'), 'workspaces', 'alpha', 'invites', 'invite-case-normalized'), invitation({
+    emailLower:'case.invitee@example.com', role:'editor'
+  })));
+  const caseVariant = dbFor('case-invitee', 'Case.Invitee@Example.com');
+  await assertSucceeds(getDoc(doc(caseVariant, 'workspaces', 'alpha', 'invites', 'invite-case-normalized')));
+  await assertSucceeds(acceptInvite(caseVariant, 'alpha', 'invite-case-normalized', 'case-invitee', 'case.invitee@example.com', 'editor'));
+  const newProfile = await getDoc(doc(caseVariant, 'users', 'case-invitee'));
+  assert.deepEqual(newProfile.data(), {
+    uid:'case-invitee', emailLower:'case.invitee@example.com', workspaceIds:['alpha']
+  });
+
+  await env.withSecurityRulesDisabled(async context => {
+    const db = context.firestore(), root = doc(db, 'workspaces', 'case-existing-home');
+    await setDoc(root, {
+      name:'Existing personal workspace', ownerUid:'case-existing', personal:true, status:'ready',
+      migration:{state:'verified'}
+    });
+    await setDoc(doc(root, 'members', 'case-existing'), {
+      uid:'case-existing', role:'owner', emailLower:'existing@example.com'
+    });
+    await setDoc(doc(db, 'users', 'case-existing'), {
+      uid:'case-existing', emailLower:'existing@example.com', workspaceIds:['case-existing-home'], personalWorkspaceId:'case-existing-home'
+    });
+  });
+  await assertSucceeds(setDoc(doc(dbFor('owner-a'), 'workspaces', 'alpha', 'invites', 'invite-existing-home'), invitation({
+    emailLower:'existing@example.com', role:'viewer'
+  })));
+  const existing = dbFor('case-existing', 'existing@example.com');
+  await assertSucceeds(acceptInvite(existing, 'alpha', 'invite-existing-home', 'case-existing', 'existing@example.com', 'viewer'));
+  const existingProfile = await getDoc(doc(existing, 'users', 'case-existing'));
+  assert.equal(existingProfile.data().personalWorkspaceId, 'case-existing-home');
+  assert.deepEqual(new Set(existingProfile.data().workspaceIds), new Set(['case-existing-home', 'alpha']));
+});
+
+test('invite expiry leaves a server-time margin for client clock skew', async () => {
+  const owner = dbFor('owner-a');
+  await assertSucceeds(setDoc(doc(owner, 'workspaces', 'alpha', 'invites', 'invite-safe-expiry'), invitation({
+    emailLower:'safe-expiry@example.com', expiresInDays:6
+  })));
+  await assertFails(setDoc(doc(owner, 'workspaces', 'alpha', 'invites', 'invite-clock-ahead'), {
+    ...invitation({emailLower:'clock-ahead@example.com'}),
+    expiresAt:Timestamp.fromMillis(Date.now() + 7 * 86_400_000 + 60_000)
+  }));
+});
+
 test('invite acceptance cannot be completed without the matching membership write', async () => {
   const invitee = dbFor('incomplete-uid', 'incomplete@example.com');
   await assertFails(updateDoc(doc(invitee, 'workspaces', 'alpha', 'invites', 'invite-incomplete'), {
@@ -352,7 +399,12 @@ test('owner-created invitations enforce editor/viewer role and seven-day expiry'
   const owner = dbFor('owner-a');
   await assertSucceeds(setDoc(doc(owner, 'workspaces', 'alpha', 'invites', 'invite-valid'), invitation({emailLower:'valid@example.com'})));
   await assertFails(setDoc(doc(owner, 'workspaces', 'alpha', 'invites', 'invite-owner-role'), invitation({emailLower:'owner-role@example.com', role:'owner'})));
+  await assertFails(setDoc(doc(owner, 'workspaces', 'alpha', 'invites', 'invite-mixed-email'), invitation({emailLower:'Mixed-Email@example.com'})));
   await assertFails(setDoc(doc(owner, 'workspaces', 'alpha', 'invites', 'invite-long'), invitation({emailLower:'long@example.com', expiresInDays:8})));
+  const editor=dbFor('editor-a'), viewer=dbFor('viewer-a');
+  await assertFails(setDoc(doc(editor,'workspaces','alpha','invites','editor-forged-invite'),invitation({emailLower:'forged@example.com'})));
+  await assertFails(getDocs(collection(editor,'workspaces','alpha','invites')));
+  await assertFails(updateDoc(doc(viewer,'workspaces','alpha','invites','invite-valid'),{revokedAt:serverTimestamp()}));
 });
 
 test('owner may change a non-owner role but cannot change protected member identity data', async () => {

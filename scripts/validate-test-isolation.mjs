@@ -2,6 +2,7 @@ import {readdir, readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 
 const forbidden = ['127.0.0.1:9099', 'demo-flowboard-browser', '__flowboardEmulatorTest', '/tests/emulator/'];
+const buildOutput = process.env.FLOWBOARD_BUILD_OUT_DIR || 'dist';
 const files = [];
 async function collect(directory) {
   for (const entry of await readdir(directory, {withFileTypes: true})) {
@@ -10,7 +11,7 @@ async function collect(directory) {
     else files.push(path);
   }
 }
-await collect('dist');
+await collect(buildOutput);
 for (const file of files) {
   const text = await readFile(file, 'utf8');
   for (const marker of forbidden) if (text.includes(marker)) throw new Error(`Production asset isolation failed: ${marker} found in ${file}.`);
