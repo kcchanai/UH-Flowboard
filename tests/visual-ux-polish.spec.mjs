@@ -36,7 +36,7 @@ test('signed-out landing stays cohesive and Appearance reset announces preview',
   expect(Math.abs((heading.left+heading.right)/2-(gate.left+gate.right)/2)).toBeLessThan(16);expect(gate.top-heading.bottom).toBeLessThan(85);
   if((await page.evaluate(()=>FlowboardApp.getMode().kind))==='signed-out') await expect(page.locator('.cloud-gate-note')).toContainText('stays on this device');
   else await expect(page.locator('.cloud-gate p')).toBeVisible();
-  await page.locator('#theme-toggle').click();await expect(page.locator('#appearance-dialog')).toBeVisible();await page.locator('#reset-appearance').click();await expect(page.locator('#appearance-status')).toHaveText('Default appearance previewed. Save appearance to keep it in this browser.');await page.locator('#cancel-appearance').click();await expect(page.locator('#appearance-dialog')).toBeHidden();
+  await page.locator('#theme-toggle').click();await expect(page.locator('#appearance-dialog')).toBeVisible();await page.locator('#reset-appearance').click();await expect(page.locator('#appearance-status')).toHaveText('Defaults previewed. Save to keep them in this browser.');await page.locator('#cancel-appearance').click();await expect(page.locator('#appearance-dialog')).toBeHidden();
 });
 
 test('board directory groups each board with its actions and quiets routine status',async({page})=>{
