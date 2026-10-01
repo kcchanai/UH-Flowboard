@@ -69,13 +69,17 @@ jobs:
           CARD_SERVER_PID=$!
           FLOWBOARD_EMULATOR_INVITE_HARNESS=1 npm run dev -- --host 127.0.0.1 --port 4182 > invitation-emulator-server.log 2>&1 &
           INVITE_SERVER_PID=$!
-          trap 'kill "$SERVER_PID" "$CARD_SERVER_PID" "$INVITE_SERVER_PID" 2>/dev/null || true' EXIT
+          npm run dev -- --host 127.0.0.1 --port 4183 > card-delete-emulator-server.log 2>&1 &
+          CARD_DELETE_SERVER_PID=$!
+          trap 'kill "$SERVER_PID" "$CARD_SERVER_PID" "$INVITE_SERVER_PID" "$CARD_DELETE_SERVER_PID" 2>/dev/null || true' EXIT
           for i in {1..20}; do curl --fail --silent "http://127.0.0.1:4180${FLOWBOARD_BASE_PATH}tests/emulator/index.html" >/dev/null && break; sleep 1; done
           curl --fail --silent "http://127.0.0.1:4180${FLOWBOARD_BASE_PATH}tests/emulator/index.html" >/dev/null
           for i in {1..20}; do curl --fail --silent "http://127.0.0.1:4181${FLOWBOARD_BASE_PATH}tests/emulator/index.html" >/dev/null && break; sleep 1; done
           curl --fail --silent "http://127.0.0.1:4181${FLOWBOARD_BASE_PATH}tests/emulator/index.html" >/dev/null
           for i in {1..20}; do curl --fail --silent "http://127.0.0.1:4182${FLOWBOARD_BASE_PATH}tests/emulator/index.html" >/dev/null && break; sleep 1; done
           curl --fail --silent "http://127.0.0.1:4182${FLOWBOARD_BASE_PATH}tests/emulator/index.html" >/dev/null
+          for i in {1..20}; do curl --fail --silent "http://127.0.0.1:4183${FLOWBOARD_BASE_PATH}tests/emulator/index.html" >/dev/null && break; sleep 1; done
+          curl --fail --silent "http://127.0.0.1:4183${FLOWBOARD_BASE_PATH}tests/emulator/index.html" >/dev/null
           export PLAYWRIGHT_EMULATOR_BASE_URL="http://127.0.0.1:4180${FLOWBOARD_BASE_PATH%/}"
           npx --yes firebase-tools@15.25.1 emulators:exec --only auth,firestore --project demo-flowboard-browser "npx playwright test tests/emulator/emulator-browser.spec.mjs tests/emulator/deletion-engine.spec.mjs --reporter=line --workers=1"
           export PLAYWRIGHT_EMULATOR_BASE_URL="http://127.0.0.1:4181${FLOWBOARD_BASE_PATH%/}"
@@ -84,6 +88,9 @@ jobs:
           npx --yes firebase-tools@15.25.1 emulators:exec --only auth,firestore --project demo-flowboard-browser "npx playwright test tests/emulator/board-lifecycle-ui.spec.mjs --reporter=line --workers=1"
           export PLAYWRIGHT_EMULATOR_BASE_URL="http://127.0.0.1:4182${FLOWBOARD_BASE_PATH%/}"
           npx --yes firebase-tools@15.25.1 emulators:exec --only auth,firestore --project demo-flowboard-browser "npx playwright test tests/emulator/invitations-member-ui.spec.mjs --reporter=line --workers=1"
+          export PLAYWRIGHT_EMULATOR_BASE_URL="http://127.0.0.1:4183${FLOWBOARD_BASE_PATH%/}"
+          npx --yes firebase-tools@15.25.1 emulators:exec --only auth,firestore --project demo-flowboard-browser "npx playwright test tests/emulator/card-delete-access.spec.mjs --grep=deterministic.*valid.*card.*lock --reporter=line --workers=1"
+          npx --yes firebase-tools@15.25.1 emulators:exec --only auth,firestore --project demo-flowboard-browser "npx playwright test tests/emulator/card-delete-access.spec.mjs --grep=shared.*card.*deletion.*preserves --reporter=line --workers=1"
       - name: Automated accessibility check
         run: |
           npx lighthouse "http://127.0.0.1:4173${FLOWBOARD_BASE_PATH}" --only-categories=accessibility --chrome-flags='--headless --no-sandbox' --output=json --output-path=lighthouse-report.json

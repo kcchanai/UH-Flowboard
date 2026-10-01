@@ -1,19 +1,40 @@
-const ACCESS_CODES = new Set(['permission-denied', 'ACCESS_REMOVED', 'WORKSPACE_NOT_FOUND']);
+const ACCESS_CODES = new Set(['ACCESS_REMOVED', 'WORKSPACE_NOT_FOUND', 'WORKSPACE_ARCHIVED']);
+const RETRY_DELAYS = [250, 750, 1500, 3000, 6000, 12000];
 
 const isCloud = mode => ['cloud-preview', 'cloud'].includes(mode?.kind);
 
 export function initializeCloudSyncController(adapter) {
-  let session = null, unsubscribe = null, generation = 0;
+  let session = null, unsubscribe = null, generation = 0, retryTimer = null, recoveryAttempts = 0;
   const app = () => globalThis.FlowboardApp;
-  const stop = () => { generation += 1; unsubscribe?.(); unsubscribe = null; };
+  const clearRetry = () => { clearTimeout(retryTimer); retryTimer = null; };
+  const stop = () => { generation += 1; clearRetry(); unsubscribe?.(); unsubscribe = null; };
   const status = (name, message = '') => app()?.setCloudSyncStatus(name, message);
   const accessRemoved = message => { stop(); app()?.handleCloudAccessRemoved(message || 'Board access was removed.'); };
   const reportError = (error, message) => ACCESS_CODES.has(error?.code)
-    ? accessRemoved()
+    ? accessRemoved(error?.code === 'WORKSPACE_ARCHIVED' ? 'These boards are archived.' : undefined)
     : status(error?.code === 'unavailable' || !navigator.onLine ? 'Offline' : 'Error', message);
+
+  async function recoverListener(error, current) {
+    const stage = ['workspace','membership','board','lists','cards'].includes(error?.stage) ? error.stage : 'unknown';
+    status(navigator.onLine ? 'Connecting' : 'Offline', `Checking ${stage}.`);
+    try {
+      const role = await adapter.verifyWorkspaceAccess(app()?.getMode()?.id);
+      if (current !== generation) return;
+      app()?.updateCloudRole(role);
+    } catch (verificationError) {
+      if (current !== generation) return;
+      if (ACCESS_CODES.has(verificationError?.code)) return reportError(verificationError);
+      return status(verificationError?.code === 'unavailable' || !navigator.onLine ? 'Offline' : 'Error', 'Retry via Boards.');
+    }
+    if (recoveryAttempts >= RETRY_DELAYS.length) return status('Error', 'Sync paused. Retry Boards.');
+    const delay = RETRY_DELAYS[recoveryAttempts++];
+    clearRetry();
+    retryTimer = setTimeout(() => { retryTimer = null; if (current === generation) start(); }, delay);
+  }
 
   async function start(verifyAccess = false) {
     stop();
+    if (verifyAccess) recoveryAttempts = 0;
     const mode = app()?.getMode();
     const boardId = app()?.getActiveBoardId();
     if (!session || !isCloud(mode) || !mode.id || !boardId) return;
@@ -32,11 +53,19 @@ export function initializeCloudSyncController(adapter) {
         },
         onBoard:payload => { if (active()) app()?.applyRemoteCloudBoard(payload); },
         onMembership:role => { if (active()) app()?.updateCloudRole(role); },
-        onStatus:name => { if (active()) status(name === 'saving' ? 'Saving' : name === 'offline' ? 'Offline' : 'Synced'); },
-        onError:error => { if (active()) reportError(error, 'Realtime updates stopped. Reopen Boards to retry.'); }
+        onStatus:name => { if (active()) { if (name === 'synced') recoveryAttempts = 0; status(name === 'saving' ? 'Saving' : name === 'offline' ? 'Offline' : 'Synced'); } },
+        onError:error => {
+          if (!active()) return;
+          if (error?.code === 'permission-denied') { void recoverListener(error, current); return; }
+          reportError(error, 'Sync stopped. Reopen Boards.');
+        }
       });
       if (!active()) next(); else unsubscribe = next;
-    } catch (error) { if (active()) reportError(error, 'Realtime updates could not start.'); }
+    } catch (error) {
+      if (!active()) return;
+      if (error?.code === 'permission-denied') { void recoverListener(error, current); return; }
+      reportError(error, 'Sync could not start.');
+    }
   }
 
   ['flowboard:cloud-preview-change', 'flowboard:active-board-change'].forEach(name => window.addEventListener(name, () => start()));

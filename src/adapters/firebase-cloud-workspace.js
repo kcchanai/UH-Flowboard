@@ -132,22 +132,22 @@ export function subscribeCloudWorkspace(app, auth, {workspaceId, boardId, onWork
   let stopped=false,unsubscribers=[],cardUnsubscribers=[],cardGeneration=0;
   const stopCards=()=>{cardGeneration+=1;cardUnsubscribers.splice(0).forEach(unsubscribe=>unsubscribe());cardSnapshots.clear();};
   const stop=()=>{if(stopped)return;stopped=true;stopCards();unsubscribers.splice(0).forEach(unsubscribe=>unsubscribe());};
-  const fail=error=>{if(stopped)return;stop();onError?.(error);};
-  const emitBoard=()=>{if(stopped||!snapshots.board||!snapshots.lists||cardSnapshots.size!==Math.ceil(snapshots.lists.size/30))return;if(!snapshots.board.exists())return fail(Object.assign(new Error('Board unavailable.'),{code:'BOARD_NOT_FOUND'}));const board={id:snapshots.board.id,...snapshots.board.data()},lists=snapshots.lists.docs.map(item=>({id:item.id,...item.data()})),pages=[...cardSnapshots.values()],cards=pages.flatMap(page=>page.docs.map(item=>({id:item.id,...item.data()}))),all=[snapshots.board,snapshots.lists,...pages];onBoard?.({board,lists,cards});onStatus?.(all.some(item=>item.metadata.hasPendingWrites)?'saving':all.some(item=>item.metadata.fromCache)?'offline':'synced');};
-  const options={includeMetadataChanges:true},watch=(reference,next)=>onSnapshot(reference,options,next,fail),cards=collection(db,'workspaces',workspaceId,'boards',boardId,'cards');
-  const watchCards=listSnapshot=>{stopCards();snapshots.lists=listSnapshot;const ids=listSnapshot.docs.map(item=>item.id),generation=cardGeneration;if(!ids.length)return emitBoard();for(let index=0;index<ids.length;index+=30){const group=ids.slice(index,index+30),key=group.join('|');cardUnsubscribers.push(watch(query(cards,where('listId','in',group),where('lifecycleState','==','active')),snapshot=>{if(generation!==cardGeneration)return;cardSnapshots.set(key,snapshot);emitBoard();}));}};
+  const fail=(error,stage)=>{if(stopped)return;stop();error.stage=stage;onError?.(error);};
+  const emitBoard=()=>{if(stopped||!snapshots.board||!snapshots.lists||cardSnapshots.size!==Math.ceil(snapshots.lists.size/30))return;if(!snapshots.board.exists())return fail(Object.assign(new Error('Board unavailable.'),{code:'BOARD_NOT_FOUND'}),'board');const board={id:snapshots.board.id,...snapshots.board.data()},lists=snapshots.lists.docs.map(item=>({id:item.id,...item.data()})),pages=[...cardSnapshots.values()],cards=pages.flatMap(page=>page.docs.map(item=>({id:item.id,...item.data()}))),all=[snapshots.board,snapshots.lists,...pages];onBoard?.({board,lists,cards});onStatus?.(all.some(item=>item.metadata.hasPendingWrites)?'saving':all.some(item=>item.metadata.fromCache)?'offline':'synced');};
+  const options={includeMetadataChanges:true},watch=(reference,next,stage)=>onSnapshot(reference,options,next,error=>fail(error,stage)),cards=collection(db,'workspaces',workspaceId,'boards',boardId,'cards');
+  const watchCards=listSnapshot=>{stopCards();snapshots.lists=listSnapshot;const ids=listSnapshot.docs.map(item=>item.id),generation=cardGeneration;if(!ids.length)return emitBoard();for(let index=0;index<ids.length;index+=30){const group=ids.slice(index,index+30),key=group.join('|');cardUnsubscribers.push(watch(query(cards,where('listId','in',group),where('lifecycleState','==','active')),snapshot=>{if(generation!==cardGeneration)return;cardSnapshots.set(key,snapshot);emitBoard();},'cards'));}};
   unsubscribers=[
-    watch(doc(db,'workspaces',workspaceId),snapshot=>{if(!snapshot.exists())return fail(Object.assign(new Error('Access removed.'),{code:'ACCESS_REMOVED'}));onWorkspace?.(snapshot.data());}),
-    watch(doc(db,'workspaces',workspaceId,'members',user.uid),snapshot=>{if(!snapshot.exists())return fail(Object.assign(new Error('Access removed.'),{code:'ACCESS_REMOVED'}));onMembership?.(snapshot.data().role);}),
-    watch(doc(db,'workspaces',workspaceId,'boards',boardId),snapshot=>{snapshots.board=snapshot;emitBoard();}),
-    watch(query(collection(db,'workspaces',workspaceId,'boards',boardId,'lists'),where('lifecycleState','==','active')),watchCards)
+    watch(doc(db,'workspaces',workspaceId),snapshot=>{if(!snapshot.exists())return fail(Object.assign(new Error('Access removed.'),{code:'ACCESS_REMOVED'}),'workspace');onWorkspace?.(snapshot.data());},'workspace'),
+    watch(doc(db,'workspaces',workspaceId,'members',user.uid),snapshot=>{if(!snapshot.exists())return fail(Object.assign(new Error('Access removed.'),{code:'ACCESS_REMOVED'}),'membership');onMembership?.(snapshot.data().role);},'membership'),
+    watch(doc(db,'workspaces',workspaceId,'boards',boardId),snapshot=>{snapshots.board=snapshot;emitBoard();},'board'),
+    watch(query(collection(db,'workspaces',workspaceId,'boards',boardId,'lists'),where('lifecycleState','==','active')),watchCards,'lists')
   ];
   return stop;
 }
 
 export async function verifyWorkspaceAccess(app, auth, workspaceId) {
   const {db,user}=context(app,auth);
-  const membership = await getDoc(doc(db, 'workspaces', workspaceId, 'members', user.uid));
+  const membership = await getDocFromServer(doc(db, 'workspaces', workspaceId, 'members', user.uid));
   if (!membership.exists()) throw Object.assign(new Error('Access removed.'), {code:'ACCESS_REMOVED'});
   return membership.data().role;
 }

@@ -986,7 +986,8 @@ service cloud.firestore {
       allow delete: if false;
 
       match /members/{uid} {
-        allow read: if isMember(workspaceId);
+        allow get: if (signedIn() && request.auth.uid == uid) || isMember(workspaceId);
+        allow list: if isMember(workspaceId);
         allow create: if signedIn()
           && request.resource.data.uid == uid
           && validRole(request.resource.data.role)
