@@ -77,10 +77,10 @@ test('card-details header and footer cover the inner window at every scroll posi
 test('comments remove retired explanatory and idle copy but retain operational status',async({page})=>{
   const consoleErrors=[];page.on('console',message=>{if(message.type()==='error')consoleErrors.push(message.text());});await openShell(page);await installSyntheticCard(page,{commentCount:2});await openCard(page);const section=page.locator('#cloud-comments-section'),status=page.locator('#cloud-comments-status');
   await expect(section).not.toContainText('Authenticated cloud comments are separate from older card-local activity.');await expect(status).toHaveText('');await expect(section).toContainText('Synthetic comment 1');await page.locator('#load-older-comments').click();await expect(section).toContainText('Synthetic older comment');
-  await page.evaluate(()=>globalThis.__cardDetailsFixture.subscribeOptions.onError(new Error('Synthetic comments failure')));await expect(status).toContainText('Synthetic comments failure');
+  await page.evaluate(()=>globalThis.__cardDetailsFixture.subscribeOptions.onError(new Error('Synthetic comments failure')));await expect(status).toHaveText('Cloud comments stopped updating.');await expect(status).not.toContainText('Synthetic comments failure');
   await page.evaluate(()=>globalThis.__cardDetailsFixture.subscribeOptions.onComments({entries:globalThis.__cardDetailsFixture.entries,cursor:null,hasMore:false}));await expect(status).toHaveText('');
   await page.locator('#close-card-dialog').click();await openCard(page);await expect(status).toHaveText('');await expect(section).not.toContainText('Comments are current.');
-  expect(consoleErrors.length).toBe(1);
+  expect(consoleErrors).toHaveLength(0);
 });
 
 test('delayed comment results are discarded after close and local sentinel bytes stay unchanged',async({page})=>{

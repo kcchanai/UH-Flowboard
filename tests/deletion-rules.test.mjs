@@ -110,15 +110,20 @@ async function deleteCommentPages(db,fixture,cardId) {
   return removed;
 }
 
-test('card deletion lock is coupled, role-bound, resumable after early completion, and handles multiple comment pages', async () => {
-  const fixture=await seedFixture('card',{commentCount:27}), operationId=mid('card-delete');
-  const viewer=dbFor(fixture.viewer), editor=dbFor(fixture.editor);
+test('card deletion lock protects board content and permits an account to verify only its own membership', async () => {
+  const fixture=await seedFixture('card',{commentCount:27,secondList:true}), operationId=mid('card-delete');
+  const viewer=dbFor(fixture.viewer), editor=dbFor(fixture.editor), nonmember=env.authenticatedContext('outside-card-member',{email:'outside@example.com',email_verified:true}).firestore();
   const viewerStart=writeBatch(viewer);
   addStartWrites(viewerStart,viewer,fixture,{actor:fixture.viewer,targetType:'card',targetId:'card-target',operationId,expectedRevision:0});
   await assertFails(viewerStart.commit());
   await assertSucceeds(startDeletion(editor,fixture,{actor:fixture.editor,targetType:'card',targetId:'card-target',operationId,expectedRevision:0}));
   await assertSucceeds(getDoc(doc(editor,'workspaces',fixture.workspaceId,'boards',fixture.boardId)));
   await assertFails(getDoc(doc(viewer,'workspaces',fixture.workspaceId,'boards',fixture.boardId)));
+  await assertFails(getDoc(doc(viewer,'workspaces',fixture.workspaceId,'boards',fixture.boardId,'lists','list-keep')));
+  await assertFails(getDoc(doc(viewer,'workspaces',fixture.workspaceId,'boards',fixture.boardId,'cards','card-keep')));
+  await assertFails(getDoc(doc(nonmember,'workspaces',fixture.workspaceId,'boards',fixture.boardId)));
+  const ownMembership=await assertSucceeds(getDoc(doc(viewer,'workspaces',fixture.workspaceId,'members',fixture.viewer)));
+  assert.equal(ownMembership.data().role,'viewer');
 
   const cardPath=['workspaces',fixture.workspaceId,'boards',fixture.boardId,'cards','card-target'];
   await assertFails(getDoc(doc(viewer,...cardPath)));
@@ -127,6 +132,8 @@ test('card deletion lock is coupled, role-bound, resumable after early completio
   const comments=collection(editor,...cardPath,'comments');
   await assertSucceeds(getDocs(query(comments,limit(25))));
   await assertFails(getDocs(query(comments)));
+  await assertFails(getDoc(doc(viewer,...cardPath,'comments','comment-000-0000000000')));
+  await assertFails(getDocs(query(collection(viewer,...cardPath,'comments'),limit(25))));
 
   // Client completion is not trusted as proof. The tombstone still hides the payload,
   // while an authorized actor can resume and remove every retained comment.
@@ -160,6 +167,19 @@ test('list deletion covers active and archived sibling cards without touching an
   assert.equal((await getDoc(doc(cards,'card-keep'))).exists(),true);
   assert.equal((await getDoc(doc(editor,'workspaces',fixture.workspaceId,'boards',fixture.boardId,'lists','list-keep'))).exists(),true);
   await assertFails(setDoc(doc(editor,'workspaces',fixture.workspaceId,'boards',fixture.boardId,'lists','list-target'),{id:'list-target',title:'Resurrection',rank:2,revision:0,clientMutationId:'resurrection-list-0001'}));
+});
+
+test('list deletion lock leaves viewer board reads denied while deletion safety remains active', async () => {
+  const fixture=await seedFixture('list-lock',{commentCount:2,secondList:true}), operationId=mid('list-lock'), editor=dbFor(fixture.editor), viewer=dbFor(fixture.viewer);
+  await assertSucceeds(startDeletion(editor,fixture,{actor:fixture.editor,targetType:'list',targetId:'list-target',operationId,expectedRevision:0}));
+  await assertFails(getDoc(doc(viewer,'workspaces',fixture.workspaceId,'boards',fixture.boardId)));
+  await assertFails(getDoc(doc(viewer,'workspaces',fixture.workspaceId,'boards',fixture.boardId,'lists','list-keep')));
+  await assertFails(getDoc(doc(viewer,'workspaces',fixture.workspaceId,'boards',fixture.boardId,'cards','card-keep')));
+  await assertFails(getDoc(doc(viewer,'workspaces',fixture.workspaceId,'boards',fixture.boardId,'lists','list-target')));
+  await assertFails(getDoc(doc(viewer,'workspaces',fixture.workspaceId,'boards',fixture.boardId,'cards','card-target')));
+  await assertFails(getDoc(doc(viewer,'workspaces',fixture.workspaceId,'boards',fixture.boardId,'cards','card-archived')));
+  await assertFails(getDocs(query(collection(viewer,'workspaces',fixture.workspaceId,'boards',fixture.boardId,'cards','card-target','comments'),limit(25))));
+  await assertFails(updateDoc(doc(viewer,'workspaces',fixture.workspaceId,'boards',fixture.boardId,'cards','card-keep'),{title:'Viewer write',revision:1,clientMutationId:'viewer-list-lock-write-0001'}));
 });
 
 test('board owner may delete parent first while durable control keeps leftovers hidden and cleanable', async () => {
@@ -226,6 +246,9 @@ test('revoking an initiating editor stops cleanup while the owner can safely tak
   const fixture=await seedFixture('revoke',{commentCount:1}), editor=dbFor(fixture.editor), owner=dbFor(fixture.owner), operationId=mid('revoke-delete');
   await assertSucceeds(startDeletion(editor,fixture,{actor:fixture.editor,targetType:'card',targetId:'card-target',operationId,expectedRevision:0}));
   await assertSucceeds(deleteDoc(doc(owner,'workspaces',fixture.workspaceId,'members',fixture.editor)));
+  const ownMembership=await assertSucceeds(getDoc(doc(editor,'workspaces',fixture.workspaceId,'members',fixture.editor)));
+  assert.equal(ownMembership.exists(),false);
+  await assertFails(getDoc(doc(editor,'workspaces',fixture.workspaceId,'members',fixture.owner)));
   const comment=doc(editor,'workspaces',fixture.workspaceId,'boards',fixture.boardId,'cards','card-target','comments','comment-000-0000000000');
   await assertFails(deleteDoc(comment));
   assert.equal(await deleteCommentPages(owner,fixture,'card-target'),1);
