@@ -1,6 +1,6 @@
 import {test, expect} from '@playwright/test';
 import {initializeTestEnvironment} from '@firebase/rules-unit-testing';
-import {doc,getDoc,Timestamp,writeBatch} from 'firebase/firestore';
+import {collection,doc,getDoc,getDocs,Timestamp,writeBatch} from 'firebase/firestore';
 import {previewUrl} from '../../scripts/repository-path.mjs';
 
 test.describe.configure({mode: 'serial'});
@@ -228,6 +228,22 @@ test('Auth and Firestore Emulator workflow proves discovery, convergence, denial
     await openRole(viewer, 'viewer');
     await openFixture(viewer);
     await expect(viewer.locator('#cloud-status')).toContainText('Boards preview');
+
+    const fixture=await owner.evaluate(()=>globalThis.__flowboardEmulatorTest.fixture),[host,port]=process.env.FIRESTORE_EMULATOR_HOST.split(':'),admin=await initializeTestEnvironment({projectId:'demo-flowboard-browser',firestore:{host,port:Number(port)}});
+    try{
+      const cloudState=async()=>{let value;await admin.withSecurityRulesDisabled(async context=>{const db=context.firestore(),root=doc(db,'workspaces',fixture.workspaceId),board=doc(root,'boards',fixture.boardId),[workspaceDoc,boardDoc,lists,cards,activity]=await Promise.all([getDoc(root),getDoc(board),getDocs(collection(board,'lists')),getDocs(collection(board,'cards')),getDocs(collection(db,'workspaces',fixture.workspaceId,'activity'))]),rows=snapshot=>snapshot.docs.map(item=>[item.id,item.data()]).sort(([a],[b])=>a.localeCompare(b));value=JSON.stringify({workspace:workspaceDoc.data(),board:boardDoc.data(),lists:rows(lists),cards:rows(cards),activity:rows(activity)});});return value;};
+      const before=await cloudState();
+      for(const[page,role,color,finish]of[[owner,'owner','blush-clay','gradient'],[editor,'editor','pale-aqua','solid'],[viewer,'viewer','mist-slate','gradient']]){
+        await page.evaluate(label=>{localStorage.setItem('flowboard-workspace',`{\"sentinel\":\"${label}-workspace\"}`);localStorage.setItem('flowboard-appearance',`{\"sentinel\":\"${label}-appearance\"}`);},role);
+        const prior=await page.evaluate(()=>{const mode=FlowboardApp.getMode();return{kind:mode.kind,role:mode.role,syncStatus:mode.syncStatus};});
+        await page.locator('.list').first().locator('.list-menu').click();await page.locator('.list-menu-panel:visible').getByRole('menuitem',{name:'List appearance'}).click();
+        await page.locator(`[name=\"list-color\"][value=\"${color}\"]`).check();await page.locator(`[name=\"list-finish\"][value=\"${finish}\"]`).check();await page.getByRole('button',{name:'Save list appearance'}).click();
+        await expect(page.locator('.list').first()).toHaveAttribute('data-list-color',color);expect(await page.evaluate(()=>({workspace:localStorage.getItem('flowboard-workspace'),appearance:localStorage.getItem('flowboard-appearance')}))).toEqual({workspace:`{\"sentinel\":\"${role}-workspace\"}`,appearance:`{\"sentinel\":\"${role}-appearance\"}`});
+        const after=await page.evaluate(()=>{const mode=FlowboardApp.getMode();return{kind:mode.kind,role:mode.role,syncStatus:mode.syncStatus};});expect(after).toEqual(prior);
+      }
+      expect(await owner.evaluate(()=>JSON.parse(localStorage.getItem('flowboard-list-appearances')).overrides[0].color)).toBe('blush-clay');expect(await editor.evaluate(()=>JSON.parse(localStorage.getItem('flowboard-list-appearances')).overrides[0].color)).toBe('pale-aqua');expect(await viewer.evaluate(()=>JSON.parse(localStorage.getItem('flowboard-list-appearances')).overrides[0].color)).toBe('mist-slate');
+      expect(await cloudState()).toBe(before);
+    }finally{await admin.cleanup();}
 
     await editor.locator('.list').first().locator('.list-menu').click();
     await editor.locator('.list').first().getByRole('menuitem', {name:'Move right'}).click();

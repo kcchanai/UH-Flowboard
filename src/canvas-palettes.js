@@ -14,7 +14,9 @@ const listBackgrounds = Object.freeze([
   {id:'soft-sage',name:'Soft Sage',light:['#f6faf7','#f1f7f6'],dark:['#152224','#1a2628']},
   {id:'warm-sand',name:'Warm Sand',light:['#fcf9f5','#f9f5f1'],dark:['#1d1f21','#222224']},
   {id:'lavender',name:'Lavender',light:['#f9f8fc','#f5f7fb'],dark:['#1a1e2b','#1d2434']},
-  {id:'mist-slate',name:'Mist Slate',light:['#d9e2ea','#dcdfe7'],dark:['#13202d','#1a2432']}
+  {id:'mist-slate',name:'Mist Slate',light:['#d9e2ea','#dcdfe7'],dark:['#13202d','#1a2432']},
+  {id:'blush-clay',name:'Blush Clay',light:['#f2e4df','#f6ebe7'],dark:['#272020','#302629']},
+  {id:'pale-aqua',name:'Pale Aqua',light:['#e0efed','#e8f5f3'],dark:['#1c2b2d','#213638']}
 ].map(Object.freeze));
 export const CANVAS_PALETTES = Object.freeze(palettes.map(({id,name,note}) => Object.freeze({id,name,note})));
 export const LIST_BACKGROUNDS = listBackgrounds;
@@ -28,7 +30,11 @@ export function applyCanvasPalette(id = 'classic-flow', finish = 'gradient', mod
   root.style.setProperty('--canvas-ink-soft',lightInk?'rgba(255,255,255,.86)':'rgba(23,43,77,.82)');root.style.setProperty('--canvas-control',lightInk?'rgba(255,255,255,.12)':'rgba(255,255,255,.48)');root.style.setProperty('--canvas-control-hover',lightInk?'rgba(255,255,255,.22)':'rgba(255,255,255,.72)');root.style.setProperty('--canvas-border',lightInk?'rgba(255,255,255,.32)':'rgba(23,43,77,.28)');root.style.setProperty('--canvas-focus',lightInk?'#fff':'#0c66e4');root.style.setProperty('--canvas-scrollbar',lightInk?'rgba(255,255,255,.72)':'rgba(23,43,77,.48)');
   root.style.setProperty('--canvas-background',solid?values[2]:`radial-gradient(circle at 12% 0%,${kind==='dark'?'rgba(255,255,255,.06)':'rgba(255,255,255,.12)'},transparent 34rem),linear-gradient(135deg,${values[0]},${values[1]})`);root.dataset.canvas=palette.id;root.dataset.canvasFinish=solid?'solid':'gradient';applyListBackground(undefined,undefined,kind);return{id:palette.id,finish:root.dataset.canvasFinish,mode:kind};
 }
+function setListBackground(target,id,finish,mode) {
+  const palette=getListBackground(id),kind=mode==='dark'?'dark':'light',values=palette[kind],gradient=finish==='gradient'&&palette.id!=='standard';
+  target.style.setProperty('--list-background',gradient?`linear-gradient(135deg,${values[0]},${values[1]})`:palette.id==='standard'?values[0]:`color-mix(in srgb,${values[0]} 50%,${values[1]})`);target.dataset.listColor=palette.id;target.dataset.listFinish=finish==='gradient'?'gradient':'solid';
+}
+export function applyListBackgroundTo(element,id,finish,mode=document.documentElement.dataset.theme||'light') { if(element)setListBackground(element,id,finish,mode); }
 export function applyListBackground(id,finish,mode=document.documentElement.dataset.theme||'light') {
-  const root=document.documentElement,appearance=globalThis.FlowboardRuntime?.localAdapter?.loadAppearance?.(),stored=appearance?.version===1?appearance:{},palette=getListBackground(id||root.dataset.listColor||stored.listColor),kind=mode==='dark'?'dark':'light',values=palette[kind],choice=finish||root.dataset.listFinish||stored.listFinish,gradient=choice==='gradient'&&palette.id!=='standard';
-  root.style.setProperty('--list-background',gradient?`linear-gradient(135deg,${values[0]},${values[1]})`:palette.id==='standard'?values[0]:`color-mix(in srgb,${values[0]} 50%,${values[1]})`);root.dataset.listColor=palette.id;root.dataset.listFinish=choice==='gradient'?'gradient':'solid';
+  const root=document.documentElement,appearance=globalThis.FlowboardRuntime?.localAdapter?.loadAppearance?.(),stored=appearance?.version===1?appearance:{},color=id||root.dataset.listColor||stored.listColor,style=finish||root.dataset.listFinish||stored.listFinish,kind=mode==='dark'?'dark':'light';setListBackground(root,color,style,kind);globalThis.window?.dispatchEvent(new Event('flowboard:appearance-change'));
 }
