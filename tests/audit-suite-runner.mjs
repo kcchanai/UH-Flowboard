@@ -3,7 +3,7 @@ import {existsSync,mkdirSync} from 'node:fs';
 import path from 'node:path';
 import net from 'node:net';
 
-const ownedCache=path.resolve('node_modules/.cache/flowboard-current-suite');
+const ownedCache=path.resolve(process.env.FLOWBOARD_CURRENT_SUITE_CACHE||'node_modules/.cache/flowboard-current-suite');
 mkdirSync(ownedCache,{recursive:true});
 process.env.TEMP=process.env.TMP=ownedCache;
 process.env.npm_config_cache=path.join(ownedCache,'npm');
@@ -28,7 +28,7 @@ const requiredCurrentSpecs=[
   'tests/board-first-copy.spec.mjs',
   'tests/single-workspace-board-ux.spec.mjs',
   'tests/cloud-first-a11y.spec.mjs',
-  'tests/cloud-first-configured-session.spec.mjs'
+  'tests/cloud-first-configured-session.spec.mjs','tests/list-appearance.spec.mjs'
 ];
 
 function parseCounts(output,kind){

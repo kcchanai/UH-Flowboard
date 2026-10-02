@@ -1052,7 +1052,7 @@ test('curated list backgrounds render both finishes in light and dark without af
   await openReady(page);
   await seedAppearanceBoard(page);
   await page.getByRole('button',{name:'Open appearance settings'}).click();
-  const colors=['standard','frost-blue','soft-sage','warm-sand','lavender','mist-slate'],results=[];
+  const colors=['standard','frost-blue','soft-sage','warm-sand','lavender','mist-slate','blush-clay','pale-aqua'],results=[];
   for (const mode of ['light','dark']) {
     await page.locator(`input[name="appearance-mode"][value="${mode}"]`).check();
     const canvas=await page.evaluate(()=>document.documentElement.style.getPropertyValue('--canvas-background'));
@@ -1063,9 +1063,9 @@ test('curated list backgrounds render both finishes in light and dark without af
         results.push(await page.evaluate(()=>{const root=document.documentElement,list=document.querySelector('.list'),card=document.querySelector('.card'),swatch=document.querySelector('#appearance-list-palettes input:checked').parentElement.querySelector('.palette-swatch');return{id:root.dataset.listColor,mode:root.dataset.theme,finish:root.dataset.listFinish,background:root.style.getPropertyValue('--list-background'),image:getComputedStyle(list).backgroundImage,swatchImage:getComputedStyle(swatch).backgroundImage,color:getComputedStyle(list).backgroundColor,canvas:root.style.getPropertyValue('--canvas-background'),ink:getComputedStyle(root).getPropertyValue('--ink').trim(),muted:getComputedStyle(root).getPropertyValue('--muted').trim(),titleColor:getComputedStyle(list.querySelector('.list-title')).color,countColor:getComputedStyle(list.querySelector('.list-count')).color,actionColor:getComputedStyle(list.querySelector('.list-menu')).color,hover:getComputedStyle(root).getPropertyValue('--surface-hover').trim(),cardBackground:getComputedStyle(card).backgroundColor,cardColor:getComputedStyle(card).color,focus:getComputedStyle(root).getPropertyValue('--focus').trim(),strong:getComputedStyle(root).getPropertyValue('--surface-strong').trim()};}));
       }
     }
-    expect(results.slice(-12).every(item=>item.canvas===canvas)).toBe(true);
+    expect(results.slice(-16).every(item=>item.canvas===canvas)).toBe(true);
   }
-  expect(results).toHaveLength(24);
+  expect(results).toHaveLength(32);
   for (const item of results) {
     expect(item.id).toBeTruthy();
     expect(cssHex(item.titleColor)).toBe(item.ink);
@@ -1171,7 +1171,7 @@ test('appearance dialog remains usable at target viewport sizes', async ({page})
     await expect(page.locator('#appearance-list-palettes input[value="mist-slate"]')).toBeVisible();
     await page.locator('input[name="appearance-list-finish"][value="gradient"]').scrollIntoViewIfNeeded();
     await expect(page.locator('input[name="appearance-list-finish"][value="gradient"]')).toBeVisible();
-    if([1440,390,844].includes(size.width))await page.screenshot({path:`artifacts/list-appearance-plan/playwright-gpt6-luna/appearance-review-lists-${size.width}x${size.height}.png`});
+    if([1440,390,844].includes(size.width))await page.screenshot({path:`artifacts/per-list-background-implementation/global-appearance-review/lists-${size.width}x${size.height}.png`});
     await page.getByRole('button',{name:'Save appearance'}).scrollIntoViewIfNeeded();
     await expect(page.getByRole('button',{name:'Cancel',exact:true})).toBeVisible();
     const geometry=await page.evaluate(()=>{const dialog=document.querySelector('#appearance-dialog'),rect=dialog.getBoundingClientRect();return{width:rect.width,height:rect.height,innerWidth,innerHeight,documentWidth:document.documentElement.scrollWidth,bodyWidth:document.body.scrollWidth,dialogWidth:dialog.scrollWidth,dialogClientWidth:dialog.clientWidth};});
@@ -1182,7 +1182,7 @@ test('appearance dialog remains usable at target viewport sizes', async ({page})
     expect(geometry.dialogWidth).toBeLessThanOrEqual(geometry.dialogClientWidth+1);
     if([1440,390,844].includes(size.width)){
       await page.locator('.appearance-body').evaluate(element=>element.scrollTop=0);
-      await page.screenshot({path:`artifacts/list-appearance-plan/playwright-gpt6-luna/appearance-review-${size.width}x${size.height}.png`});
+      await page.screenshot({path:`artifacts/per-list-background-implementation/global-appearance-review/appearance-${size.width}x${size.height}.png`});
     }
     await page.locator('.appearance-body').evaluate(element=>element.scrollTop=0);
     await page.getByRole('button',{name:'Close appearance'}).click();
