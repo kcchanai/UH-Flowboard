@@ -43,21 +43,17 @@ main{flex-direction:column;min-height:0;padding:8px clamp(14px,2vw,28px) 16px;di
 }@media (width<=360px){.toolbar-scroll-cue{right:0}}
 .list-menu-panel [data-list-action=delete]{border-top:1px solid var(--line);margin-top:4px;padding-top:9px}
 
-/* Desktop board identity and persistent filter state; preserve narrow toolbar scrolling. */
-.board-header-context{display:flex;flex:none;min-width:0;align-items:flex-start;flex-wrap:wrap;gap:6px 12px;margin:0 0 6px;color:var(--canvas-ink);font-size:13px}
-.board-header-context[hidden],.board-full-title[hidden],.board-active-filters[hidden]{display:none}
-.board-full-title{min-width:0;max-width:100%;color:var(--canvas-ink)}
-.board-full-title summary,.board-active-filters button{cursor:pointer;border:1px solid transparent;border-radius:var(--radius-sm);background:var(--canvas-control);color:var(--canvas-ink);min-height:29px;padding:4px 8px;font:inherit;font-weight:700}
-.board-full-title summary:focus-visible,.board-active-filters button:focus-visible{outline:2px solid var(--canvas-focus);outline-offset:1px}
-.board-full-title p{margin:4px 0 0;padding:6px 8px;max-width:100%;overflow-wrap:anywhere;background:var(--canvas-control);border-radius:var(--radius-sm)}
-.board-active-filters{display:flex;align-items:center;flex-wrap:wrap;min-width:0;gap:4px 8px;line-height:1.35}
-#board-active-filter-names{min-width:0;overflow-wrap:anywhere}
+.board-header-context,.board-header-context>div{display:flex;flex-wrap:wrap;gap:8px}
+.board-header-context{margin-bottom:6px;color:var(--canvas-ink);font-size:13px;align-items:start}
+.board-header-context:not(:has(> :not([hidden]))),.board-header-context>[hidden]{display:none}
+.board-header-context>*{min-width:0}
+.board-header-context{overflow-wrap:anywhere}
+.board-header-context summary{display:list-item}.board-header-context p{margin:4px 0 0}
+.board-header-context>div{align-items:center}
 @media(min-width:1024px){
   .board-header>.board-heading{flex:1 1 23rem;min-width:min(29vw,360px)}
   .board-header .board-title{width:100%;flex:1 1 auto}
   .board-header>.board-search{width:clamp(8.5rem,14vw,13rem);min-width:8.5rem}
 }
-@media(min-width:1024px) and (max-width:1199px){
-  .board-header>#quick-filters{display:none}
-}
+@media(1024px<=width<=1199px){.board-header>#quick-filters{display:none}}
 .board-header-context:has(~.board-scroll-cue:not([hidden])){padding-inline-end:5rem}
