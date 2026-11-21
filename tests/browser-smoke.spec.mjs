@@ -798,7 +798,7 @@ test('named labels, members, and completion filters combine and clear', async ({
   await expect(page.locator('.card-open')).toHaveCount(1);
   await expect(page.locator('.card-open').first()).toContainText('Launch task');
   await expect(page.locator('#filter-toggle')).toHaveAttribute('data-active','true');
-  await expect(page.locator('#filter-toggle')).toHaveAttribute('aria-label','Filters active');
+  await expect(page.locator('#filter-toggle')).toHaveAttribute('aria-label','Filters (1 active)');
   await label.selectOption('all');
   await expect(page.locator('#label-filter')).toHaveValue('all');
   await expect(page.locator('#member-filter')).toHaveValue('assigned');
