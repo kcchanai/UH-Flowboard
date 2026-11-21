@@ -309,3 +309,57 @@ test('cloud backup pages comments and snapshot upgrade scrubs duplicates idempot
     });
   }finally{await context.close();}
 });
+
+
+const setupBoardPicker=async page=>{
+  await page.goto(baseURL+'/tests/emulator/directory-race.html');
+  await page.waitForFunction(()=>globalThis.__directoryRace?.ready);
+  const trigger=page.locator('#boards-button'),picker=page.locator('#workspace-dialog'),search=picker.locator('#workspace-search');
+  const open=async()=>{await trigger.click();await expect(search).toBeFocused();await expect(picker.getByRole('button',{name:/Open Board A/})).toBeVisible();};
+  await open();
+  return {trigger,picker,search,open};
+};
+const boardPickerSummary=page=>page.evaluate(()=>globalThis.__directoryRace.summary());
+
+test('keyboard picker distinguishes duplicates without promoting fresh viewer access',async({page})=>{
+  const {trigger,picker,search,open}=await setupBoardPicker(page);
+  await search.fill('Board B');
+  const buttons=picker.getByRole('button',{name:/Open board b/i});
+  await expect(buttons).toHaveCount(2);
+  await expect(buttons.nth(0)).toHaveAccessibleName(/Source 1 of 2/);
+  await expect(buttons.nth(1)).toHaveAccessibleName(/Source 2 of 2/);
+  await search.press('Enter');await expect(buttons.nth(0)).toBeFocused();
+  await buttons.nth(0).press('ArrowDown');await expect(buttons.nth(1)).toBeFocused();
+  await buttons.nth(1).press('ArrowUp');await expect(buttons.nth(0)).toBeFocused();
+  await buttons.nth(0).press('ArrowUp');await expect(search).toBeFocused();
+  await search.press('ArrowUp');await expect(buttons.nth(1)).toBeFocused();
+  await buttons.nth(1).press('Enter');await expect(picker).toBeHidden();await expect(trigger).toBeFocused();
+  expect(await boardPickerSummary(page)).toEqual({active:'board-shared',mode:'cloud-preview',scope:'scope-b',role:'viewer',fetchOptions:{serverOnly:true}});
+  await open();await expect(search).toHaveValue('');
+  await search.fill('Board A');await search.press('Enter');await expect(picker).toBeHidden();
+  expect(await boardPickerSummary(page)).toMatchObject({active:'board-a',mode:'cloud',scope:'scope-a',role:'owner'});
+  await open();await search.fill('Editable Shared');await search.press('Enter');await expect(picker).toBeHidden();
+  expect(await boardPickerSummary(page)).toMatchObject({active:'board-editor',mode:'cloud',scope:'scope-c',role:'editor'});
+});
+
+test('keyboard picker: no result, stale board, fetch and membership failures leave the active board unchanged',async({page})=>{
+  const {trigger,picker,search,open}=await setupBoardPicker(page);
+  await search.fill('Board A');await search.press('Enter');await expect(picker).toBeHidden();
+  await open();await search.fill('nothing here');await search.press('Enter');
+  await expect(picker.getByText('No active boards match your search.')).toBeVisible();
+  expect((await boardPickerSummary(page)).active).toBe('board-a');
+  for(const [kind,message] of [['stale','Board unavailable. Reopen Boards.'],['renamed','Board unavailable. Reopen Boards.'],['offline','Board unavailable. Refresh and retry.'],['revoked','Board unavailable. Refresh and retry.']]){
+    await page.evaluate(kind=>globalThis.__directoryRace.fail(kind),kind);
+    await search.fill('Only Shared');await search.press('Enter');
+    await expect(picker.getByText(message)).toBeVisible();
+    expect(await boardPickerSummary(page)).toMatchObject({active:'board-a',scope:'scope-a',role:'owner'});
+  }
+  await search.press('Escape');await expect(picker).toBeHidden();await expect(trigger).toBeFocused();
+});
+
+test('keyboard picker: Escape closes search and cancels a pending switch',async({page})=>{
+  const {trigger,picker,search}=await setupBoardPicker(page);
+  await search.fill('Board A');await search.press('Enter');await search.press('Escape');
+  await expect(picker).toBeHidden();await expect(trigger).toBeFocused();
+  await expect.poll(async()=>{await page.waitForTimeout(140);return (await boardPickerSummary(page)).active;}).toBe('');
+});
