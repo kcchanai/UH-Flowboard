@@ -101,3 +101,54 @@ test('card details preserves draft confirmation, Escape, and viewer Close behavi
   await openShell(page);await installSyntheticCard(page,{commentCount:2});const card=await openCard(page);await page.locator('#card-description-input').fill('Synthetic unsaved draft');await page.locator('#cancel-card-dialog').click();const confirmation=page.locator('#confirm-dialog');await expect(confirmation).toBeVisible();await expect(confirmation.locator('#confirm-title')).toHaveText('Discard unsaved changes?');await confirmation.getByRole('button',{name:'Cancel'}).click();await expect(page.locator('#card-dialog')).toBeVisible();await page.locator('#close-card-dialog').click();await expect(confirmation).toBeVisible();await confirmation.getByRole('button',{name:'Discard changes'}).click();await expect(page.locator('#card-dialog')).toBeHidden();await expect(card).toBeFocused();await card.click();await page.keyboard.press('Escape');await expect(page.locator('#card-dialog')).toBeHidden();await expect(card).toBeFocused();
   await page.evaluate(()=>FlowboardApp.openCloudPreview(FlowboardState.makeWorkspace(),{id:'synthetic-viewer',name:'Synthetic viewer',role:'viewer'}));const viewerCard=page.locator('.card-open').first();await viewerCard.click();const close=page.locator('#close-card-dialog');await expect(close).toBeEnabled();await close.click();await expect(page.locator('#card-dialog')).toBeHidden();await expect(viewerCard).toBeFocused();
 });
+
+// The Kanban due chip is a shortcut to the one existing editor; viewing it never writes.
+test('editable due chips open Card Details at Date and keep its normal save path',async({page})=>{
+  await openShell(page);
+  await page.evaluate(()=>{
+    const S=FlowboardState,workspace=S.makeEmptyWorkspace(),board=S.makeBoard('blank');
+    const dated=S.makeCard('Synthetic dated task'),undated=S.makeCard('Synthetic undated task');
+    dated.dueDate='2030-04-05';dated.dueTime='14:30';
+    board.lists=[S.makeList('Synthetic list',[dated,undated])];workspace.boards=[board];workspace.activeBoardId=board.id;
+    globalThis.__dueShortcutFixture={workspace,writes:[]};
+    globalThis.FlowboardRuntime={...FlowboardRuntime,cloudAdapter:{applyWorkspaceMutation:async request=>{__dueShortcutFixture.writes.push(request);return request.next;}}};
+    FlowboardApp.openCloudWorkspace(workspace,{id:'synthetic-date-workspace',role:'owner'});
+  });
+  const dialog=page.locator('#card-dialog'),date=dialog.getByLabel('Due date',{exact:true}),time=dialog.locator('#due-time-input');
+  const card=page.locator('.card').filter({hasText:'Synthetic dated task'}),title=card.locator('.card-open');
+  const button=card.getByRole('button',{name:/^Due:/});
+  await expect(page.getByRole('button',{name:/^Due:/})).toHaveCount(1);
+  await expect(title.locator('button')).toHaveCount(0);
+  await button.click();await expect(dialog).toBeVisible();await expect(date).toBeFocused();
+  await expect(date).toHaveValue('2030-04-05');await expect(time).toHaveValue('14:30');
+  await page.keyboard.press('Escape');await expect(dialog).toBeHidden();await expect(button).toBeFocused();
+  expect(await page.evaluate(()=>__dueShortcutFixture.writes.length)).toBe(0);
+  await button.press('Space');await expect(date).toBeFocused();
+  await date.fill('2030-04-06');await dialog.locator('button[type="submit"]').click();
+  await expect(dialog).toBeHidden();await expect(title).toBeFocused();
+  expect(await page.evaluate(()=>{
+    const [request]=__dueShortcutFixture.writes;
+    const card=request.next.boards[0].lists[0].cards[0];
+    return {count:__dueShortcutFixture.writes.length,due:card.dueDate,time:card.dueTime,title:card.title};
+  })).toEqual({count:1,due:'2030-04-06',time:'14:30',title:'Synthetic dated task'});
+  await title.click();await expect(dialog.locator('#card-title-input')).toBeFocused();
+  await page.keyboard.press('Escape');await expect(title).toBeFocused();
+  await page.evaluate(()=>FlowboardApp.openCloudWorkspace(__dueShortcutFixture.workspace,{id:'synthetic-date-workspace',role:'editor'}));
+  await button.press('Enter');await expect(date).toBeFocused();await page.keyboard.press('Escape');
+  await page.evaluate(()=>FlowboardApp.openCloudPreview(__dueShortcutFixture.workspace,{id:'synthetic-date-workspace',role:'viewer'}));
+  await expect(button).toHaveCount(0);await expect(card.locator('span.due')).toContainText('14:30');
+  await title.click();await expect(date).toBeDisabled();await dialog.locator('#close-card-dialog').click();
+});
+
+test('dated cards retain the standard title and detail access at phone width',async({page})=>{
+  await page.setViewportSize({width:390,height:844});await openShell(page);
+  await page.evaluate(()=>{
+    const S=FlowboardState,w=S.makeWorkspace();w.boards[0].lists[0].cards[0].dueDate='2030-04-05';
+    FlowboardApp.openCloudWorkspace(w,{id:'synthetic-date-mobile',role:'editor'});
+  });
+  const title=page.locator('.card-open').first(),chip=page.getByRole('button',{name:/^Due:/}).first();
+  await expect(title).toBeVisible();await expect(chip).toBeVisible();
+  await title.click();await expect(page.locator('#card-title-input')).toBeFocused();
+  await page.locator('#close-card-dialog').click();await expect(title).toBeFocused();
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
