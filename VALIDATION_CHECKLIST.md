@@ -1,5 +1,18 @@
 # Flowboard validation checklist
 
+## Current validation
+
+Use synthetic identities and board data in an isolated local environment. Do not copy a real `.env` file or reuse a production browser profile. See the [validation workflow](.github/workflows/validate.yml), [Pages workflow](.github/workflows/deploy-pages.yml), and [package scripts](package.json) for the commands and current pins.
+
+1. With Node.js 22, run `npm ci` and `npm run validate`. This runs the unit, syntax, static, build, asset-budget, and test-isolation checks.
+2. With Java 21, run `npm run test:rules`. These tests use a disposable Firestore Emulator project and do not establish current production authorization.
+3. To run the maintained local current-feature audit, install the pinned browser tools used in CI: `npm install --no-save --ignore-scripts @playwright/test@1.55.0 lighthouse@12.8.2`, then `npx playwright install chromium` and `npm run test:current`. `npm run test:current` includes the Rules and Auth/Firestore Emulator browser checks, then configured and unconfigured browser builds and tests. Use `npm run test:emulator-browser` for just the Emulator browser suite. The separate Lighthouse gate is documented in CI. CI and the local runners need not have identical test selections. The legacy diagnostic suite is not the current release gate.
+4. For a separately authorized release, verify the validation and Pages run IDs for the exact reviewed main commit, then smoke-test https://kcchanai.github.io/UH-Flowboard/. A pass on a synthetic board does not approve a deployment, real-account checks, or publication of Rules or indexes.
+
+## Historical checklists
+
+The completed boxes below record older checkpoints. They do not establish currently available UI, active production Rules, current accessibility, or the status of a future release. The pre-rename Pages URL is obsolete.
+
 Run these checks before publishing a Flowboard change.
 
 ## Foundation

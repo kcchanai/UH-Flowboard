@@ -1,5 +1,7 @@
 # Flowboard Firebase collaboration architecture
 
+> Historical architecture decision record. The local-first framing and completed gates below are historical. See the [README](README.md) for current product behavior and [release notes](RELEASE_NOTES.md) for current release evidence and its limits.
+
 ## Status
 
 Flowboard is a GitHub Pages-hosted, local-first application with real Firebase Google Authentication and authenticated shared Firestore workspaces. Core production authorization, privacy, revocation, conflict, convergence, accessibility, quota, deployment, and cleanup gates are complete. Workspace-container recovery and lifecycle controls are no longer customer-facing normal navigation. Owner-only adapter/Rules maintenance remains for archived or interrupted historical roots until a separate production inventory authorizes decommission.

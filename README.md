@@ -1,113 +1,50 @@
 # Flowboard
 
-A lightweight, local-first project-planning board inspired by kanban tools. It uses vanilla HTML/CSS/JavaScript with a small Vite build and an adapter boundary for optional Firebase collaboration.
+Flowboard is a cloud-first kanban board for planning projects, built with vanilla HTML, CSS and JavaScript and packaged with Vite.
 
-**Live site:** https://kcchanai.github.io/UH-Flowboard/
+[Open Flowboard](https://kcchanai.github.io/UH-Flowboard/) and sign in with Google. Open **Boards** to create a personal board or find a shared board you have access to. New boards are empty. Your role on a shared board controls which changes you can make.
 
-**Former pre-cutover Pages URL:** https://kcchanai.github.io/UH-Trello/ (GitHub Pages does not redirect this project path.)
+## What you can do
 
-## Current capabilities
+- Organize work with lists and cards, and switch between board and List views.
+- Find cards with filters and track details such as descriptions, due dates, labels, checklists, comments, and assignments.
+- Archive or restore cards and boards where your permissions allow it. Archive and permanent deletion are distinct operations.
+- Personalize the theme and list appearance. Per-list colors and gradients are saved in the current browser, not shared with other board members.
 
-- Seeded project board with horizontally scrollable lists.
-- Create, rename, and delete lists.
-- Create and delete cards.
-- Drag cards between lists.
-- Filter cards across titles, descriptions, labels, checklist text, and assignees.
-- Open an accessible card-detail dialog to edit titles, descriptions, named colored labels, due dates/times, checklists, and local assignees.
-- See concise card metadata: description, checklist progress, due state, labels, and assignee initials.
-- Archive cards and restore them from the direct **Archived cards** control; permanent deletion remains separate.
-- Undo the most recent common change (including deletes, moves, resets, and imports) while the page stays open.
-- Export the full workspace or active board as readable JSON.
-- Preview valid Flowboard JSON before importing, then merge it as a new board or explicitly replace the workspace.
-- Keep up to five rotating local recovery backups when browser storage allows; storage write failures are surfaced clearly.
-- Reset the workspace only through an explicit custom confirmation that recommends exporting first.
-- Record a local activity history for creation, editing, moves, archive/recovery, and duplication.
-- Duplicate a card from its detail view.
-- Edit the board title.
-- Light/dark visual themes.
-- Accessible native dialogs with labelled content, Escape dismissal, and focus returned to the initiating control.
-- Semantic landmarks, a skip-to-board link, card lists with screen-reader card positions, and live announcements for saves, filters, and mutations.
-- Keyboard-operable list menus, card details, keyboard card movement, direct archive access, and 44 px coarse-pointer targets.
-- Forced-colors/high-contrast support, 200% reflow safeguards, and reduced-motion support.
-- Browser-local persistence and migration from the original MVP storage format.
-- A tested `LocalWorkspaceAdapter` boundary. The application does not bypass it for browser persistence, and cloud mode never writes cloud content into the browser-local workspace.
-- Real Firebase Google sign-in with persistent browser sessions, account status, and sign-out; authentication never implies authorization or automatic data migration.
-- A backup-first, explicit cloud-copy flow that reviews board/list/card counts, downloads JSON before enabling upload, creates owner membership under deployed Firestore Security Rules, verifies the written boards, and keeps the local original active.
-- Authenticated cloud workspace discovery, explicit switching, granular revision-aware editing, active-workspace realtime listeners, conflict rollback, and return-to-local restoration.
-- Workspace owners can rename active cloud workspaces and archive or restore retained workspaces. Archiving blocks board, list, card, comment, activity, membership, and invitation mutations until restoration; it is not permanent erasure.
-- Owner/editor/viewer roles, email-matched invitation links, member administration, self-leave, ownership transfer, immediate revocation, and server-enforced read-only access.
-- Member-backed cloud assignments, privacy-minimal append-only activity, and authenticated bounded card comments with soft removal.
+## How data is handled
 
-## Run locally
+Google sign-in is provided by Firebase Authentication. Board content lives in Cloud Firestore; the app is hosted on GitHub Pages. Sign-in alone does not import, merge, or delete older browser-local workspaces. Browser-local appearance settings are separate from board content. An unconfigured build does not open a local-first editing mode as a fallback.
 
-Clone/download the repository, install the locked development dependencies, then use Vite's local server:
+Use synthetic data when developing or testing. A public Pages deployment does not imply approval to store institutional, confidential, or regulated records. Consult the [privacy and data boundaries](PRIVACY_AND_DATA_BOUNDARIES.md) for background and limitations.
 
-```bash
-git clone https://github.com/kcchanai/UH-Flowboard.git UH-Trello
-cd UH-Trello
+## Develop locally
+
+Use Node.js 22, matching CI:
+
+~~~sh
+git clone https://github.com/kcchanai/UH-Flowboard.git
+cd UH-Flowboard
 npm ci
-npm run dev
-```
+npm run dev -- --host 127.0.0.1 --strictPort
+~~~
 
-Vite serves the project at `http://127.0.0.1:5173/<repository-name>/`, using `UH-Flowboard` as the local fallback after the repository rename. `npm run build` creates the deployable static site in `dist/`; GitHub Actions derives the Pages base from the repository name.
+Open the URL Vite prints (normally http://127.0.0.1:5173/UH-Flowboard/). An unconfigured development build can be used to inspect the signed-out or unavailable state. Use synthetic fixtures and disposable emulators for configured board behavior; do not copy production Firebase settings, credentials, or browser profiles into a test run.
 
-## Data and privacy
+- `npm run validate`: unit tests, syntax/static checks, build, asset budgets, and test isolation.
+- `npm run test:rules`: Firestore Rules checks with Java 21 and a disposable demo project.
+- See the [validation checklist](VALIDATION_CHECKLIST.md#current-validation) for current browser test setup and evidence boundaries.
 
-Flowboard remains local-first. Sign-in alone never uploads, merges, replaces, synchronizes, or deletes browser-local data. The explicit cloud-copy flow requires a downloaded JSON backup, creates a separate Firestore workspace and owner membership, verifies the cloud documents, and leaves the local original active. Opening cloud mode does not replace local storage, and returning to local mode reloads the local workspace. The app uses a versioned `flowboard-workspace` storage envelope (currently schema 4), automatically migrates the original `flowboard-data` format, and keeps up to five rotating browser-local recovery snapshots where storage permits. Undo history is session-only. Imports are validated before merge or replacement; invalid data leaves the current workspace untouched.
+## Repository and releases
 
-Optional collaboration stores Google/Firebase identity fields, workspace membership, content, comments, invitations, and privacy-minimal activity in Firestore under deployed Security Rules. Cloud comments are soft-removed, cards are archived, and parent hard deletion is denied. Persistent Firestore disk caching is disabled. See [`PRIVACY_AND_DATA_BOUNDARIES.md`](PRIVACY_AND_DATA_BOUNDARIES.md) for identity visibility, retention, exports, deletion restrictions, diagnostics redaction, quotas, terms references, and the institutional-data boundary.
+- [Release notes](RELEASE_NOTES.md) explain how to look up the current source, validation and Pages deployments.
+- [Collaboration architecture](COLLABORATION_ARCHITECTURE.md) records the original design and compatibility boundaries; it is not a current release report.
+- [Validation workflow](.github/workflows/validate.yml) is the authoritative CI command list. The [Pages workflow](.github/workflows/deploy-pages.yml) normally publishes the validated main-branch push. A pull request does not deploy the app, and Pages does not publish Firestore Rules or indexes.
+- This repository was formerly named UH-Trello. The former Pages URL does not redirect; use https://kcchanai.github.io/UH-Flowboard/.
 
-## Project structure
+## Source map
 
-- `index.html` — semantic page structure, accessible dialog, and SVG icon sprite.
-- `styles.css` — responsive design system, components, light/dark themes, and reduced-motion support.
-- `app.js` — UI orchestration and DOM event handling; persistence is delegated to the configured local adapter.
-- `src/main.js` — Vite module entry that assembles runtime configuration, the domain helpers, and adapters.
-- `src/adapters/` — documented adapter contract, `LocalWorkspaceAdapter`, Firebase Authentication adapter, and lazy-loaded Firestore cloud-workspace migration adapter.
-- `src/config.js` — public environment configuration detection; it exposes no credentials.
-- `state-core.js` — dependency-free state helpers shared by the app and Node unit tests.
-- `firebase.json`, `firestore.rules`, and `firestore.indexes.json` — deployed Firestore policy source plus Emulator Suite configuration; rules remain version-controlled and tested in CI.
-- `FIREBASE_COLLABORATION_PLAN.md` — delivered Firebase collaboration architecture and lifecycle-extension status.
-- `TERRA_NEXT_PHASES_PLAN.md` — authoritative production-hardening, lifecycle acceptance, and beta-readiness plan.
-- `FIREBASE_OWNER_SETUP.md` — exact owner-only Firebase console setup and credential-safety checklist.
-- `tests/` — Node unit tests, Firestore Security Rules tests, and Chromium critical-workflow smoke tests.
-- `.github/workflows/validate.yml` — pull-request/main validation: unit, static, performance-budget, browser, and accessibility checks.
-- `RELEASE_NOTES.md` — release notes, dependency decision, budgets, and repeatable release commands.
-- `IMPROVEMENT_PLAN.md` — prioritized product and design roadmap.
-- `VALIDATION_CHECKLIST.md` — repeatable acceptance checks.
-- `COLLABORATION_ARCHITECTURE.md` — Phase 7 decision record, safe integration boundary, server-side security requirements, and release gates.
-- `PRIVACY_AND_DATA_BOUNDARIES.md` — current identity, storage, visibility, retention, export, quota, and institutional-use boundaries.
-
-## Deployment
-
-GitHub Actions validates the project, builds it with Vite, and publishes the generated `dist/` directory to GitHub Pages. The production build derives its base path from the repository name, so the same source supports the pre-cutover `/UH-Trello/` path and the post-rename `/UH-Flowboard/` path. After pushing changes, open the appropriate live site above once the GitHub Pages workflow completes.
-
-The repository has been renamed from `UH-Trello` to `UH-Flowboard`. GitHub redirects normal repository links and Git operations from the old name, but the former GitHub Pages project URL does not redirect. Do not create a new repository using the old name, or those redirects may stop working. The local working folder may remain `UH-Trello`.
-
-## Quality and release checks
-
-Run the local application checks with:
-
-```bash
-npm test
-npm run check
-npm run build
-```
-
-Firestore Security Rules tests additionally require Java 21 and use a disposable Emulator Suite project:
-
-```bash
-npm run test:rules
-```
-
-GitHub Actions runs all of these checks for pull requests and `main`, then installs Playwright and Lighthouse ephemerally for Chromium critical-workflow and automated accessibility validation. The deployed client includes the pinned Firebase Web SDK only when cloud integration is implemented; Firebase CLI and browser test tools are not production runtime dependencies.
-
-## Accessibility
-
-Flowboard is designed for keyboard and assistive-technology use: use the skip link to reach the board, **Enter** to open a card, **Alt + Arrow keys** to move a focused card, and Arrow keys/Home/End/Escape in list menus. Native dialogs contain their focus while open and return it when closed. Cards announce their list and visible position; save, filter, add, move, archive, delete, and undo outcomes are announced through a polite live region.
-
-The Phase 6 audit used Lighthouse accessibility against the locally served app (score: **100**, no failed audits), plus practical browser checks for dialog focus return, direct archive keyboard behavior, a keyboard-created persisted card, 200% zoom/reflow, reduced-motion CSS, and desktop visual layout. Browser-local storage and drag-and-drop remain local-only; no screen-reader testing can substitute for testing with a user’s chosen assistive technology.
-
-## Collaboration status and next work
-
-Authenticated shared collaboration is deployed. Flowboard supports explicit cloud workspace switching, granular revision-aware editing, owner/editor/viewer roles, verified-email invitations, member administration, ownership transfer, realtime convergence, revocation, activity, member-backed assignments, comments, and owner-only recoverable workspace archive/Restore. Production authorization and the core Phase H release matrix passed. The remaining lifecycle-extension gates are independent-context stale-revision/convergence, archive listener shutdown, lifecycle-specific real-account denials, and final fixture closeout. See `TERRA_NEXT_PHASES_PLAN.md` for the authoritative risk-ordered plan.
+- `app.js`, `index.html` and `styles.css`: interface, dialogs and responsive layout.
+- `src/main.js` and `src/runtime-bootstrap.js`: entry point and adapter wiring.
+- `src/adapters/`: local and Firebase persistence boundaries.
+- `state-core.js` and `tests/`: domain helpers and validation.
+- `firestore.rules` and `firestore.indexes.json`: version-controlled policy sources. Check the deployed Rules revision separately before making production guarantees.
