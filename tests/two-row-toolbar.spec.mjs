@@ -77,7 +77,7 @@ test('quick filters are self-clearing and compact without duplicate chips or lon
   await expect(filters).toHaveAttribute('data-active','false');
   await overdue.click();
   await expect(overdue).toHaveAttribute('aria-pressed','true');
-  await expect(filters).toHaveAttribute('aria-label','Filters active');
+  await expect(filters).toHaveAttribute('aria-label','Filters (1 active)');
   await expect(page.locator('#filter-chips')).toHaveCount(0);
   await expect(page.locator('#search-count')).toHaveText('0 of 1 cards shown · 0 overdue · 0 due today · 0 complete');
   await expect(page.locator('#topbar-summary')).toHaveText('0 of 1 cards shown · 0 overdue · 0 due today · 0 complete');
@@ -151,4 +151,41 @@ test('signed-out and viewer controls retain their access boundaries',async({page
   await expect(page.locator('.add-card').first()).toBeHidden();
   await page.locator('#view-toggle').click();await expect(page.locator('#list-view-table')).toBeVisible();
   await page.locator('#archived-cards-button').click();await expect(page.locator('#archive-dialog')).toBeVisible();
+});
+
+test('long board names and applied filters are accessible without reopening the panel',async({page})=>{
+  await page.setViewportSize({width:1024,height:768});
+  await openSyntheticBoard(page,'viewer');
+  await expect(page.locator('#board-full-title')).toBeHidden();
+  const title='Quarterly Robotics Workshop Readiness and Logistics: North Campus';
+  await page.evaluate(title=>{
+    const workspace=FlowboardState.makeWorkspace(),board=workspace.boards[0];
+    board.title=title;
+    board.lists=[FlowboardState.makeList('Example',[FlowboardState.makeCard('Synthetic task')])];
+    FlowboardApp.openCloudPreview(workspace,{id:'demo-two-row-long',name:'Fixture workspace',role:'viewer'});
+  },title);
+  const input=page.locator('#board-title'),disclosure=page.locator('#board-full-title summary'),toggle=page.locator('#filter-toggle');
+  await expect(input).toHaveValue(title);
+  await expect(input).not.toBeEditable();
+  await disclosure.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#board-full-title-text')).toBeVisible();
+  await expect(page.locator('#board-full-title-text')).toHaveText(title);
+  await page.keyboard.press('Enter');
+  await page.locator('#search').fill('Synthetic');
+  await toggle.click();
+  await page.locator('#due-filter').selectOption('overdue');
+  await page.locator('#completion-filter').selectOption('incomplete');
+  await toggle.click();
+  await expect(page.locator('#filter-panel')).toBeHidden();
+  await expect(toggle).toHaveAccessibleName('Filters (2 active)');
+  await expect(page.locator('#board-active-filter-names')).toContainText('Due: Overdue');
+  await expect(page.locator('#board-active-filter-names')).toContainText('Completion: Incomplete');
+  await page.locator('#clear-header-filters').focus();
+  await page.keyboard.press('Enter');
+  await expect(toggle).toBeFocused();
+  await expect(toggle).toHaveAccessibleName('Filters');
+  await expect(page.locator('#board-active-filters')).toBeHidden();
+  await expect(page.locator('#search')).toHaveValue('Synthetic');
+  await expect(page.locator('.card-open')).toHaveCount(1);
 });
