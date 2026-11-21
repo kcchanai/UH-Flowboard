@@ -1,5 +1,7 @@
 # Flowboard privacy and data boundaries
 
+> Historical privacy review. The local-first and recovery workflows below describe an earlier version. The [README](README.md#how-data-is-handled) explains the current cloud-first entry point and the separation between browser-local preferences, legacy workspace data, and cloud board content. Do not infer current production Rules, user-data approval, or visible controls from this historical record.
+
 Last reviewed: 2026-08-02
 
 ## Scope
