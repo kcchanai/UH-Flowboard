@@ -31,7 +31,7 @@ export function createFirebaseWorkspaceAdapter(config) {
     ensurePersonalWorkspace(options) { return cloudCall('ensurePersonalWorkspace', options); },
     listWorkspaces() { return cloudCall('listCloudWorkspaces'); },
     listBoardDirectory(options) { return cloudCall('listBoardDirectory', options); },
-    fetchWorkspace(workspaceId) { return cloudCall('fetchCloudWorkspace', workspaceId); },
+    fetchWorkspace(workspaceId, options) { return cloudCall('fetchCloudWorkspace', workspaceId, options); },
     setBoardArchived(options) { return cloudCall('setBoardArchived', options); },
     renameWorkspace(options) { return lifecycleCall('renameCloudWorkspace', options); },
     archiveWorkspace(options) { return lifecycleCall('archiveCloudWorkspace', options); },
